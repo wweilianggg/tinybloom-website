@@ -1,0 +1,103 @@
+// js/nav.js — Injects shared navbar and footer, handles mobile menu and auth state
+
+const NAV_HTML = `
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">TinyBloom</a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html" id="nav-home">Home</a></li>
+    <li><a href="features.html" id="nav-features">Features</a></li>
+    <li><a href="subscriptions.html" id="nav-subscriptions">Subscriptions</a></li>
+    <li><a href="testimonials.html" id="nav-testimonials">Testimonials</a></li>
+    <li><a href="faq.html" id="nav-faq">FAQ</a></li>
+  </ul>
+  <div class="nav-auth" id="auth-links">
+    <a href="register.html" class="btn btn-primary btn-sm">Register</a>
+  </div>
+  <div class="nav-user" id="user-menu" style="display:none">
+    <span class="nav-user-name" id="nav-user-name"></span>
+    <a href="admin/index.html" class="btn btn-outline btn-sm" id="admin-nav-btn">Admin Panel</a>
+    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>`;
+
+const FOOTER_HTML = `
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">TinyBloom</div>
+      <p class="footer-desc">Personalised pregnancy support for every mother. Better outcomes start with better support.</p>
+    </div>
+    <div>
+      <div class="footer-heading">Platform</div>
+      <ul class="footer-links">
+        <li><a href="features.html">Features</a></li>
+        <li><a href="subscriptions.html">Subscriptions</a></li>
+        <li><a href="testimonials.html">Testimonials</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Support</div>
+      <ul class="footer-links">
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Join Us</div>
+      <ul class="footer-links">
+        <li><a href="register.html">Register Free</a></li>
+        <li><a href="register.html?plan=premium_monthly">Go Premium</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    &copy; 2026 TinyBloom. All rights reserved. &nbsp;|&nbsp; support@tinybloom.com
+  </div>
+</footer>`;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const navPlaceholder = document.getElementById('navbar-placeholder');
+  const footerPlaceholder = document.getElementById('footer-placeholder');
+  if (navPlaceholder) navPlaceholder.outerHTML = NAV_HTML;
+  if (footerPlaceholder) footerPlaceholder.outerHTML = FOOTER_HTML;
+
+  // Highlight active nav link
+  const path = window.location.pathname.split('/').pop() || 'index.html';
+  const idMap = {
+    'index.html': 'nav-home', '': 'nav-home',
+    'features.html': 'nav-features',
+    'subscriptions.html': 'nav-subscriptions',
+    'testimonials.html': 'nav-testimonials',
+    'faq.html': 'nav-faq',
+  };
+  const activeId = idMap[path];
+  if (activeId) {
+    const el = document.getElementById(activeId);
+    if (el) el.classList.add('active');
+  }
+
+  updateNavbar();
+});
+
+function toggleMenu() {
+  const links = document.getElementById('nav-links');
+  if (links) links.classList.toggle('open');
+}
+
+// Toast utility
+function showToast(message, type = '') {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.className = `toast ${type}`;
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => toast.classList.remove('show'), 3500);
+}

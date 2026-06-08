@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choose Your Plan — TinyBloom</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .plan-toggle { display:flex; background:rgba(92,79,74,0.08); border-radius:50px; padding:4px; gap:4px; width:fit-content; margin:0 auto 2rem; }
+    .plan-toggle button { padding:0.5rem 1.5rem; border-radius:50px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:600; transition:all 0.2s; background:transparent; color:var(--text-mid); }
+    .plan-toggle button.active { background:var(--teal); color:white; }
+    .payment-grid { display:grid; grid-template-columns:1fr 340px; gap:2rem; max-width:860px; margin:0 auto; align-items:start; }
+    .payment-card { background:white; border-radius:var(--radius); padding:2rem; box-shadow:var(--shadow-card); }
+    .summary-card { background:white; border-radius:var(--radius); padding:2rem; box-shadow:var(--shadow-card); position:sticky; top:90px; }
+    .summary-line { display:flex; justify-content:space-between; align-items:center; padding:0.65rem 0; border-bottom:1px solid rgba(92,79,74,0.08); font-size:0.9rem; }
+    .summary-total { display:flex; justify-content:space-between; align-items:center; padding:0.85rem 0 0; font-weight:700; font-size:1.05rem; }
+    .card-input-wrap { position:relative; }
+    .card-brands { position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); display:flex; gap:4px; }
+    .card-brand { font-size:0.7rem; font-weight:700; padding:2px 5px; border-radius:3px; }
+    .step-indicator { display:flex; align-items:center; gap:0.5rem; max-width:280px; margin:0 auto 2.5rem; }
+    .step { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; font-size:0.8rem; font-weight:700; flex-shrink:0; }
+    .step.active { background:var(--teal); color:white; }
+    .step.done { background:var(--sage); color:white; }
+    .step.inactive { background:rgba(92,79,74,0.1); color:var(--text-light); }
+    .step-line { flex:1; height:2px; background:rgba(92,79,74,0.1); }
+    .step-line.done { background:var(--sage); }
+    #payment-section { display:none; }
+    .plan-highlight { background:linear-gradient(135deg,var(--teal-light),#f0f9f9); border:2px solid var(--teal); border-radius:var(--radius); padding:1.75rem; }
+    .save-badge { background:var(--teal); color:white; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:50px; margin-left:0.5rem; }
+  </style>
+</head>
+<body>
+<div id="navbar-placeholder"></div>
+
+<div style="background:var(--blush);padding:3rem 2.5rem;min-height:calc(100vh - 70px)">
+
+  <div style="text-align:center;margin-bottom:2rem">
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:0.5rem" id="pay-page-title">Get TinyBloom Premium</h1>
+    <p style="color:var(--text-mid)" id="pay-page-subtitle">Unlock all features for a happier, better-supported pregnancy.</p>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="step-indicator">
+    <div class="step active" id="step1-dot">1</div>
+    <div class="step-line" id="step-line-1"></div>
+    <div class="step inactive" id="step2-dot">2</div>
+  </div>
+
+  <!-- STEP 1: Plan selection -->
+  <div id="plan-section" style="max-width:620px;margin:0 auto">
+
+    <!-- Billing toggle -->
+    <div class="plan-toggle">
+      <button class="active" id="toggle-monthly" onclick="setBilling('monthly')">Monthly</button>
+      <button id="toggle-yearly" onclick="setBilling('yearly')">
+        Yearly <span class="save-badge">Save 24%</span>
+      </button>
+    </div>
+
+    <!-- Single premium plan card -->
+    <div class="plan-highlight" style="margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem">
+        <div>
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem">
+            <span style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700" id="pay-plan-name">Premium</span>
+            <span style="font-size:0.72rem;background:var(--teal);color:white;padding:3px 10px;border-radius:50px;font-weight:700">MOST POPULAR</span>
+          </div>
+          <div style="font-size:0.88rem;color:var(--text-mid)" id="pay-plan-tagline">Full access to all TinyBloom features</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--teal);line-height:1" id="plan-price">$9.90</div>
+          <div style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem" id="plan-period">per month</div>
+          <div style="font-size:0.78rem;color:var(--sage);font-weight:600;display:none" id="yearly-equiv"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1.5rem;margin-bottom:1.25rem" id="plan-bullets">
+        <div style="font-size:0.85rem;color:var(--text-mid);display:flex;align-items:center;gap:0.4rem"><span style="color:var(--teal);font-weight:700">✓</span> <span id="bullet1">Personalised pregnancy tracking</span></div>
+        <div style="font-size:0.85rem;color:var(--text-mid);display:flex;align-items:center;gap:0.4rem"><span style="color:var(--teal);font-weight:700">✓</span> <span id="bullet2">Advanced symptom tracking</span></div>
+        <div style="font-size:0.85rem;color:var(--text-mid);display:flex;align-items:center;gap:0.4rem"><span style="color:var(--teal);font-weight:700">✓</span> <span id="bullet3">AI-powered weekly tips</span></div>
+        <div style="font-size:0.85rem;color:var(--text-mid);display:flex;align-items:center;gap:0.4rem"><span style="color:var(--teal);font-weight:700">✓</span> <span id="bullet4">Video consultations</span></div>
+        <div style="font-size:0.85rem;color:var(--text-mid);display:flex;align-items:center;gap:0.4rem"><span style="color:var(--teal);font-weight:700">✓</span> <span id="bullet5">Baby development insights</span></div>
+        <div style="font-size:0.85rem;color:var(--text-mid);display:flex;align-items:center;gap:0.4rem"><span style="color:var(--teal);font-weight:700">✓</span> <span id="bullet6">Full education library</span></div>
+      </div>
+
+      <div style="background:rgba(91,158,160,0.1);border-radius:var(--radius-sm);padding:0.75rem 1rem;font-size:0.82rem;color:var(--teal);margin-bottom:1.25rem" id="billing-note">
+        Billed monthly. Cancel anytime.
+      </div>
+
+      <button class="btn btn-teal btn-lg" style="width:100%;justify-content:center" onclick="goToPayment()" id="pay-continue-btn">
+        Continue to Payment →
+      </button>
+    </div>
+
+    <!-- Back button -->
+    <div style="text-align:center">
+      <a href="register.html" class="btn btn-ghost" id="pay-back-btn">← Back to Registration</a>
+    </div>
+  </div>
+
+  <!-- STEP 2: Payment -->
+  <div id="payment-section">
+    <div class="payment-grid">
+      <div class="payment-card">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.25rem;margin-bottom:1.5rem">Payment Details</h2>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="pay-email" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Cardholder Name</label>
+          <input type="text" id="pay-name" placeholder="Name as shown on card" />
+        </div>
+        <div class="form-group">
+          <label>Card Number</label>
+          <div class="card-input-wrap">
+            <input type="text" id="pay-card" placeholder="1234 5678 9012 3456" maxlength="19"
+              oninput="formatCard(this)" style="padding-right:5rem" />
+            <div class="card-brands">
+              <span class="card-brand" style="background:#1a1f71;color:white">VISA</span>
+              <span class="card-brand" style="background:#eb001b;color:white">MC</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Expiry Date</label>
+            <input type="text" id="pay-expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" />
+          </div>
+          <div class="form-group">
+            <label>CVC</label>
+            <input type="text" id="pay-cvc" placeholder="123" maxlength="3" />
+          </div>
+        </div>
+
+        <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;font-size:0.82rem;color:var(--teal);margin-bottom:1.5rem">
+          🔒 Your payment information is encrypted and secure.
+        </div>
+
+        <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="pay-error"></div>
+        <div class="form-success" id="pay-success" style="display:none">✓ Payment successful! Your premium account is now active.</div>
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.85rem;font-size:1rem" onclick="processPayment()" id="pay-btn">
+          Subscribe Now
+        </button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:0.75rem" onclick="backToPlan()">
+          ← Back to Plan Selection
+        </button>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-card">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Order Summary</h3>
+        <div style="background:var(--blush);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.25rem">
+          <div style="font-weight:700;font-size:0.95rem">TinyBloom Premium</div>
+          <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem" id="summary-plan-desc">Monthly subscription</div>
+        </div>
+        <div class="summary-line"><span style="color:var(--text-mid)">Subtotal</span><span id="summary-subtotal">$9.90</span></div>
+        <div class="summary-line"><span style="color:var(--text-mid)">Tax (GST 9%)</span><span id="summary-tax">$0.89</span></div>
+        <div class="summary-total"><span>Total</span><span id="summary-total" style="color:var(--teal);font-size:1.2rem">$10.79</span></div>
+        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(92,79,74,0.1);font-size:0.78rem;color:var(--text-light);line-height:1.6">
+          By subscribing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>. Cancel anytime.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="footer-placeholder"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/nav.js"></script>
+<script>
+let billingCycle = 'monthly';
+let prices = { monthly: 9.90, yearly: 90.00 };
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const { data } = await supabaseClient.from('site_settings').select('setting_key, setting_value');
+    if (data) {
+      const s = {};
+      data.forEach(row => { s[row.setting_key] = row.setting_value; });
+
+      // Prices
+      if (s.premium_monthly_price) prices.monthly = parseFloat(s.premium_monthly_price) || 9.90;
+      if (s.premium_yearly_price) prices.yearly = parseFloat(s.premium_yearly_price) || 90.00;
+
+      // Page text
+      if (s.payment_title) { const el = document.getElementById('pay-page-title'); if (el) el.textContent = s.payment_title; }
+      if (s.payment_subtitle) { const el = document.getElementById('pay-page-subtitle'); if (el) el.textContent = s.payment_subtitle; }
+      if (s.payment_plan_name) { const el = document.getElementById('pay-plan-name'); if (el) el.textContent = s.payment_plan_name; }
+      if (s.payment_plan_tagline) { const el = document.getElementById('pay-plan-tagline'); if (el) el.textContent = s.payment_plan_tagline; }
+      if (s.payment_btn) { const el = document.getElementById('pay-continue-btn'); if (el) el.textContent = s.payment_btn; }
+      if (s.payment_back_btn) { const el = document.getElementById('pay-back-btn'); if (el) el.textContent = s.payment_back_btn; }
+
+      // Feature bullets
+      for (let i = 1; i <= 6; i++) {
+        if (s['plan_bullet' + i]) {
+          const el = document.getElementById('bullet' + i);
+          if (el) el.textContent = s['plan_bullet' + i];
+        }
+      }
+
+      // Store billing notes for use in updatePriceDisplay
+      if (s.payment_billing_note_monthly) window._billingNoteMonthly = s.payment_billing_note_monthly;
+      if (s.payment_billing_note_yearly) window._billingNoteYearly = s.payment_billing_note_yearly;
+    }
+  } catch {}
+  updatePriceDisplay();
+
+  // Pre-fill email
+  try {
+    const { data:{ user } } = await supabaseClient.auth.getUser();
+    if (user) document.getElementById('pay-email').value = user.email;
+  } catch {}
+
+  // Auto-select billing from URL
+  const plan = new URLSearchParams(window.location.search).get('plan');
+  if (plan === 'premium_yearly') setBilling('yearly');
+});
+
+function setBilling(cycle) {
+  billingCycle = cycle;
+  document.getElementById('toggle-monthly').classList.toggle('active', cycle === 'monthly');
+  document.getElementById('toggle-yearly').classList.toggle('active', cycle === 'yearly');
+  updatePriceDisplay();
+}
+
+function updatePriceDisplay() {
+  if (billingCycle === 'monthly') {
+    document.getElementById('plan-price').textContent = '$' + prices.monthly.toFixed(2);
+    document.getElementById('plan-period').textContent = 'per month';
+    document.getElementById('billing-note').textContent = window._billingNoteMonthly || 'Billed monthly. Cancel anytime.';
+    document.getElementById('yearly-equiv').style.display = 'none';
+  } else {
+    document.getElementById('plan-price').textContent = '$' + prices.yearly.toFixed(2);
+    document.getElementById('plan-period').textContent = 'per year';
+    const monthly = (prices.yearly / 12).toFixed(2);
+    document.getElementById('yearly-equiv').textContent = `Only $${monthly}/month — save $${(prices.monthly * 12 - prices.yearly).toFixed(2)}`;
+    document.getElementById('yearly-equiv').style.display = 'block';
+    document.getElementById('billing-note').textContent = window._billingNoteYearly || 'Billed annually. Cancel anytime.';
+  }
+  updateSummary();
+}
+
+function updateSummary() {
+  const price = billingCycle === 'monthly' ? prices.monthly : prices.yearly;
+  const tax = parseFloat((price * 0.09).toFixed(2));
+  const total = parseFloat((price + tax).toFixed(2));
+  const period = billingCycle === 'monthly' ? 'Monthly' : 'Annual';
+  document.getElementById('summary-plan-desc').textContent = period + ' subscription';
+  document.getElementById('summary-subtotal').textContent = '$' + price.toFixed(2);
+  document.getElementById('summary-tax').textContent = '$' + tax.toFixed(2);
+  document.getElementById('summary-total').textContent = '$' + total.toFixed(2);
+}
+
+function goToPayment() {
+  document.getElementById('plan-section').style.display = 'none';
+  document.getElementById('payment-section').style.display = 'block';
+  document.getElementById('step1-dot').className = 'step done';
+  document.getElementById('step1-dot').textContent = '✓';
+  document.getElementById('step-line-1').className = 'step-line done';
+  document.getElementById('step2-dot').className = 'step active';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToPlan() {
+  document.getElementById('payment-section').style.display = 'none';
+  document.getElementById('plan-section').style.display = 'block';
+  document.getElementById('step1-dot').className = 'step active';
+  document.getElementById('step1-dot').textContent = '1';
+  document.getElementById('step-line-1').className = 'step-line';
+  document.getElementById('step2-dot').className = 'step inactive';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+  input.value = v;
+}
+
+async function processPayment() {
+  const email = document.getElementById('pay-email').value.trim();
+  const name = document.getElementById('pay-name').value.trim();
+  const card = document.getElementById('pay-card').value.replace(/\s/g,'');
+  const expiry = document.getElementById('pay-expiry').value;
+  const cvc = document.getElementById('pay-cvc').value;
+  const errEl = document.getElementById('pay-error');
+  const btn = document.getElementById('pay-btn');
+  errEl.style.display = 'none';
+
+  if (!email || !name) { errEl.textContent = 'Please enter your email and name.'; errEl.style.display = 'block'; return; }
+  if (card.length < 16) { errEl.textContent = 'Please enter a valid 16-digit card number.'; errEl.style.display = 'block'; return; }
+  if (!expiry.includes('/') || expiry.length < 5) { errEl.textContent = 'Please enter a valid expiry date (MM/YY).'; errEl.style.display = 'block'; return; }
+  if (cvc.length < 3) { errEl.textContent = 'Please enter a valid CVC.'; errEl.style.display = 'block'; return; }
+
+  btn.textContent = 'Processing...'; btn.disabled = true;
+
+  try {
+    const { data:{ user } } = await supabaseClient.auth.getUser();
+    if (user) {
+      await supabaseClient.from('profiles').update({ role: 'premium_user' }).eq('id', user.id);
+      await supabaseClient.from('subscriptions').insert({
+        user_id: user.id,
+        plan_type: billingCycle === 'monthly' ? 'premium_monthly' : 'premium_yearly',
+        status: 'active',
+        price: billingCycle === 'monthly' ? prices.monthly : prices.yearly,
+        expires_at: billingCycle === 'monthly'
+          ? new Date(Date.now() + 30*24*60*60*1000).toISOString()
+          : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
+      });
+    }
+    document.getElementById('pay-success').style.display = 'block';
+    btn.style.display = 'none';
+    document.querySelectorAll('#payment-section .btn-ghost').forEach(b => b.style.display = 'none');
+    setTimeout(() => { window.location.href = user ? 'download.html' : 'register.html'; }, 2500);
+  } catch (e) {
+    errEl.textContent = 'Payment failed: ' + (e.message || 'Please try again.');
+    errEl.style.display = 'block';
+    btn.textContent = 'Subscribe Now'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

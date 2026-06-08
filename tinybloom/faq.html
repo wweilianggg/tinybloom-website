@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — TinyBloom</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar-placeholder"></div>
+
+<div class="page-header">
+  <h1>Frequently Asked Questions</h1>
+  <p>Everything you need to know about TinyBloom.</p>
+</div>
+
+<section class="section">
+  <div class="container" style="max-width:760px">
+    <div id="faq-categories"></div>
+  </div>
+</section>
+
+<div id="footer-placeholder"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/nav.js"></script>
+<script>
+async function loadFaqs() {
+  const container = document.getElementById('faq-categories');
+  container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light)">Loading...</div>';
+  try {
+    const { data } = await supabaseClient.from('faqs').select('*').eq('is_published', true).order('category').order('display_order');
+    if (!data || !data.length) {
+      container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light)">No FAQs available yet.</div>';
+      return;
+    }
+    const grouped = data.reduce((acc, f) => { (acc[f.category || 'General'] = acc[f.category || 'General'] || []).push(f); return acc; }, {});
+    container.innerHTML = Object.entries(grouped).map(([cat, faqs]) => `
+      <div style="margin-bottom:2.5rem">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1.25rem;color:var(--rose-deep)">${cat}</h2>
+        ${faqs.map(f => `
+          <div class="card" style="margin-bottom:0.85rem;cursor:pointer" onclick="toggleFaq(this)">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+              <strong style="font-size:0.95rem">${f.question}</strong>
+              <span class="faq-icon" style="color:var(--rose-deep);font-size:1.2rem;flex-shrink:0;transition:transform 0.2s">+</span>
+            </div>
+            <p class="faq-ans" style="display:none;margin-top:1rem;color:var(--text-mid);font-size:0.9rem;line-height:1.7">${f.answer}</p>
+          </div>`).join('')}
+      </div>`).join('');
+  } catch { container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light)">Could not load FAQs.</div>'; }
+}
+
+function toggleFaq(el) {
+  const ans = el.querySelector('.faq-ans');
+  const icon = el.querySelector('.faq-icon');
+  const isOpen = ans.style.display === 'block';
+  ans.style.display = isOpen ? 'none' : 'block';
+  icon.textContent = isOpen ? '+' : '−';
+  icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+loadFaqs();
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Content — Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div class="admin-header">
+      <h1>Articles &amp; Content</h1>
+      <button class="btn btn-primary" onclick="openArticleForm()">+ New Article</button>
+    </div>
+
+    <!-- Article Form -->
+    <div id="article-form-panel" style="display:none" class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.25rem" id="form-title-label">New Article</h2>
+      <input type="hidden" id="article-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="art-title" placeholder="Article title" />
+        </div>
+        <div class="form-group">
+          <label>Slug *</label>
+          <input type="text" id="art-slug" placeholder="article-url-slug" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="art-category">
+            <option value="">Select category</option>
+            <option>Nutrition</option><option>Exercise</option><option>Mental Health</option>
+            <option>Baby Care</option><option>First Trimester</option><option>Second Trimester</option>
+            <option>Third Trimester</option><option>Postpartum</option><option>General</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="art-status">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Excerpt</label>
+          <input type="text" id="art-excerpt" placeholder="Short description (shown in listings)" />
+        </div>
+        <div class="form-group">
+          <label>Cover Image URL</label>
+          <input type="url" id="art-cover" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Content *</label>
+        <textarea id="art-content" rows="10" placeholder="Write your article content here (HTML supported)..." style="resize:vertical;font-family:monospace;font-size:0.85rem"></textarea>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:0.5rem">
+        <input type="checkbox" id="art-premium" style="width:auto" />
+        <label for="art-premium" style="display:inline;margin:0;font-size:0.88rem">Premium only content</label>
+      </div>
+      <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="art-error"></div>
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn btn-primary" onclick="saveArticle()">Save Article</button>
+        <button class="btn btn-ghost" onclick="closeArticleForm()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <select id="art-filter-status" onchange="loadArticles()" style="padding:0.5rem 1rem;border-radius:50px;border:1.5px solid rgba(92,79,74,0.15);font-family:'DM Sans',sans-serif;font-size:0.88rem">
+        <option value="">All Status</option>
+        <option value="published">Published</option>
+        <option value="draft">Draft</option>
+        <option value="archived">Archived</option>
+      </select>
+      <select id="art-filter-cat" onchange="loadArticles()" style="padding:0.5rem 1rem;border-radius:50px;border:1.5px solid rgba(92,79,74,0.15);font-family:'DM Sans',sans-serif;font-size:0.88rem">
+        <option value="">All Categories</option>
+        <option>Nutrition</option><option>Exercise</option><option>Mental Health</option><option>Baby Care</option><option>General</option>
+      </select>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead>
+          <tr><th>Title</th><th>Category</th><th>Status</th><th>Premium</th><th>Views</th><th>Created</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="articles-table">
+          <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/admin-sidebar.js"></script>
+<script>
+let editingId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+  loadArticles();
+  document.getElementById('art-title').addEventListener('input', function() {
+    if (!editingId) document.getElementById('art-slug').value = this.value.toLowerCase().replace(/[^a-z0-9 -]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');
+  });
+});
+
+function openArticleForm(article = null) {
+  const panel = document.getElementById('article-form-panel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth' });
+  editingId = null;
+  if (article) {
+    editingId = article.id;
+    document.getElementById('form-title-label').textContent = 'Edit Article';
+    document.getElementById('article-id').value = article.id;
+    document.getElementById('art-title').value = article.title || '';
+    document.getElementById('art-slug').value = article.slug || '';
+    document.getElementById('art-category').value = article.category || '';
+    document.getElementById('art-status').value = article.status || 'draft';
+    document.getElementById('art-excerpt').value = article.excerpt || '';
+    document.getElementById('art-cover').value = article.cover_image_url || '';
+    document.getElementById('art-content').value = article.content || '';
+    document.getElementById('art-premium').checked = article.is_premium_only || false;
+  } else {
+    document.getElementById('form-title-label').textContent = 'New Article';
+    ['art-title','art-slug','art-excerpt','art-cover','art-content'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('art-status').value = 'draft';
+    document.getElementById('art-premium').checked = false;
+  }
+}
+function closeArticleForm() { document.getElementById('article-form-panel').style.display = 'none'; editingId = null; }
+
+async function saveArticle() {
+  const errEl = document.getElementById('art-error');
+  errEl.style.display = 'none';
+  const title = document.getElementById('art-title').value.trim();
+  const slug = document.getElementById('art-slug').value.trim();
+  const content = document.getElementById('art-content').value.trim();
+  if (!title || !slug || !content) { errEl.textContent = 'Title, slug and content are required.'; errEl.style.display = 'block'; return; }
+
+  const payload = {
+    title, slug, content,
+    category: document.getElementById('art-category').value || null,
+    status: document.getElementById('art-status').value,
+    excerpt: document.getElementById('art-excerpt').value || null,
+    cover_image_url: document.getElementById('art-cover').value || null,
+    is_premium_only: document.getElementById('art-premium').checked,
+    published_at: document.getElementById('art-status').value === 'published' ? new Date().toISOString() : null,
+  };
+
+  const { error } = editingId
+    ? await supabaseClient.from('articles').update(payload).eq('id', editingId)
+    : await supabaseClient.from('articles').insert(payload);
+
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  showToast(editingId ? 'Article updated!' : 'Article created!', 'success');
+  closeArticleForm();
+  loadArticles();
+}
+
+async function loadArticles() {
+  const tbody = document.getElementById('articles-table');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</td></tr>';
+  let query = supabaseClient.from('articles').select('*').order('created_at', { ascending: false });
+  const s = document.getElementById('art-filter-status').value;
+  const c = document.getElementById('art-filter-cat').value;
+  if (s) query = query.eq('status', s);
+  if (c) query = query.eq('category', c);
+  const { data, error } = await query;
+
+  if (error) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#c0392b;padding:2rem">Error: ${error.message}</td></tr>`; return; }
+  if (!data?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">No articles found.</td></tr>'; return; }
+
+  const sb = { published:'badge-green', draft:'badge-gray', archived:'badge-rose' };
+  tbody.innerHTML = data.map(a => `
+    <tr>
+      <td style="max-width:200px"><div style="font-weight:600;font-size:0.88rem">${a.title}</div><div style="font-size:0.75rem;color:var(--text-light)">${a.slug}</div></td>
+      <td>${a.category||'—'}</td>
+      <td><span class="badge ${sb[a.status]||'badge-gray'}">${a.status}</span></td>
+      <td>${a.is_premium_only ? '<span class="badge badge-gold">⭐</span>' : '—'}</td>
+      <td>${a.view_count||0}</td>
+      <td>${new Date(a.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td><div style="display:flex;gap:0.4rem">
+        <button class="btn btn-ghost btn-sm" onclick='openArticleForm(${JSON.stringify(a).replace(/'/g,"&#39;")})'>Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteArticle('${a.id}',this)">Delete</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+async function deleteArticle(id, btn) {
+  if (!confirm('Delete this article?')) return;
+  await supabaseClient.from('articles').delete().eq('id', id);
+  btn.closest('tr').remove();
+  showToast('Article deleted.');
+}
+</script>
+</body>
+</html>

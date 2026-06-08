@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Users — Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div class="admin-header">
+      <h1>User Management</h1>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+        <select id="role-filter" onchange="loadUsers()" style="padding:0.5rem 1rem;border-radius:50px;border:1.5px solid rgba(92,79,74,0.15);font-family:'DM Sans',sans-serif;font-size:0.88rem">
+          <option value="">All Roles</option>
+          <option value="free_user">Free Users</option>
+          <option value="premium_user">Premium Users</option>
+          <option value="next_of_kin">Next of Kin</option>
+          <option value="specialist">Specialists</option>
+          <option value="volunteer">Volunteers</option>
+        </select>
+        <input type="text" id="search-users" placeholder="Search name or email..." onkeyup="loadUsers()"
+          style="padding:0.5rem 1rem;border-radius:50px;border:1.5px solid rgba(92,79,74,0.15);font-family:'DM Sans',sans-serif;font-size:0.88rem;min-width:200px">
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="users-table">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-light)">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.4);z-index:9999;align-items:center;justify-content:center">
+  <div class="card" style="width:400px">
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.35rem">Edit User</h3>
+    <p id="edit-user-name" style="font-weight:600;color:var(--text-mid);margin-bottom:1.25rem;font-size:0.9rem"></p>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="edit-role">
+        <option value="free_user">Free User</option>
+        <option value="premium_user">Premium User</option>
+        <option value="next_of_kin">Next of Kin</option>
+        <option value="specialist">Specialist</option>
+        <option value="volunteer">Volunteer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="edit-status">
+        <option value="true">Active</option>
+        <option value="false">Suspended</option>
+      </select>
+    </div>
+    <input type="hidden" id="edit-user-id" />
+    <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+      <button class="btn btn-primary" onclick="saveUserEdit()">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.4);z-index:9999;align-items:center;justify-content:center">
+  <div class="card" style="width:400px;text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:1rem">⚠️</div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.5rem">Delete User?</h3>
+    <p id="delete-user-name" style="font-weight:600;color:var(--text-mid);margin-bottom:0.5rem"></p>
+    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem">This will permanently delete the user's profile and all their data. This action cannot be undone.</p>
+    <input type="hidden" id="delete-user-id" />
+    <div style="display:flex;gap:0.75rem;justify-content:center">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-primary" style="background:#c0392b;border-color:#c0392b" onclick="confirmDelete()">Yes, Delete User</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/admin-sidebar.js"></script>
+<script>
+const ADMIN_EMAIL = 'admin@tinybloom.com';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+  loadUsers();
+});
+
+async function loadUsers() {
+  const role = document.getElementById('role-filter').value;
+  const search = document.getElementById('search-users').value.toLowerCase();
+  const tbody = document.getElementById('users-table');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</td></tr>';
+
+  let query = supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+  if (role) query = query.eq('role', role);
+  const { data, error } = await query;
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#c0392b;padding:2rem">Error: ${error.message}</td></tr>`;
+    return;
+  }
+
+  let rows = data || [];
+  if (search) rows = rows.filter(u => u.full_name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-light)">No users found.</td></tr>';
+    return;
+  }
+
+  const badge = {
+    free_user:'badge-teal', premium_user:'badge-gold', admin:'badge-rose',
+    specialist:'badge-green', volunteer:'badge-green', next_of_kin:'badge-gray'
+  };
+
+  tbody.innerHTML = rows.map(u => {
+    const isAdmin = u.email === ADMIN_EMAIL || u.role === 'admin';
+
+    // Admin row — locked, no actions available
+    if (isAdmin) {
+      return `
+        <tr style="background:rgba(201,123,117,0.05)">
+          <td>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              ${u.full_name}
+              <span style="font-size:0.7rem;background:var(--rose-deep);color:white;padding:0.1rem 0.45rem;border-radius:50px;font-weight:700">ADMIN</span>
+            </div>
+          </td>
+          <td style="color:var(--text-light)">${u.email}</td>
+          <td><span class="badge badge-rose">admin</span></td>
+          <td><span class="badge badge-green">Active</span></td>
+          <td>${new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
+          <td><span style="font-size:0.78rem;color:var(--text-light);font-style:italic">Protected</span></td>
+        </tr>`;
+    }
+
+    // Regular user row — edit + delete
+    return `
+      <tr>
+        <td>${u.full_name}</td>
+        <td style="color:var(--text-light)">${u.email}</td>
+        <td><span class="badge ${badge[u.role]||'badge-gray'}">${u.role.replace(/_/g,' ')}</span></td>
+        <td><span class="badge ${u.is_active ? 'badge-green':'badge-rose'}">${u.is_active ? 'Active':'Suspended'}</span></td>
+        <td>${new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>
+        <td>
+          <div style="display:flex;gap:0.4rem">
+            <button class="btn btn-ghost btn-sm"
+              onclick="openEdit('${u.id}','${u.full_name.replace(/'/g,"\\'")}','${u.role}','${u.is_active}')">
+              Edit
+            </button>
+            <button class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.2)"
+              onclick="openDeleteModal('${u.id}','${u.full_name.replace(/'/g,"\\'")}')">
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ---- Edit Modal ----
+function openEdit(id, name, role, isActive) {
+  document.getElementById('edit-user-id').value = id;
+  document.getElementById('edit-user-name').textContent = name;
+  document.getElementById('edit-role').value = role;
+  document.getElementById('edit-status').value = String(isActive);
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
+
+async function saveUserEdit() {
+  const id = document.getElementById('edit-user-id').value;
+  const role = document.getElementById('edit-role').value;
+  const isActive = document.getElementById('edit-status').value === 'true';
+  const { error } = await supabaseClient.from('profiles').update({ role, is_active: isActive }).eq('id', id);
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  closeModal();
+  showToast('User updated!', 'success');
+  loadUsers();
+}
+
+// ---- Delete Modal ----
+function openDeleteModal(id, name) {
+  document.getElementById('delete-user-id').value = id;
+  document.getElementById('delete-user-name').textContent = name;
+  document.getElementById('delete-modal').style.display = 'flex';
+}
+function closeDeleteModal() { document.getElementById('delete-modal').style.display = 'none'; }
+
+async function confirmDelete() {
+  const id = document.getElementById('delete-user-id').value;
+  const btn = document.querySelector('#delete-modal .btn-primary');
+  btn.textContent = 'Deleting...'; btn.disabled = true;
+
+  try {
+    // Delete profile (cascades to related tables via FK)
+    const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
+    if (error) throw error;
+    closeDeleteModal();
+    showToast('User deleted.', '');
+    loadUsers();
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+    btn.textContent = 'Yes, Delete User'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
