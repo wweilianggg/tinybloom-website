@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — TinyBloom</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar-placeholder"></div>
+
+<div style="background:var(--blush);min-height:calc(100vh - 70px);padding:4rem 2.5rem;">
+  <div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:3.5rem;align-items:start;">
+    <div>
+      <div class="form-brand">TinyBloom</div>
+      <p style="color:var(--text-mid);margin-bottom:2rem;line-height:1.7;">Join thousands of mothers, families, and healthcare professionals on TinyBloom — your complete pregnancy support companion.</p>
+      <div id="register-illustration">
+        <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" fill="none" style="max-width:320px;width:100%;display:block;margin:1.5rem auto">
+          <ellipse cx="100" cy="175" rx="55" ry="65" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5"/>
+          <circle cx="100" cy="95" r="32" fill="none" stroke="#c97b75" stroke-width="1.5"/>
+          <path d="M82 142 C82 155 88 168 100 175 C112 168 118 155 118 142" stroke="#c97b75" stroke-width="1.5" fill="none"/>
+          <circle cx="150" cy="220" r="16" fill="#e8a9a3" opacity="0.7"/>
+          <circle cx="150" cy="220" r="8" fill="#c97b75" opacity="0.8"/>
+          <circle cx="150" cy="200" r="10" fill="#e8a9a3" opacity="0.5"/>
+          <circle cx="162" cy="212" r="10" fill="#e8a9a3" opacity="0.5"/>
+          <circle cx="138" cy="212" r="10" fill="#e8a9a3" opacity="0.5"/>
+          <path d="M145 238 C140 255 132 265 120 272" stroke="#7a9e8e" stroke-width="1.5" fill="none"/>
+          <ellipse cx="128" cy="260" rx="8" ry="14" transform="rotate(-25 128 260)" fill="#7a9e8e" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="divider"></div>
+      <p style="font-size:0.85rem;color:var(--text-light)">Already have an account? <a href="login.html">Log in here</a></p>
+    </div>
+
+    <div class="form-card">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.35rem;">Create Your Account</h2>
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.75rem;">Choose your role to get started</p>
+
+      <div class="form-group">
+        <label>I am joining as a...</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-top:0.5rem">
+          <button type="button" class="role-btn" onclick="selectRole('free_user',this)"><span>🤰</span> Pregnant Mum (Free)</button>
+          <button type="button" class="role-btn" onclick="handlePremiumClick(this)"><span>⭐</span> Pregnant Mum (Premium)</button>
+          <button type="button" class="role-btn" onclick="selectRole('next_of_kin',this)"><span>💑</span> Next of Kin</button>
+          <button type="button" class="role-btn" onclick="selectRole('specialist',this)"><span>👩‍⚕️</span> Specialist / Doctor</button>
+          <button type="button" class="role-btn" onclick="selectRole('volunteer',this)" style="grid-column:span 2"><span>🤝</span> Volunteer</button>
+        </div>
+      </div>
+
+      <div id="register-form" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-name">Full Name *</label>
+            <input type="text" id="reg-name" placeholder="e.g. Sarah Lim" />
+          </div>
+          <div class="form-group">
+            <label for="reg-phone">Phone Number</label>
+            <input type="tel" id="reg-phone" placeholder="e.g. +65 9123 4567" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email Address *</label>
+          <input type="email" id="reg-email" placeholder="e.g. sarah@example.com" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-password">Password *</label>
+            <input type="password" id="reg-password" placeholder="Min. 8 characters" />
+          </div>
+          <div class="form-group">
+            <label for="reg-confirm">Confirm Password *</label>
+            <input type="password" id="reg-confirm" placeholder="Re-enter password" />
+          </div>
+        </div>
+
+        <!-- Specialist extras -->
+        <div id="specialist-fields" style="display:none">
+          <div class="divider"></div>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Professional Details</p>
+          <div class="form-group">
+            <label for="spec-field">Specialization *</label>
+            <input type="text" id="spec-field" placeholder="e.g. Obstetrician, Midwife, Nutritionist" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="spec-license">License Number</label>
+              <input type="text" id="spec-license" placeholder="e.g. SMC-12345" />
+            </div>
+            <div class="form-group">
+              <label for="spec-years">Years of Experience</label>
+              <input type="number" id="spec-years" placeholder="e.g. 8" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="spec-hospital">Hospital / Clinic Affiliation</label>
+            <input type="text" id="spec-hospital" placeholder="e.g. KK Women's and Children's Hospital" />
+          </div>
+        </div>
+
+        <!-- Volunteer extras — same format as specialist -->
+        <div id="volunteer-fields" style="display:none">
+          <div class="divider"></div>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Volunteer Details</p>
+          <div class="form-group">
+            <label for="vol-expertise">Area of Expertise *</label>
+            <input type="text" id="vol-expertise" placeholder="e.g. General Health, Nutrition, Mental Wellness" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="vol-license">Certification / License (if any)</label>
+              <input type="text" id="vol-license" placeholder="e.g. Certified Lactation Consultant" />
+            </div>
+            <div class="form-group">
+              <label for="vol-years">Years of Experience</label>
+              <input type="number" id="vol-years" placeholder="e.g. 5" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="vol-affiliation">Organisation / Affiliation (if any)</label>
+            <input type="text" id="vol-affiliation" placeholder="e.g. Singapore Red Cross, Self-employed" />
+          </div>
+        </div>
+
+        <!-- Next of kin extras -->
+        <div id="kin-fields" style="display:none">
+          <div class="divider"></div>
+          <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Family Connection</p>
+          <div class="form-group">
+            <label for="kin-relationship">Relationship to Expectant Mother</label>
+            <select id="kin-relationship">
+              <option value="">Select relationship</option>
+              <option>Husband / Partner</option>
+              <option>Mother</option>
+              <option>Father</option>
+              <option>Sister</option>
+              <option>Brother</option>
+              <option>Friend</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="mum-user-code">Mum's User ID * <span style="font-weight:400;color:var(--text-light)">— ask the mum to share her ID from her profile</span></label>
+            <div style="display:flex;gap:0.5rem">
+              <input type="text" id="mum-user-code" placeholder="e.g. A1B2C3D4" style="text-transform:uppercase;letter-spacing:0.1em;flex:1" maxlength="8" oninput="this.value=this.value.toUpperCase()" />
+              <button type="button" class="btn btn-outline btn-sm" onclick="verifyMumCode()" id="verify-btn">Verify</button>
+            </div>
+            <div id="mum-verify-result" style="font-size:0.82rem;margin-top:0.4rem;display:none"></div>
+          </div>
+        </div>
+
+        <div class="form-success" id="reg-success">Account created! Please check your email to verify your account, then log in.</div>
+        <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="reg-error"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem" onclick="handleRegister()" id="reg-btn">Create Account</button>
+        <p style="text-align:center;font-size:0.82rem;color:var(--text-light);margin-top:1rem">
+          By registering, you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer-placeholder"></div>
+
+<style>
+.role-btn {
+  display:flex;align-items:center;gap:0.5rem;
+  padding:0.65rem 1rem;border-radius:var(--radius-sm);
+  border:1.5px solid rgba(92,79,74,0.15);background:white;
+  font-size:0.85rem;font-weight:500;color:var(--text-mid);
+  cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;text-align:left;
+}
+.role-btn:hover { border-color:var(--rose);background:var(--blush); }
+.role-btn.selected { border-color:var(--rose-deep);background:var(--blush);color:var(--rose-deep);font-weight:600; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/nav.js"></script>
+<script>
+let selectedRole = '';
+
+// Load register illustration from site settings
+async function loadRegisterImage() {
+  try {
+    const { data } = await supabaseClient.from('site_settings')
+      .select('setting_value').eq('setting_key', 'register_image').single();
+    if (data?.setting_value) {
+      const wrap = document.getElementById('register-illustration');
+      if (wrap) wrap.innerHTML = `<img src="${data.setting_value}" alt="TinyBloom" style="max-width:100%;width:320px;display:block;margin:1.5rem auto;border-radius:var(--radius)" />`;
+    }
+  } catch {}
+}
+document.addEventListener('DOMContentLoaded', loadRegisterImage);
+
+function handlePremiumClick(btn) {
+  // Premium users go to payment page to choose plan first
+  window.location.href = 'payment.html';
+}
+
+let verifiedMumId = null;
+
+async function verifyMumCode() {
+  const code = document.getElementById('mum-user-code').value.trim().toUpperCase();
+  const resultEl = document.getElementById('mum-verify-result');
+  const btn = document.getElementById('verify-btn');
+  if (!code || code.length < 6) {
+    resultEl.textContent = 'Please enter a valid User ID.';
+    resultEl.style.color = '#c0392b';
+    resultEl.style.display = 'block';
+    return;
+  }
+  btn.textContent = 'Checking...'; btn.disabled = true;
+  try {
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('id, full_name, role')
+      .eq('user_code', code)
+      .single();
+
+    if (error || !data) {
+      resultEl.textContent = '✗ User ID not found. Please check with the mum.';
+      resultEl.style.color = '#c0392b';
+      verifiedMumId = null;
+    } else if (data.role !== 'free_user' && data.role !== 'premium_user') {
+      resultEl.textContent = '✗ This ID does not belong to a registered mum.';
+      resultEl.style.color = '#c0392b';
+      verifiedMumId = null;
+    } else {
+      resultEl.textContent = '✓ Linked to: ' + data.full_name;
+      resultEl.style.color = 'var(--sage)';
+      verifiedMumId = data.id;
+    }
+    resultEl.style.display = 'block';
+  } catch (e) {
+    resultEl.textContent = 'Verification failed. Try again.';
+    resultEl.style.color = '#c0392b';
+    resultEl.style.display = 'block';
+  }
+  btn.textContent = 'Verify'; btn.disabled = false;
+}
+
+const urlPlan = new URLSearchParams(window.location.search).get('plan');
+if (urlPlan === 'premium_monthly' || urlPlan === 'premium_yearly') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector('[onclick*="premium_user"]');
+    if (btn) selectRole('premium_user', btn);
+  });
+}
+
+function selectRole(role, btn) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('register-form').style.display = 'block';
+  document.getElementById('specialist-fields').style.display = role === 'specialist' ? 'block' : 'none';
+  document.getElementById('volunteer-fields').style.display = role === 'volunteer' ? 'block' : 'none';
+  document.getElementById('kin-fields').style.display = role === 'next_of_kin' ? 'block' : 'none';
+}
+
+async function handleRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  const errEl = document.getElementById('reg-error');
+  const btn = document.getElementById('reg-btn');
+  errEl.style.display = 'none';
+
+  if (!name || !email || !password) { errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return; }
+  if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+  if (password.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+  if (!selectedRole) { errEl.textContent = 'Please select your account type.'; errEl.style.display = 'block'; return; }
+  if (selectedRole === 'next_of_kin' && !verifiedMumId) {
+    errEl.textContent = "Please enter and verify the mum's User ID to link your account.";
+    errEl.style.display = 'block';
+    // Scroll to the field
+    document.getElementById('mum-user-code')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  btn.textContent = 'Creating account...'; btn.disabled = true;
+
+  try {
+    // Step 1: Sign up with Supabase Auth
+    const { data, error } = await supabaseClient.auth.signUp({
+      email, password,
+      options: { data: { full_name: name, role: selectedRole } }
+    });
+
+    if (error) throw new Error(error.message);
+    if (!data.user) throw new Error('Signup failed — no user returned. Please try again.');
+
+    const userId = data.user.id;
+
+    // Step 2: Directly insert the profile row (no trigger dependency)
+    const { error: profileError } = await supabaseClient.from('profiles').insert({
+      id: userId,
+      full_name: name,
+      email: email,
+      role: selectedRole,
+      phone: document.getElementById('reg-phone').value.trim() || null,
+    });
+
+    // If insert fails because row already exists, update it instead
+    if (profileError && profileError.code === '23505') {
+      await supabaseClient.from('profiles').update({
+        full_name: name,
+        role: selectedRole,
+        phone: document.getElementById('reg-phone').value.trim() || null,
+      }).eq('id', userId);
+    } else if (profileError) {
+      console.warn('Profile insert warning:', profileError.message);
+      // Non-fatal — user auth was created, profile may still work
+    }
+
+    // Step 3: Insert specialist details
+    if (selectedRole === 'specialist') {
+      await supabaseClient.from('specialist_profiles').insert({
+        user_id: userId,
+        specialization: document.getElementById('spec-field').value || '',
+        license_number: document.getElementById('spec-license').value || null,
+        years_experience: parseInt(document.getElementById('spec-years').value) || 0,
+        hospital_affiliation: document.getElementById('spec-hospital').value || null,
+      });
+    }
+
+    // Step 4: Insert volunteer details
+    if (selectedRole === 'volunteer') {
+      await supabaseClient.from('volunteer_profiles').insert({
+        user_id: userId,
+        expertise: document.getElementById('vol-expertise').value || '',
+        availability: [
+          document.getElementById('vol-license') ? document.getElementById('vol-license').value : '',
+          document.getElementById('vol-affiliation') ? document.getElementById('vol-affiliation').value : ''
+        ].filter(Boolean).join(' | ') || null,
+      });
+    }
+
+    // Step 5: Insert next of kin details
+    if (selectedRole === 'next_of_kin') {
+      const rel = document.getElementById('kin-relationship').value;
+      await supabaseClient.from('next_of_kin_profiles').insert({
+        user_id: userId,
+        relationship: rel || null,
+        linked_pregnant_user_id: verifiedMumId || null,
+      });
+    }
+
+    // Success
+    document.getElementById('reg-success').style.display = 'block';
+    btn.textContent = 'Account Created!';
+    setTimeout(() => { window.location.href = 'login.html?registered=1'; }, 2500);
+
+  } catch (e) {
+    console.error('Registration error:', e);
+    let msg = e.message || 'Registration failed. Please try again.';
+    if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('User already registered')) {
+      msg = 'This email is already registered. Please log in instead.';
+    } else if (msg.includes('invalid email')) {
+      msg = 'Please enter a valid email address.';
+    } else if (msg.includes('password')) {
+      msg = 'Password is too weak. Please use at least 8 characters with letters and numbers.';
+    }
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    btn.textContent = 'Create Account'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

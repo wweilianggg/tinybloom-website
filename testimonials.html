@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testimonials — TinyBloom</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar-placeholder"></div>
+
+<div class="page-header">
+  <h1>What Our Mums Say</h1>
+  <p>Real stories from real mothers who've found support, confidence, and community through TinyBloom.</p>
+</div>
+
+<section class="section section-blush">
+  <div class="container">
+    <div class="testimonials-grid" id="all-testimonials">
+      <div style="grid-column:span 3;text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>
+    </div>
+  </div>
+</section>
+
+<div id="footer-placeholder"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/testimonials-data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    loadTestimonialsInto('all-testimonials');
+  });
+</script>
+</body>
+</html>

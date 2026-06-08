@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — TinyBloom</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div id="loading-state" style="display:flex;align-items:center;justify-content:center;min-height:300px">
+      <p style="color:var(--text-light)">Loading dashboard...</p>
+    </div>
+    <div id="main" style="display:none">
+      <div class="admin-header">
+        <div><h1>Dashboard</h1><div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem" id="admin-date"></div></div>
+        <div style="font-size:0.88rem;color:var(--text-mid)">Welcome back, <strong id="admin-name">Admin</strong></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value" id="stat-users">—</div><div class="stat-sub">All registered</div></div>
+        <div class="stat-card"><div class="stat-label">Premium Users</div><div class="stat-value" id="stat-premium">—</div><div class="stat-sub">Premium accounts</div></div>
+        <div class="stat-card"><div class="stat-label">Published Articles</div><div class="stat-value" id="stat-articles">—</div><div class="stat-sub">Live on site</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Reviews</div><div class="stat-value" id="stat-reviews">—</div><div class="stat-sub">Awaiting approval</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">Recent Registrations</h2>
+            <a href="users.html" style="font-size:0.82rem">View All →</a>
+          </div>
+          <table><thead><tr><th>Name</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody id="recent-users"><tr><td colspan="3" style="text-align:center;color:var(--text-light)">Loading...</td></tr></tbody></table>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">Pending Testimonials</h2>
+            <a href="testimonials.html" style="font-size:0.82rem">Manage →</a>
+          </div>
+          <div id="pending-testimonials"><p style="text-align:center;color:var(--text-light);padding:2rem">Loading...</p></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:1.5rem">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Quick Actions</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem">
+          <a href="content.html" class="btn btn-outline">+ New Article</a>
+          <a href="faqs.html" class="btn btn-outline">+ New FAQ</a>
+          <a href="users.html" class="btn btn-outline">Manage Users</a>
+          <a href="testimonials.html" class="btn btn-teal">Review Testimonials</a>
+          <a href="settings.html" class="btn btn-ghost">Site Settings</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/admin-sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const profile = await requireAdmin();
+  const { data:{ user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  document.getElementById('admin-name').textContent = (profile?.full_name || user.email).split(' ')[0];
+  document.getElementById('admin-date').textContent = new Date().toLocaleDateString('en-GB',{ weekday:'long',day:'numeric',month:'long',year:'numeric' });
+  loadStats(); loadRecentUsers(); loadPendingTestimonials();
+});
+async function loadStats() {
+  const [u,p,a,r] = await Promise.all([
+    supabaseClient.from('profiles').select('id',{count:'exact',head:true}),
+    supabaseClient.from('profiles').select('id',{count:'exact',head:true}).eq('role','premium_user'),
+    supabaseClient.from('articles').select('id',{count:'exact',head:true}).eq('status','published'),
+    supabaseClient.from('testimonials').select('id',{count:'exact',head:true}).eq('is_published',false),
+  ]);
+  document.getElementById('stat-users').textContent = u.count??0;
+  document.getElementById('stat-premium').textContent = p.count??0;
+  document.getElementById('stat-articles').textContent = a.count??0;
+  document.getElementById('stat-reviews').textContent = r.count??0;
+}
+async function loadRecentUsers() {
+  const { data } = await supabaseClient.from('profiles').select('full_name,role,created_at').order('created_at',{ascending:false}).limit(6);
+  const badge = { free_user:'badge-teal',premium_user:'badge-gold',admin:'badge-rose',specialist:'badge-green',volunteer:'badge-green',next_of_kin:'badge-gray' };
+  document.getElementById('recent-users').innerHTML = data?.length
+    ? data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${badge[u.role]||'badge-gray'}">${u.role.replace(/_/g,' ')}</span></td><td>${new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:var(--text-light)">No users yet.</td></tr>';
+}
+async function loadPendingTestimonials() {
+  const { data } = await supabaseClient.from('testimonials').select('*').eq('is_published',false).order('created_at',{ascending:false}).limit(5);
+  const c = document.getElementById('pending-testimonials');
+  if (!data?.length) { c.innerHTML='<p style="text-align:center;color:var(--text-light);padding:1rem">No pending testimonials ✓</p>'; return; }
+  c.innerHTML = data.map(t=>`
+    <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem">
+        <div><strong style="font-size:0.88rem">${t.reviewer_name}</strong><span style="color:#f0b429;margin-left:0.5rem">${'★'.repeat(t.rating)}</span>
+        <p style="font-size:0.8rem;color:var(--text-mid);margin-top:0.25rem">${t.content.substring(0,80)}...</p></div>
+        <div style="display:flex;gap:0.5rem;flex-shrink:0">
+          <button class="btn btn-teal btn-sm" onclick="approveTest('${t.id}',this)">✓</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteTest('${t.id}',this)">✗</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function approveTest(id,btn) { await supabaseClient.from('testimonials').update({is_published:true}).eq('id',id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Approved!','success'); loadStats(); }
+async function deleteTest(id,btn) { await supabaseClient.from('testimonials').delete().eq('id',id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Removed.'); loadStats(); }
+</script>
+</body></html>

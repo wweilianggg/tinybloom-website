@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preview — Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .preview-tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .preview-tab { padding:0.5rem 1.1rem; border-radius:50px; border:1.5px solid rgba(92,79,74,0.15); background:white; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; color:var(--text-mid); transition:all 0.2s; }
+    .preview-tab:hover, .preview-tab.active { background:var(--teal); color:white; border-color:var(--teal); }
+    .preview-frame-wrap { background:white; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-card); border:1.5px solid rgba(92,79,74,0.1); }
+    .preview-toolbar { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.25rem; background:var(--cream); border-bottom:1px solid rgba(92,79,74,0.1); }
+    .preview-url { font-size:0.78rem; color:var(--text-light); background:white; padding:0.35rem 0.85rem; border-radius:50px; border:1px solid rgba(92,79,74,0.15); font-family:monospace; }
+    .preview-iframe { width:100%; height:600px; border:none; display:block; }
+    .device-btns { display:flex; gap:0.4rem; }
+    .device-btn { padding:0.3rem 0.65rem; font-size:0.75rem; border-radius:6px; border:1px solid rgba(92,79,74,0.15); background:white; cursor:pointer; font-family:'DM Sans',sans-serif; color:var(--text-mid); }
+    .device-btn.active { background:var(--teal); color:white; border-color:var(--teal); }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div class="admin-header">
+      <div>
+        <h1>Content Preview</h1>
+        <div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem">Review all changes to the live site.</div>
+      </div>
+      <div style="display:flex;gap:0.75rem">
+        <a href="../index.html" target="_blank" class="btn btn-outline btn-sm">↗ Open Live Site</a>
+        <a href="settings.html" class="btn btn-teal btn-sm">✏️ Edit Content</a>
+      </div>
+    </div>
+
+    <!-- Page tabs -->
+    <div class="preview-tabs">
+      <button class="preview-tab active" onclick="loadPreview('home')">🏠 Home</button>
+      <button class="preview-tab" onclick="loadPreview('features')">✨ Features</button>
+      <button class="preview-tab" onclick="loadPreview('subscriptions')">💰 Subscriptions</button>
+      <button class="preview-tab" onclick="loadPreview('testimonials')">⭐ Testimonials</button>
+      <button class="preview-tab" onclick="loadPreview('faq')">❓ FAQ</button>
+      <button class="preview-tab" onclick="loadPreview('register')">📝 Register</button>
+      <button class="preview-tab" onclick="loadPreview('payment')">💳 Payment</button>
+    </div>
+
+    <!-- Preview frame -->
+    <div class="preview-frame-wrap">
+      <div class="preview-toolbar">
+        <div style="display:flex;gap:6px">
+          <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#ffbd2e"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#28ca41"></div>
+        </div>
+        <div class="preview-url" id="preview-url">../index.html</div>
+        <div class="device-btns">
+          <button class="device-btn active" id="btn-desktop" onclick="setDevice('desktop')">🖥 Desktop</button>
+          <button class="device-btn" id="btn-tablet" onclick="setDevice('tablet')">📱 Tablet</button>
+          <button class="device-btn" id="btn-mobile" onclick="setDevice('mobile')">📲 Mobile</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;background:#f5f5f5;padding:1rem;display:flex;justify-content:center">
+        <iframe id="preview-iframe" class="preview-iframe" src="../index.html" style="width:100%;max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.1)"></iframe>
+      </div>
+    </div>
+
+    <!-- Quick links to edit each page's content -->
+    <div class="card" style="margin-top:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Quick Edit Links</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem">
+        <a href="settings.html#hero" class="btn btn-outline btn-sm">✏️ Edit Hero Text</a>
+        <a href="settings.html#features" class="btn btn-outline btn-sm">✏️ Edit Feature Cards</a>
+        <a href="settings.html#pricing" class="btn btn-outline btn-sm">✏️ Edit Pricing</a>
+        <a href="testimonials.html" class="btn btn-outline btn-sm">✏️ Edit Testimonials</a>
+        <a href="faqs.html" class="btn btn-outline btn-sm">✏️ Edit FAQs</a>
+        <a href="content.html" class="btn btn-outline btn-sm">✏️ Edit Articles</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/admin-sidebar.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+});
+
+const PAGE_MAP = {
+  home: '../index.html',
+  features: '../features.html',
+  subscriptions: '../subscriptions.html',
+  testimonials: '../testimonials.html',
+  faq: '../faq.html',
+  register: '../register.html',
+  payment: '../payment.html',
+};
+
+function loadPreview(page) {
+  const url = PAGE_MAP[page];
+  document.getElementById('preview-iframe').src = url;
+  document.getElementById('preview-url').textContent = url;
+  document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+const DEVICE_SIZES = { desktop: '100%', tablet: '768px', mobile: '390px' };
+
+function setDevice(device) {
+  const iframe = document.getElementById('preview-iframe');
+  iframe.style.width = DEVICE_SIZES[device];
+  iframe.style.maxWidth = DEVICE_SIZES[device];
+  document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + device).classList.add('active');
+}
+</script>
+</body>
+</html>
