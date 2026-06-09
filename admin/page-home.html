@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Page — Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .img-box { border:2px dashed rgba(92,79,74,0.2); border-radius:var(--radius); padding:1.25rem; text-align:center; background:var(--cream); cursor:pointer; position:relative; transition:all 0.2s; }
+    .img-box:hover { border-color:var(--rose); background:var(--blush); }
+    .img-box input[type=file] { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+    .img-preview { width:100%;max-height:150px;object-fit:cover;border-radius:var(--radius-sm);display:none;margin-bottom:0.5rem; }
+    .upload-prog { font-size:0.78rem;color:var(--teal);margin-top:0.4rem;display:none; }
+    .feat-box { padding:1rem;background:var(--blush);border-radius:var(--radius-sm);border-left:3px solid var(--rose); }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div class="admin-header">
+      <div><h1>🏠 Home Page</h1><div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem">Edit all content shown on the home page.</div></div>
+      <div style="display:flex;gap:0.75rem">
+        <a href="../index.html" target="_blank" class="btn btn-outline btn-sm">↗ View Page</a>
+        <button class="btn btn-primary" onclick="saveAll()" id="save-btn">Save Changes</button>
+      </div>
+    </div>
+    <div class="form-success" id="save-ok" style="display:none;margin-bottom:1rem;text-align:center">✓ All changes saved!</div>
+
+    <!-- Hero -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Hero Section</h2>
+      <div class="form-group"><label>Headline</label><input type="text" id="s-hero_title" placeholder="Better pregnancy outcomes start with better support." /></div>
+      <div class="form-group"><label>Subtitle</label><textarea id="s-hero_subtitle" rows="3" style="resize:vertical"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Primary Button Text</label><input type="text" id="s-hero_btn_primary" placeholder="Get Started Free" /></div>
+        <div class="form-group"><label>Secondary Button Text</label><input type="text" id="s-hero_btn_secondary" placeholder="Learn More" /></div>
+      </div>
+    </div>
+
+    <!-- Features heading -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Features Section Heading</h2>
+      <div class="form-group"><label>Heading</label><input type="text" id="s-features_heading" placeholder="More Support. Less Stress. Happier Pregnancy." /></div>
+      <div class="form-group"><label>Subheading</label><input type="text" id="s-features_subheading" placeholder="Everything you need in one beautiful platform." /></div>
+    </div>
+
+    <!-- Feature items 1-6 -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Feature Items (Home Page)</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+
+        <div class="feat-box">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--rose-deep);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem">Feature 1</div>
+          <div class="form-group"><label>Title</label><input type="text" id="s-feat1_title" /></div>
+          <div class="form-group"><label>Description</label><textarea id="s-feat1_desc" rows="3" style="resize:vertical"></textarea></div>
+        </div>
+
+        <div class="feat-box">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--rose-deep);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem">Feature 2</div>
+          <div class="form-group"><label>Title</label><input type="text" id="s-feat2_title" /></div>
+          <div class="form-group"><label>Description</label><textarea id="s-feat2_desc" rows="3" style="resize:vertical"></textarea></div>
+        </div>
+
+        <div class="feat-box" style="border-left-color:var(--teal)">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem">Feature 3</div>
+          <div class="form-group"><label>Title</label><input type="text" id="s-feat3_title" /></div>
+          <div class="form-group"><label>Description</label><textarea id="s-feat3_desc" rows="3" style="resize:vertical"></textarea></div>
+        </div>
+
+        <div class="feat-box" style="border-left-color:var(--teal)">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem">Feature 4</div>
+          <div class="form-group"><label>Title</label><input type="text" id="s-feat4_title" /></div>
+          <div class="form-group"><label>Description</label><textarea id="s-feat4_desc" rows="3" style="resize:vertical"></textarea></div>
+        </div>
+
+        <div class="feat-box">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--rose-deep);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem">Feature 5</div>
+          <div class="form-group"><label>Title</label><input type="text" id="s-feat5_title" /></div>
+          <div class="form-group"><label>Description</label><textarea id="s-feat5_desc" rows="3" style="resize:vertical"></textarea></div>
+        </div>
+
+        <div class="feat-box">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--rose-deep);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem">Feature 6</div>
+          <div class="form-group"><label>Title</label><input type="text" id="s-feat6_title" /></div>
+          <div class="form-group"><label>Description</label><textarea id="s-feat6_desc" rows="3" style="resize:vertical"></textarea></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">CTA Banner (bottom of home page)</h2>
+      <div class="form-group"><label>Title</label><input type="text" id="s-cta_title" placeholder="Start your TinyBloom journey today." /></div>
+      <div class="form-group"><label>Subtitle</label><input type="text" id="s-cta_subtitle" /></div>
+      <div class="form-group"><label>Button Text</label><input type="text" id="s-cta_btn" placeholder="Register for Free" /></div>
+    </div>
+
+    <!-- Images -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Page Images</h2>
+      <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:1.25rem">Click any box to upload a new image. Images are saved instantly to Supabase Storage.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:0.5rem">Hero Illustration (right side)</div>
+          <div class="img-box" onclick="triggerUpload('hero_image-input')">
+            <input type="file" id="hero_image-input" accept="image/*" onchange="uploadImage(this,'hero_image','hero_image-preview','hero_image-prog','hero_image-ph')" />
+            <img id="hero_image-preview" class="img-preview" />
+            <div id="hero_image-ph"><div style="font-size:1.5rem;margin-bottom:0.35rem">🖼️</div><div style="font-size:0.82rem;font-weight:600;color:var(--text-mid)">Click to upload</div><div style="font-size:0.75rem;color:var(--text-light)">Recommended 400×500px</div></div>
+            <div class="upload-prog" id="hero_image-prog">Uploading...</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:0.5rem">Feature 1 Illustration</div>
+          <div class="img-box" onclick="triggerUpload('feature1_image-input')">
+            <input type="file" id="feature1_image-input" accept="image/*" onchange="uploadImage(this,'feature1_image','feature1_image-preview','feature1_image-prog','feature1_image-ph')" />
+            <img id="feature1_image-preview" class="img-preview" />
+            <div id="feature1_image-ph"><div style="font-size:1.5rem;margin-bottom:0.35rem">🖼️</div><div style="font-size:0.82rem;font-weight:600;color:var(--text-mid)">Click to upload</div><div style="font-size:0.75rem;color:var(--text-light)">Recommended 220×260px</div></div>
+            <div class="upload-prog" id="feature1_image-prog">Uploading...</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:0.5rem">Feature 2 Illustration</div>
+          <div class="img-box" onclick="triggerUpload('feature2_image-input')">
+            <input type="file" id="feature2_image-input" accept="image/*" onchange="uploadImage(this,'feature2_image','feature2_image-preview','feature2_image-prog','feature2_image-ph')" />
+            <img id="feature2_image-preview" class="img-preview" />
+            <div id="feature2_image-ph"><div style="font-size:1.5rem;margin-bottom:0.35rem">🖼️</div><div style="font-size:0.82rem;font-weight:600;color:var(--text-mid)">Click to upload</div><div style="font-size:0.75rem;color:var(--text-light)">Recommended 220×260px</div></div>
+            <div class="upload-prog" id="feature2_image-prog">Uploading...</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:0.5rem">Middle Section Image</div>
+          <div class="img-box" onclick="triggerUpload('feature3_image-input')">
+            <input type="file" id="feature3_image-input" accept="image/*" onchange="uploadImage(this,'feature3_image','feature3_image-preview','feature3_image-prog','feature3_image-ph')" />
+            <img id="feature3_image-preview" class="img-preview" />
+            <div id="feature3_image-ph"><div style="font-size:1.5rem;margin-bottom:0.35rem">🖼️</div><div style="font-size:0.82rem;font-weight:600;color:var(--text-mid)">Click to upload</div><div style="font-size:0.75rem;color:var(--text-light)">Recommended 600×300px</div></div>
+            <div class="upload-prog" id="feature3_image-prog">Uploading...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Register page image -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Register Page Image</h2>
+      <div style="max-width:320px">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:0.5rem">Register Page Illustration (left side)</div>
+        <div class="img-box" onclick="triggerUpload('register_image-input')">
+          <input type="file" id="register_image-input" accept="image/*" onchange="uploadImage(this,'register_image','register_image-preview','register_image-prog','register_image-ph')" />
+          <img id="register_image-preview" class="img-preview" />
+          <div id="register_image-ph"><div style="font-size:1.5rem;margin-bottom:0.35rem">🖼️</div><div style="font-size:0.82rem;font-weight:600;color:var(--text-mid)">Click to upload</div><div style="font-size:0.75rem;color:var(--text-light)">Recommended 320×400px</div></div>
+          <div class="upload-prog" id="register_image-prog">Uploading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- General -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">General Settings</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Site Name</label><input type="text" id="s-site_name" placeholder="TinyBloom" /></div>
+        <div class="form-group"><label>Support Email</label><input type="email" id="s-contact_email" placeholder="support@tinybloom.com" /></div>
+      </div>
+    </div>
+
+    <div style="text-align:right;margin-bottom:2rem">
+      <button class="btn btn-primary btn-lg" onclick="saveAll()">Save All Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/app.js"></script>
+<script>
+const TEXT_KEYS = [
+  'hero_title','hero_subtitle','hero_btn_primary','hero_btn_secondary',
+  'features_heading','features_subheading',
+  'feat1_title','feat1_desc','feat2_title','feat2_desc',
+  'feat3_title','feat3_desc','feat4_title','feat4_desc',
+  'feat5_title','feat5_desc','feat6_title','feat6_desc',
+  'cta_title','cta_subtitle','cta_btn',
+  'site_name','contact_email'
+];
+const IMG_KEYS = ['hero_image','feature1_image','feature2_image','feature3_image','register_image'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+  const { data } = await supabaseClient.from('site_settings').select('*');
+  if (!data) return;
+  data.forEach(s => {
+    const el = document.getElementById('s-' + s.setting_key);
+    if (el) el.value = s.setting_value || '';
+    if (IMG_KEYS.includes(s.setting_key) && s.setting_value) {
+      const pr = document.getElementById(s.setting_key + '-preview');
+      const ph = document.getElementById(s.setting_key + '-ph');
+      if (pr) { pr.src = s.setting_value; pr.style.display = 'block'; }
+      if (ph) ph.style.display = 'none';
+    }
+  });
+});
+
+function triggerUpload(id) { document.getElementById(id)?.click(); }
+
+async function uploadImage(input, key, previewId, progressId, phId) {
+  const file = input.files[0]; if (!file) return;
+  const prog = document.getElementById(progressId);
+  prog.style.display = 'block'; prog.textContent = 'Uploading...'; prog.style.color = 'var(--teal)';
+  try {
+    const ext = file.name.split('.').pop();
+    const fname = key + '_' + Date.now() + '.' + ext;
+    const { error: upErr } = await supabaseClient.storage.from('site-images').upload(fname, file, { upsert: true });
+    if (upErr) throw upErr;
+    const { data: urlData } = supabaseClient.storage.from('site-images').getPublicUrl(fname);
+    const url = urlData.publicUrl;
+    await supabaseClient.from('site_settings').upsert({ setting_key: key, setting_value: url, updated_at: new Date().toISOString() }, { onConflict: 'setting_key' });
+    const pr = document.getElementById(previewId);
+    const ph = document.getElementById(phId);
+    if (pr) { pr.src = url; pr.style.display = 'block'; }
+    if (ph) ph.style.display = 'none';
+    prog.textContent = '✓ Uploaded!'; prog.style.color = 'var(--sage)';
+    setTimeout(() => prog.style.display = 'none', 2500);
+    showToast('Image uploaded!', 'success');
+  } catch (e) {
+    prog.textContent = 'Failed: ' + e.message; prog.style.color = '#c0392b';
+    showToast('Upload failed', 'error');
+  }
+}
+
+async function saveAll() {
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    for (const key of TEXT_KEYS) {
+      const el = document.getElementById('s-' + key); if (!el) continue;
+      await supabaseClient.from('site_settings').upsert(
+        { setting_key: key, setting_value: el.value.trim(), updated_at: new Date().toISOString() },
+        { onConflict: 'setting_key' }
+      );
+    }
+    document.getElementById('save-ok').style.display = 'block';
+    setTimeout(() => document.getElementById('save-ok').style.display = 'none', 3000);
+    showToast('All changes saved!', 'success');
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  finally { btn.textContent = 'Save Changes'; btn.disabled = false; }
+}
+</script>
+</body>
+</html>

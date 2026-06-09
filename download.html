@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download TinyBloom App</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="navbar-placeholder"></div>
+
+<div style="background:linear-gradient(135deg,#fdf0ee 0%,#f5e8e5 60%,#fdf0ee 100%);min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;">
+  <div style="width:100%;max-width:520px;text-align:center;">
+
+    <div style="font-size:3rem;margin-bottom:1rem">🌸</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--text-dark);margin-bottom:0.75rem">
+      Welcome to TinyBloom, <span id="user-first-name">Mama</span>!
+    </h1>
+    <p style="color:var(--text-mid);font-size:1rem;margin-bottom:2.5rem;line-height:1.7">
+      Your account has been created successfully. Download the TinyBloom mobile app to start your personalised pregnancy journey.
+    </p>
+
+    <!-- Single download link -->
+    <a href="https://tinybloom.app/download" target="_blank" class="btn btn-primary btn-lg" style="display:inline-flex;margin-bottom:2.5rem">
+      📲 Download the TinyBloom App
+    </a>
+
+    <!-- Account info -->
+    <div style="background:white;border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow-soft);margin-bottom:1rem">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-light);margin-bottom:0.75rem">Your Account</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+        <div>
+          <div style="font-weight:600" id="user-full-name">—</div>
+          <div style="font-size:0.82rem;color:var(--text-light)" id="user-email">—</div>
+        </div>
+        <span class="badge badge-teal" id="user-role-badge">Member</span>
+      </div>
+    </div>
+
+    <!-- User ID card (shown for mum accounts) -->
+    <div id="user-id-card" style="display:none;background:linear-gradient(135deg,var(--blush),#f5e8e5);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow-soft);margin-bottom:1.5rem;text-align:left">
+      <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-deep);margin-bottom:0.5rem">Your Unique User ID</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;letter-spacing:0.15em;color:var(--text-dark)" id="user-code-display">——</div>
+          <div style="font-size:0.8rem;color:var(--text-mid);margin-top:0.3rem">Share this ID with your partner or family so they can link to your account when they register.</div>
+        </div>
+        <button onclick="copyUserCode()" class="btn btn-outline btn-sm" id="copy-btn">📋 Copy ID</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      
+      <button onclick="handleSignOut()" class="btn btn-ghost">Sign Out</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="footer-placeholder"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/app.js"></script>
+<script>
+const roleLabels = {
+  free_user:'Free Member', premium_user:'⭐ Premium Member',
+  next_of_kin:'Next of Kin', specialist:'Specialist',
+  volunteer:'Volunteer', admin:'Admin'
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const { data:{ user } } = await supabaseClient.auth.getUser();
+    if (!user) { window.location.replace('login.html'); return; }
+    if (user.email === 'admin@tinybloom.com') { window.location.replace('admin/index.html'); return; }
+
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
+    if (profile?.role === 'admin') { window.location.replace('admin/index.html'); return; }
+
+    document.getElementById('user-first-name').textContent = profile?.full_name?.split(' ')[0] || 'there';
+    document.getElementById('user-full-name').textContent = profile?.full_name || user.email;
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('user-role-badge').textContent = roleLabels[profile?.role] || 'Member';
+
+    // Show User ID card for mum accounts
+    if (profile?.role === 'free_user' || profile?.role === 'premium_user') {
+      document.getElementById('user-id-card').style.display = 'block';
+      document.getElementById('user-code-display').textContent = profile?.user_code || '—';
+    }
+  } catch (e) { console.error(e); }
+});
+
+async function handleSignOut() {
+  await supabaseClient.auth.signOut();
+  window.location.replace('index.html');
+}
+
+function copyUserCode() {
+  const code = document.getElementById('user-code-display').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copied!';
+    btn.style.color = 'var(--sage)';
+    setTimeout(() => { btn.textContent = '📋 Copy ID'; btn.style.color = ''; }, 2000);
+  });
+}
+</script>
+</body>
+</html>

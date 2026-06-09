@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment — TinyBloom</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .payment-grid { display:grid; grid-template-columns:1fr 340px; gap:2rem; max-width:860px; margin:0 auto; align-items:start; }
+    .summary-line { display:flex; justify-content:space-between; align-items:center; padding:0.65rem 0; border-bottom:1px solid rgba(92,79,74,0.08); font-size:0.9rem; }
+    .summary-total { display:flex; justify-content:space-between; align-items:center; padding:0.85rem 0 0; font-weight:700; font-size:1.05rem; }
+    .card-input-wrap { position:relative; }
+    .card-brands { position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); display:flex; gap:4px; }
+    .card-brand { font-size:0.7rem; font-weight:700; padding:2px 5px; border-radius:3px; }
+    @media (max-width:768px) { .payment-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<div id="navbar-placeholder"></div>
+
+<div style="background:var(--blush);padding:3rem 1.5rem;min-height:calc(100vh - 70px)">
+  <div style="text-align:center;margin-bottom:2.5rem">
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:0.5rem" id="pay-page-title">Complete Your Payment</h1>
+    <p style="color:var(--text-mid)" id="pay-page-subtitle">You're one step away from unlocking TinyBloom Premium.</p>
+  </div>
+
+  <div class="payment-grid">
+    <!-- Left: Payment form -->
+    <div class="card">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.25rem;margin-bottom:1.5rem">Payment Details</h2>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="pay-email" placeholder="your@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Cardholder Name</label>
+        <input type="text" id="pay-name" placeholder="Name as shown on card" />
+      </div>
+      <div class="form-group">
+        <label>Card Number</label>
+        <div class="card-input-wrap">
+          <input type="text" id="pay-card" placeholder="1234 5678 9012 3456" maxlength="19"
+            oninput="formatCard(this)" style="padding-right:5rem" />
+          <div class="card-brands">
+            <span class="card-brand" style="background:#1a1f71;color:white">VISA</span>
+            <span class="card-brand" style="background:#eb001b;color:white">MC</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input type="text" id="pay-expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" />
+        </div>
+        <div class="form-group">
+          <label>CVC</label>
+          <input type="text" id="pay-cvc" placeholder="123" maxlength="3" />
+        </div>
+      </div>
+
+      <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;font-size:0.82rem;color:var(--teal);margin-bottom:1.5rem">
+        🔒 Your payment information is encrypted and secure.
+      </div>
+
+      <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="pay-error"></div>
+      <div class="form-success" id="pay-success" style="display:none">✓ Payment successful! Your premium account is now active.</div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.85rem;font-size:1rem" onclick="processPayment()" id="pay-btn">
+        Subscribe Now
+      </button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:0.75rem" onclick="goBack()" id="back-btn">
+        ← Back
+      </button>
+    </div>
+
+    <!-- Right: Order summary -->
+    <div class="card" style="position:sticky;top:90px">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Order Summary</h3>
+
+      <div style="background:var(--blush);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.25rem">
+        <div style="font-weight:700;font-size:0.95rem" id="summary-plan-name">TinyBloom Premium</div>
+        <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem" id="summary-plan-desc">Monthly subscription</div>
+      </div>
+
+      <div class="summary-line"><span style="color:var(--text-mid)">Subtotal</span><span id="summary-subtotal">$9.90</span></div>
+      <div class="summary-line"><span style="color:var(--text-mid)">Tax (GST 9%)</span><span id="summary-tax">$0.89</span></div>
+      <div class="summary-total">
+        <span>Total</span>
+        <span id="summary-total" style="color:var(--teal);font-size:1.2rem">$10.79</span>
+      </div>
+
+      <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(92,79,74,0.1);font-size:0.78rem;color:var(--text-light);line-height:1.6">
+        By subscribing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>. Cancel anytime.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer-placeholder"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/app.js"></script>
+<script>
+let billingCycle = 'monthly';
+let prices = { monthly: 9.90, yearly: 90.00 };
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load prices and page text from settings
+  try {
+    const { data } = await supabaseClient.from('site_settings').select('setting_key,setting_value');
+    if (data) {
+      const s = {};
+      data.forEach(r => { s[r.setting_key] = r.setting_value; });
+      if (s.premium_monthly_price) prices.monthly = parseFloat(s.premium_monthly_price) || 9.90;
+      if (s.premium_yearly_price)  prices.yearly  = parseFloat(s.premium_yearly_price)  || 90.00;
+      if (s.payment_title)    document.getElementById('pay-page-title').textContent = s.payment_title;
+      if (s.payment_subtitle) document.getElementById('pay-page-subtitle').textContent = s.payment_subtitle;
+    }
+  } catch {}
+
+  // Set billing cycle from URL param
+  const params = new URLSearchParams(window.location.search);
+  const plan = params.get('plan');
+  if (plan === 'premium_yearly') billingCycle = 'yearly';
+  else billingCycle = 'monthly';
+
+  updateSummary();
+
+  // Pre-fill email — from pending registration or logged-in user
+  try {
+    const pending = sessionStorage.getItem('tb_pending_reg');
+    if (pending) {
+      const reg = JSON.parse(pending);
+      document.getElementById('pay-email').value = reg.email || '';
+      document.getElementById('pay-name').value  = reg.name  || '';
+    } else {
+      const { data:{ user } } = await supabaseClient.auth.getUser();
+      if (user) document.getElementById('pay-email').value = user.email;
+    }
+  } catch {}
+});
+
+function updateSummary() {
+  const price = billingCycle === 'monthly' ? prices.monthly : prices.yearly;
+  const tax   = parseFloat((price * 0.09).toFixed(2));
+  const total = parseFloat((price + tax).toFixed(2));
+  const period = billingCycle === 'monthly' ? 'Monthly' : 'Annual';
+  document.getElementById('summary-plan-desc').textContent = period + ' subscription';
+  document.getElementById('summary-subtotal').textContent  = '$' + price.toFixed(2);
+  document.getElementById('summary-tax').textContent       = '$' + tax.toFixed(2);
+  document.getElementById('summary-total').textContent     = '$' + total.toFixed(2);
+}
+
+function goBack() {
+  // Clear pending registration and go back to register
+  sessionStorage.removeItem('tb_pending_reg');
+  window.location.href = 'register.html';
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+  input.value = v;
+}
+
+async function processPayment() {
+  const email  = document.getElementById('pay-email').value.trim();
+  const name   = document.getElementById('pay-name').value.trim();
+  const card   = document.getElementById('pay-card').value.replace(/\s/g,'');
+  const expiry = document.getElementById('pay-expiry').value;
+  const cvc    = document.getElementById('pay-cvc').value;
+  const errEl  = document.getElementById('pay-error');
+  const btn    = document.getElementById('pay-btn');
+  errEl.style.display = 'none';
+
+  if (!email || !name)          { errEl.textContent = 'Please enter your email and name.'; errEl.style.display = 'block'; return; }
+  if (card.length < 16)         { errEl.textContent = 'Please enter a valid 16-digit card number.'; errEl.style.display = 'block'; return; }
+  if (!expiry.includes('/') || expiry.length < 5) { errEl.textContent = 'Please enter a valid expiry (MM/YY).'; errEl.style.display = 'block'; return; }
+  if (cvc.length < 3)           { errEl.textContent = 'Please enter a valid CVC.'; errEl.style.display = 'block'; return; }
+
+  btn.textContent = 'Processing...'; btn.disabled = true;
+
+  try {
+    let userId = null;
+
+    // Check if we have a pending registration (new user paying for premium)
+    const pendingRaw = sessionStorage.getItem('tb_pending_reg');
+    if (pendingRaw) {
+      const pending = JSON.parse(pendingRaw);
+
+      // Create the account now (after payment succeeds)
+      const signUpRes = await supabaseClient.auth.signUp({
+        email: pending.email,
+        password: pending.password,
+        options: { data: { full_name: pending.name, role: 'premium_user' } }
+      });
+      if (signUpRes.error) throw new Error(signUpRes.error.message);
+      if (!signUpRes.data.user) throw new Error('Account creation failed.');
+
+      userId = signUpRes.data.user.id;
+
+      // Insert profile as premium_user directly
+      await supabaseClient.from('profiles').insert({
+        id: userId,
+        full_name: pending.name,
+        email: pending.email,
+        role: 'premium_user',
+        phone: pending.phone || null
+      });
+
+      // Log them in
+      await supabaseClient.auth.signInWithPassword({
+        email: pending.email,
+        password: pending.password
+      });
+
+      sessionStorage.removeItem('tb_pending_reg');
+
+    } else {
+      // Existing logged-in user upgrading
+      const { data:{ user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        userId = user.id;
+        await supabaseClient.from('profiles').update({ role: 'premium_user' }).eq('id', userId);
+      }
+    }
+
+    // Record subscription
+    if (userId) {
+      await supabaseClient.from('subscriptions').insert({
+        user_id: userId,
+        plan_type: billingCycle === 'monthly' ? 'premium_monthly' : 'premium_yearly',
+        status: 'active',
+        price: billingCycle === 'monthly' ? prices.monthly : prices.yearly,
+        expires_at: billingCycle === 'monthly'
+          ? new Date(Date.now() + 30*24*60*60*1000).toISOString()
+          : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
+      });
+    }
+
+    document.getElementById('pay-success').style.display = 'block';
+    document.getElementById('pay-btn').style.display = 'none';
+    document.getElementById('back-btn').style.display = 'none';
+    setTimeout(() => { window.location.replace('download.html'); }, 2500);
+
+  } catch(e) {
+    errEl.textContent = 'Payment failed: ' + (e.message || 'Please try again.');
+    errEl.style.display = 'block';
+    btn.textContent = 'Subscribe Now'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

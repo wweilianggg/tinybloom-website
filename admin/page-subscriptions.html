@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscriptions Page — Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div class="admin-header">
+      <div><h1>💰 Subscriptions Page</h1><div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem">Edit pricing, plan names, page text and comparison table.</div></div>
+      <div style="display:flex;gap:0.75rem">
+        <a href="../subscriptions.html" target="_blank" class="btn btn-outline btn-sm">↗ View Page</a>
+        <button class="btn btn-primary" onclick="saveAll()" id="save-btn">Save Changes</button>
+      </div>
+    </div>
+    <div class="form-success" id="save-ok" style="display:none;margin-bottom:1rem;text-align:center">✓ Saved!</div>
+
+    <!-- Page Header -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Page Header</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Title</label><input type="text" id="s-sub_page_title" placeholder="Simple Pricing" /></div>
+        <div class="form-group"><label>Subtitle</label><input type="text" id="s-sub_page_subtitle" /></div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Pricing</h2>
+      <div style="background:var(--blush);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem;font-size:0.82rem;color:var(--text-mid)">
+        💡 Changing prices here updates the Subscriptions page and Payment page automatically.
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Monthly Premium Price (USD)</label><input type="number" id="s-premium_monthly_price" step="0.01" placeholder="9.90" /></div>
+        <div class="form-group"><label>Yearly Premium Price (USD)</label><input type="number" id="s-premium_yearly_price" step="0.01" placeholder="90.00" /></div>
+      </div>
+    </div>
+
+    <!-- Plan Names -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Plan Names &amp; Labels</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Premium Plan Name</label><input type="text" id="s-sub_premium_name" placeholder="Premium" /></div>
+        <div class="form-group"><label>Annual Plan Name</label><input type="text" id="s-sub_annual_name" placeholder="Premium Annual" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>"Most Popular" Badge</label><input type="text" id="s-sub_popular_badge" placeholder="Most Popular" /></div>
+        <div class="form-group"><label>"Best Value" Badge</label><input type="text" id="s-sub_value_badge" placeholder="Best Value" /></div>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:0.35rem">Feature Comparison Table</h2>
+      <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:1.5rem">Edit each feature row. Click ✓/— to toggle availability. Add or remove categories below.</p>
+
+      <div class="form-group" style="margin-bottom:1rem">
+        <label>Table Title</label>
+        <input type="text" id="s-sub_compare_title" placeholder="Full Feature Comparison" />
+      </div>
+
+      <!-- Category manager -->
+      <div style="background:var(--blush);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1.25rem">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:0.75rem">Section Categories</div>
+        <div id="categories-list" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem"></div>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <input type="text" id="new-category-input" placeholder="New category name" style="max-width:220px;font-size:0.85rem;font-family:'DM Sans',sans-serif" onkeydown="if(event.key==='Enter'){addCategory();event.preventDefault()}" />
+          <button class="btn btn-teal btn-sm" onclick="addCategory()">+ Add Category</button>
+        </div>
+        <input type="hidden" id="s-sub_compare_sections" />
+      </div>
+
+      <!-- Table header -->
+      <div style="background:var(--cream);border-radius:var(--radius-sm) var(--radius-sm) 0 0;padding:0.65rem 1.25rem;display:grid;grid-template-columns:1fr 150px 110px 110px 44px;gap:0.75rem;align-items:center;border:1px solid rgba(92,79,74,0.1)">
+        <div style="font-size:0.72rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.06em;font-family:'DM Sans',sans-serif">Feature Name</div>
+        <div style="font-size:0.72rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.06em;font-family:'DM Sans',sans-serif">Category</div>
+        <div style="font-size:0.72rem;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.06em;text-align:center;font-family:'DM Sans',sans-serif">Basic</div>
+        <div style="font-size:0.72rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;text-align:center;font-family:'DM Sans',sans-serif">Premium</div>
+        <div></div>
+      </div>
+
+      <div id="compare-rows" style="border:1px solid rgba(92,79,74,0.1);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden"></div>
+
+      <button class="btn btn-outline btn-sm" onclick="addRow()" style="margin-top:0.85rem;font-family:'DM Sans',sans-serif">+ Add Feature Row</button>
+    </div>
+
+    <div style="text-align:right;margin-bottom:2rem">
+      <button class="btn btn-primary btn-lg" onclick="saveAll()">Save All Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/app.js"></script>
+<script>
+const TEXT_KEYS = ['sub_page_title','sub_page_subtitle','premium_monthly_price','premium_yearly_price',
+  'sub_premium_name','sub_annual_name','sub_popular_badge','sub_value_badge','sub_compare_title','sub_compare_sections'];
+
+// Default rows if none saved
+const DEFAULT_ROWS = [
+  { feature:'Basic week-by-week tracking', category:'Tracking', basic:true, premium:true },
+  { feature:'Baby movement & kick counter', category:'Tracking', basic:true, premium:true },
+  { feature:'Health log (weight, BP, symptoms)', category:'Tracking', basic:true, premium:true },
+  { feature:'Personalised pregnancy timeline', category:'Tracking', basic:false, premium:true },
+  { feature:'Advanced symptom tracking & alerts', category:'Tracking', basic:false, premium:true },
+  { feature:'Detailed baby development insights', category:'Tracking', basic:false, premium:true },
+  { feature:'Pregnancy articles & FAQ', category:'Support', basic:true, premium:true },
+  { feature:'Chat with volunteer doctors', category:'Support', basic:true, premium:true },
+  { feature:'1-on-1 video with specialists', category:'Support', basic:false, premium:true },
+  { feature:'Basic article library', category:'AI & Education', basic:true, premium:true },
+  { feature:'AI weekly personalised tips', category:'AI & Education', basic:false, premium:true },
+  { feature:'Full education library + videos', category:'AI & Education', basic:false, premium:true },
+];
+
+let rows = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+  const { data } = await supabaseClient.from('site_settings').select('*');
+  if (data) {
+    data.forEach(s => {
+      const el = document.getElementById('s-' + s.setting_key);
+      if (el) el.value = s.setting_value || '';
+    });
+    // Load comparison rows
+    const rowData = data.find(s => s.setting_key === 'sub_compare_rows');
+    if (rowData && rowData.setting_value) {
+      try { rows = JSON.parse(rowData.setting_value); } catch { rows = [...DEFAULT_ROWS]; }
+    } else {
+      rows = [...DEFAULT_ROWS];
+    }
+    const sectionsData = data.find(s => s.setting_key === 'sub_compare_sections');
+    if (sectionsData && sectionsData.setting_value) {
+      categories = sectionsData.setting_value.split(',').map(s=>s.trim()).filter(Boolean);
+    }
+  }
+  renderCategories();
+  renderRows();
+});
+
+let categories = ['Tracking', 'Support', 'AI & Education'];
+
+function renderCategories() {
+  const list = document.getElementById('categories-list');
+  const hidden = document.getElementById('s-sub_compare_sections');
+  list.innerHTML = categories.map((c, i) => `
+    <span style="display:inline-flex;align-items:center;gap:0.35rem;background:white;border:1.5px solid rgba(92,79,74,0.15);border-radius:50px;padding:0.3rem 0.75rem;font-size:0.82rem;font-family:'DM Sans',sans-serif;color:var(--text-mid)">
+      ${c}
+      <button onclick="removeCategory(${i})" style="background:none;border:none;color:rgba(192,57,43,0.5);cursor:pointer;font-size:0.9rem;padding:0;line-height:1" title="Remove category">✕</button>
+    </span>`).join('');
+  if (hidden) hidden.value = categories.join(',');
+}
+
+function addCategory() {
+  const input = document.getElementById('new-category-input');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!categories.includes(val)) {
+    categories.push(val);
+    renderCategories();
+    renderRows();
+  }
+  input.value = '';
+}
+
+function removeCategory(i) {
+  const cat = categories[i];
+  if (confirm('Remove category "' + cat + '"? Rows using it will keep their value but may not display under a section header.')) {
+    categories.splice(i, 1);
+    renderCategories();
+    renderRows();
+  }
+}
+
+function renderRows() {
+  const container = document.getElementById('compare-rows');
+  container.innerHTML = rows.map((r, i) => `
+    <div style="display:grid;grid-template-columns:1fr 150px 110px 110px 44px;gap:0.75rem;align-items:center;padding:0.65rem 1.25rem;background:${i%2===0?'white':'#fdfcfb'};border-bottom:1px solid rgba(92,79,74,0.06)">
+      <input type="text" value="${escHtml(r.feature)}" placeholder="Feature name"
+        onchange="rows[${i}].feature=this.value"
+        style="font-size:0.88rem;font-family:'DM Sans',sans-serif;border:1px solid rgba(92,79,74,0.12);border-radius:8px;padding:0.45rem 0.75rem;background:white;color:var(--text-dark);width:100%" />
+      <select onchange="rows[${i}].category=this.value"
+        style="font-size:0.85rem;font-family:'DM Sans',sans-serif;border:1px solid rgba(92,79,74,0.12);border-radius:8px;padding:0.45rem 0.6rem;background:white;color:var(--text-mid);width:100%">
+        ${getCategoryOptions(r.category)}
+      </select>
+      <div style="text-align:center">
+        <button onclick="rows[${i}].basic=!rows[${i}].basic;renderRows()"
+          style="width:40px;height:34px;border-radius:8px;border:2px solid ${r.basic?'var(--teal)':'rgba(92,79,74,0.18)'};background:${r.basic?'var(--teal-light)':'white'};cursor:pointer;font-size:0.95rem;font-weight:700;color:${r.basic?'var(--teal)':'rgba(92,79,74,0.3)'}">
+          ${r.basic?'✓':'—'}
+        </button>
+      </div>
+      <div style="text-align:center">
+        <button onclick="rows[${i}].premium=!rows[${i}].premium;renderRows()"
+          style="width:40px;height:34px;border-radius:8px;border:2px solid ${r.premium?'var(--teal)':'rgba(92,79,74,0.18)'};background:${r.premium?'var(--teal-light)':'white'};cursor:pointer;font-size:0.95rem;font-weight:700;color:${r.premium?'var(--teal)':'rgba(92,79,74,0.3)'}">
+          ${r.premium?'✓':'—'}
+        </button>
+      </div>
+      <div style="text-align:center">
+        <button onclick="removeRow(${i})"
+          style="width:32px;height:32px;border-radius:8px;border:none;background:none;color:rgba(192,57,43,0.4);cursor:pointer;font-size:1rem"
+          onmouseover="this.style.background='#fde8e8';this.style.color='#c0392b'"
+          onmouseout="this.style.background='none';this.style.color='rgba(192,57,43,0.4)'">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function getCategoryOptions(selected) {
+  const allCats = [...categories];
+  if (selected && !allCats.includes(selected)) allCats.push(selected);
+  return allCats.map(c => `<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
+}
+
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addRow() {
+  rows.push({ feature:'', category:'Tracking', basic:true, premium:true });
+  renderRows();
+  // Focus the last added input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('#compare-rows input[type=text]');
+    if (inputs.length) inputs[inputs.length - 2].focus();
+  }, 50);
+}
+
+function removeRow(i) {
+  rows.splice(i, 1);
+  renderRows();
+}
+
+async function saveAll() {
+  const btn = document.getElementById('save-btn'); btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    // Save text settings
+    for (const key of TEXT_KEYS) {
+      const el = document.getElementById('s-' + key); if (!el) continue;
+      await supabaseClient.from('site_settings').upsert(
+        { setting_key: key, setting_value: el.value.trim(), updated_at: new Date().toISOString() },
+        { onConflict: 'setting_key' }
+      );
+    }
+    // Save comparison rows as JSON
+    await supabaseClient.from('site_settings').upsert(
+      { setting_key: 'sub_compare_rows', setting_value: JSON.stringify(rows), updated_at: new Date().toISOString() },
+      { onConflict: 'setting_key' }
+    );
+    document.getElementById('save-ok').style.display = 'block';
+    setTimeout(() => document.getElementById('save-ok').style.display = 'none', 3000);
+    showToast('Saved!', 'success');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  finally { btn.textContent = 'Save Changes'; btn.disabled = false; }
+}
+</script>
+</body>
+</html>
