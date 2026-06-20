@@ -1,137 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Log In — TinyBloom</title>
+  <!-- Capture the raw URL hash/search the instant the page parses, before the
+       Supabase SDK (loaded below) gets a chance to auto-parse/strip the
+       #access_token=... fragment. This is the only thing we read from later —
+       never window.location directly — so SDK URL cleanup can't race us. -->
+  <script>
+    window.__tbAuthHash = window.location.hash;
+    window.__tbAuthSearch = window.location.search;
+  </script>
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
-<div id="navbar-placeholder"></div>
+  <div id="navbar-placeholder"></div>
 
-<div style="background:var(--blush);min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;">
-  <div style="width:100%;max-width:440px;">
+  <div
+    style="background:var(--blush);min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;">
+    <div style="width:100%;max-width:440px;">
 
-    <div class="form-card">
-      <div style="text-align:center;margin-bottom:1.75rem">
-        <a href="index.html" style="font-family:'Playfair Display',serif;font-size:1.75rem;color:var(--rose-deep);text-decoration:none">TinyBloom</a>
-        <p style="font-size:0.85rem;color:var(--text-light);margin-top:0.35rem">Welcome back</p>
-      </div>
-
-      <div class="form-group">
-        <label for="login-email">Email Address</label>
-        <input type="email" id="login-email" placeholder="e.g. sarah@example.com" />
-      </div>
-      <div class="form-group">
-        <label for="login-password">Password</label>
-        <input type="password" id="login-password" placeholder="Your password" />
-      </div>
-
-      <div style="text-align:right;margin-top:-0.5rem;margin-bottom:1.25rem">
-        <a href="reset-password.html" style="font-size:0.82rem;color:var(--text-light)">Forgot password?</a>
-      </div>
-
-      <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="login-error"></div>
-
-      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem" onclick="handleLogin()" id="login-btn">
-        Log In
-      </button>
-
-      <div class="divider"></div>
-      <p style="text-align:center;font-size:0.85rem;color:var(--text-light)">
-        Don't have an account? <a href="register.html">Register here</a>
-      </p>
-
-      <!-- Admin credentials box -->
-      <div style="margin-top:1.5rem;background:#f0f9f9;border:1.5px solid var(--teal);border-radius:var(--radius-sm);padding:1rem 1.1rem;">
-        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--teal);margin-bottom:0.6rem">Admin Credentials</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
-          <span style="font-size:0.82rem;color:var(--text-mid)">Email</span>
-          <code style="font-size:0.82rem;background:white;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid rgba(91,158,160,0.3)">admin@tinybloom.com</code>
+      <div class="form-card">
+        <div style="text-align:center;margin-bottom:1.75rem">
+          <a href="index.html"
+            style="font-family:'Playfair Display',serif;font-size:1.75rem;color:var(--rose-deep);text-decoration:none">TinyBloom</a>
+          <p id="login-subtitle" style="font-size:0.85rem;color:var(--text-light);margin-top:0.35rem">Welcome back</p>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:0.82rem;color:var(--text-mid)">Password</span>
-          <code style="font-size:0.82rem;background:white;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid rgba(91,158,160,0.3)">TinyBloom@Admin2024!</code>
-        </div>
-      </div>
 
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" placeholder="e.g. sarah@example.com" />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="Your password" />
+        </div>
+
+        <div style="text-align:right;margin-top:-0.5rem;margin-bottom:1.25rem">
+          <a href="reset-password.html" style="font-size:0.82rem;color:var(--text-light)">Forgot password?</a>
+        </div>
+
+        <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="login-error"></div>
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem" onclick="handleLogin()"
+          id="login-btn">
+          Log In
+        </button>
+
+        <div class="divider"></div>
+        <p style="text-align:center;font-size:0.85rem;color:var(--text-light)">
+          Don't have an account? <a href="register.html">Register here</a>
+        </p>
+
+        <!-- Admin credentials box -->
+        <div
+          style="margin-top:1.5rem;background:#f0f9f9;border:1.5px solid var(--teal);border-radius:var(--radius-sm);padding:1rem 1.1rem;">
+          <div
+            style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--teal);margin-bottom:0.6rem">
+            Admin Credentials</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+            <span style="font-size:0.82rem;color:var(--text-mid)">Email</span>
+            <code
+              style="font-size:0.82rem;background:white;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid rgba(91,158,160,0.3)">admin@tinybloom.com</code>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.82rem;color:var(--text-mid)">Password</span>
+            <code
+              style="font-size:0.82rem;background:white;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid rgba(91,158,160,0.3)">TinyBloom@Admin2024!</code>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
-</div>
 
-<div id="footer-placeholder"></div>
+  <div id="footer-placeholder"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/app.js"></script>
-<script>
-  // Show registered success message
-  if (new URLSearchParams(window.location.search).get('registered')) {
-    document.addEventListener('DOMContentLoaded', () => {
-      const msg = document.createElement('div');
-      msg.style.cssText = 'background:#eef6f2;border-radius:var(--radius-sm);padding:0.85rem 1.25rem;font-size:0.88rem;color:var(--sage);margin-bottom:1.5rem;border-left:3px solid var(--sage)';
-      msg.textContent = '✓ Account created! Please verify your email, then log in below.';
-      document.querySelector('.form-card').prepend(msg);
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // ---- Email-verification handling (replaces login-verification.html) ----
+    //
+    // If this page was loaded as the redirect target of a Supabase signup
+    // confirmation link, it'll carry either #access_token=... (implicit flow)
+    // or ?code=... (PKCE flow), plus &type=signup. We never trust those raw
+    // values ourselves — we hand them to the SDK, which validates them against
+    // Supabase and only succeeds if the one-time token was genuine and unused.
+
+    function cleanAuthParamsFromUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('code');
+      url.searchParams.delete('type');
+      url.hash = '';
+      history.replaceState(null, '', url.pathname + url.search);
+    }
+
+    // Returns true if this load was (successfully or not) a verification
+    // redirect, so the caller knows to skip the normal "already logged in"
+    // auto-redirect below.
+    async function handleEmailVerificationIfPresent() {
+      const searchParams = new URLSearchParams(window.__tbAuthSearch || '');
+      const hashParams = new URLSearchParams((window.__tbAuthHash || '').replace(/^#/, ''));
+
+      const hasCode = searchParams.get('code');
+      const hasHashToken = hashParams.get('access_token');
+      if (!hasCode && !hasHashToken) return false; // ordinary page load
+
+      const verificationType = hashParams.get('type') || searchParams.get('type');
+      const errEl = document.getElementById('login-error');
+
+      try {
+        let sessionEstablished = false;
+
+        if (hasCode) {
+          const { data, error } = await supabaseClient.auth.exchangeCodeForSession(window.location.href);
+          if (error) throw error;
+          sessionEstablished = !!data?.session;
+        }
+        if (!sessionEstablished) {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          sessionEstablished = !!session;
+        }
+
+        cleanAuthParamsFromUrl();
+
+        if (!sessionEstablished) throw new Error('This verification link is invalid or has expired.');
+
+        if (verificationType && verificationType !== 'signup') {
+          // Recovery/invite links shouldn't claim to be email verification.
+          return false;
+        }
+
+        // Don't silently leave them signed in from an email click — they
+        // should still log in explicitly with their password.
+        await supabaseClient.auth.signOut();
+
+        const subtitle = document.getElementById('login-subtitle');
+        if (subtitle) subtitle.textContent = '✅ Thanks for verifying your email, log in below!';
+
+        return true;
+      } catch (e) {
+        cleanAuthParamsFromUrl();
+        errEl.textContent = e.message || 'This verification link is invalid or has expired.';
+        errEl.style.display = 'block';
+        return true;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const wasVerificationRedirect = await handleEmailVerificationIfPresent();
+      if (wasVerificationRedirect) return; // subtitle/error already set above
+
+      // Ordinary load: if already logged in, route to the right place.
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+        if (!user.email_confirmed_at) {
+          window.location.replace('email-verification.html');
+          return;
+        }
+        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+        if (profile?.role === 'admin' || user.email === 'admin@tinybloom.com') {
+          window.location.replace('admin/index.html');
+        } else if (profile) {
+          window.location.replace('download.html');
+        }
+      } catch { }
     });
-  }
 
-  // If already logged in, redirect appropriately
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const { data:{ user } } = await supabaseClient.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
-      if (profile?.role === 'admin' || user.email === 'admin@tinybloom.com') {
-        window.location.replace('admin/index.html');
-      } else if (profile) {
-        window.location.replace('download.html');
-      }
-    } catch {}
-  });
-
-  document.getElementById('login-password').addEventListener('keypress', e => {
-    if (e.key === 'Enter') handleLogin();
-  });
-
-  async function handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errEl = document.getElementById('login-error');
-    const btn = document.getElementById('login-btn');
-    errEl.style.display = 'none';
-
-    if (!email || !password) {
-      errEl.textContent = 'Please enter your email and password.';
-      errEl.style.display = 'block'; return;
+    // Show registered success message
+    if (new URLSearchParams(window.__tbAuthSearch || '').get('registered')) {
+      document.addEventListener('DOMContentLoaded', () => {
+        const msg = document.createElement('div');
+        msg.style.cssText = 'background:#eef6f2;border-radius:var(--radius-sm);padding:0.85rem 1.25rem;font-size:0.88rem;color:var(--sage);margin-bottom:1.5rem;border-left:3px solid var(--sage)';
+        msg.textContent = '✓ Account created! Please verify your email, then log in below.';
+        document.querySelector('.form-card').prepend(msg);
+      });
     }
 
-    btn.textContent = 'Logging in...'; btn.disabled = true;
+    document.getElementById('login-password').addEventListener('keypress', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
 
-    try {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) throw new Error('Wrong email or password.');
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error');
+      const btn = document.getElementById('login-btn');
+      errEl.style.display = 'none';
 
-      // Check if admin
-      if (email === 'admin@tinybloom.com' || data.user?.user_metadata?.role === 'admin') {
-        window.location.replace('admin/index.html'); return;
+      if (!email || !password) {
+        errEl.textContent = 'Please enter your email and password.';
+        errEl.style.display = 'block'; return;
       }
 
-      // Check profile role
-      const { data: profile } = await supabaseClient
-        .from('profiles').select('role').eq('id', data.user.id).single();
+      btn.textContent = 'Logging in...'; btn.disabled = true;
 
-      if (profile?.role === 'admin') {
-        window.location.replace('admin/index.html');
-      } else {
-        // All other registered users go to download page
-        window.location.replace('download.html');
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        // Check if admin
+        if (email === 'admin@tinybloom.com' || data.user?.user_metadata?.role === 'admin') {
+          window.location.replace('admin/index.html'); return;
+        }
+
+        // Check profile role
+        const { data: profile } = await supabaseClient
+          .from('profiles').select('role').eq('id', data.user.id).single();
+
+        if (profile?.role === 'admin') {
+          window.location.replace('admin/index.html');
+        } else {
+          // All other registered users go to download page
+          window.location.replace('download.html');
+        }
+
+      } catch (e) {
+        errEl.textContent = e.message || 'Login failed.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Log In'; btn.disabled = false;
       }
-
-    } catch (e) {
-      errEl.textContent = e.message || 'Login failed.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Log In'; btn.disabled = false;
     }
-  }
-</script>
+  </script>
 </body>
+
 </html>

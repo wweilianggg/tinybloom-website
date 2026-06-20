@@ -507,10 +507,10 @@ async function handleRegister() {
   btn.textContent = 'Creating account...'; btn.disabled = true;
 
   try {
-    var res = await supabaseClient.auth.signUp({ email: email, password: password, options: { data: { full_name: name, role: finalRole } } });
+    var res = await supabaseClient.auth.signUp({ email: email, password: password, options: { data: { full_name: name, role: finalRole }, emailRedirectTo: `${window.location.origin}/login.html` } } );
     if (res.error) throw new Error(res.error.message);
     if (!res.data.user) throw new Error('Signup failed. Please try again.');
-
+    
     var userId = res.data.user.id;
 
     var profRes = await supabaseClient.from('profiles').insert({ id: userId, full_name: name, email: email, role: finalRole, phone: phone });
@@ -540,7 +540,11 @@ async function handleRegister() {
 
     document.getElementById('reg-success').style.display = 'block';
     btn.textContent = 'Account Created!';
-    setTimeout(function() { window.location.replace('login.html?registered=1'); }, 2000);
+    
+    // Sign out of User Account after Sign Up - Testing Purposes Only
+    <!-- await supabaseClient.auth.signOut(); -->
+
+    setTimeout(function() { window.location.replace('email-verification.html'); }, 2000);
 
   } catch(e) {
     var msg = e.message || 'Registration failed.';
