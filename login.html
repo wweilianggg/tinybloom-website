@@ -208,16 +208,36 @@
           window.location.replace('admin/index.html'); return;
         }
 
-        // Check profile role
-        const { data: profile } = await supabaseClient
-          .from('profiles').select('role').eq('id', data.user.id).single();
+        // Check profile role and status
+        const { data: loginProfile, error: profileError } = await supabaseClient
+          .from('profiles')
+          .select('role, is_active')
+          .eq('id', data.user.id)
+          .single();
 
-        if (profile?.role === 'admin') {
+        if (profileError) throw profileError;
+
+        // Admin goes to admin panel
+        if (loginProfile?.role === 'admin') {
           window.location.replace('admin/index.html');
-        } else {
-          // All other registered users go to download page
-          window.location.replace('download.html');
+          return;
         }
+
+        // Specialist cannot login until admin approves
+        if (loginProfile?.role === 'specialist' && loginProfile?.is_active === false) {
+          await supabaseClient.auth.signOut();
+
+          errEl.textContent = 'Your specialist application is pending admin approval.';
+          errEl.style.display = 'block';
+
+          btn.textContent = 'Log In';
+          btn.disabled = false;
+          return;
+        }
+
+        // All approved/normal users go to download page
+        window.location.replace('download.html');
+        return;
 
       } catch (e) {
         errEl.textContent = e.message || 'Login failed.';

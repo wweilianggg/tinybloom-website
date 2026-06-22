@@ -79,9 +79,9 @@ async function requireAdmin() {
 // Prevents back-button from returning to login page after login
 // and prevents accessing protected pages after logout
 
-(function() {
+(function () {
   // Add no-store cache headers so pages are never cached
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const metas = [
       { httpEquiv: 'Cache-Control', content: 'no-store, no-cache, must-revalidate, max-age=0' },
       { httpEquiv: 'Pragma', content: 'no-cache' },
@@ -96,7 +96,7 @@ async function requireAdmin() {
   });
 
   // Handle back button (pageshow fires when page is shown from cache)
-  window.addEventListener('pageshow', async function(e) {
+  window.addEventListener('pageshow', async function (e) {
     // bfcache (back-forward cache) restoration
     if (e.persisted) {
       const path = window.location.pathname;
@@ -118,7 +118,7 @@ async function requireAdmin() {
             window.location.replace(isAdmin ? 'admin/index.html' : 'download.html');
           }
         }
-      } catch(e) {
+      } catch (e) {
         // On error just reload fresh
         if (e.persisted) window.location.reload();
       }
@@ -306,6 +306,7 @@ function getAdminSidebar(activePage) {
   const pages = [
     { href: 'index.html', icon: '📊', label: 'Dashboard' },
     { href: 'users.html', icon: '👥', label: 'Users' },
+    { href: 'specialists.html', icon: '👩‍⚕️', label: 'Specialist Management' },
     { divider: true, label: 'PAGE CONTENT' },
     { href: 'page-home.html', icon: '🏠', label: 'Home' },
     { href: 'page-features.html', icon: '✨', label: 'Features' },
