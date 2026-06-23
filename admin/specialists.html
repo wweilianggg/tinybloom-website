@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Specialist Management — Admin</title>
+    <link rel="stylesheet" href="../css/style.css" />
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="admin-sidebar-placeholder"></div>
+
+        <div class="admin-content">
+            <div class="admin-header"
+                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+
+                <h1 style="margin:0">Specialist Management</h1>
+
+                <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+                    <select id="status-filter" onchange="loadRequests()" style="
+        padding:0.6rem 0.9rem;
+        border-radius:999px;
+        border:1px solid rgba(92,79,74,0.12);
+        background:white;
+        min-width:140px;
+        font-family:'DM Sans',sans-serif;
+        font-size:0.88rem;
+    ">
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="">All Status</option>
+                    </select>
+
+                    <input type="text" id="search-box" placeholder="Search name or email..." oninput="renderRequests()"
+                        style="
+        padding:0.6rem 0.9rem;
+        border-radius:999px;
+        border:1px solid rgba(92,79,74,0.12);
+        background:white;
+        min-width:240px;
+        font-family:'DM Sans',sans-serif;
+        font-size:0.88rem;
+    " />
+                </div>
+            </div>
+
+            <div class="card" style="padding:0;overflow:hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Specialization</th>
+                            <th>Experience</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="request-table">
+                        <tr>
+                            <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="details-modal"
+        style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.4);z-index:9999;align-items:center;justify-content:center">
+        <div class="card" style="width:520px;max-width:90%;max-height:85vh;overflow:auto">
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem">
+                Specialist Application Details
+            </h3>
+
+            <div id="details-content" style="font-size:0.9rem;line-height:1.8;color:var(--text-mid)"></div>
+
+            <div style="margin-top:1.5rem;text-align:right">
+                <button class="btn btn-ghost" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        let requests = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await requireAdmin();
+            await loadRequests();
+        });
+
+        async function loadRequests() {
+            const tbody = document.getElementById('request-table');
+            const status = document.getElementById('status-filter').value;
+
+            tbody.innerHTML = `
+        
+            <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">
+                    Loading...
+                    </td>
+                    </tr>
+                    `;
+
+            try {
+                let query = supabaseClient
+                    .from('specialist_profiles')
+                    .select(`
+                    id,
+                    user_id,
+                    specialization,
+                    license_number,
+                    years_experience,
+                    hospital_affiliation,
+                    qualification,
+                    practising_certificate_expiry,
+                    approval_status,
+                    is_verified,
+                    verified_at,
+                    created_at,
+                    profiles:user_id (
+                    full_name,
+                    email,
+                    phone
+                    )
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (status) {
+                    query = query.eq('approval_status', status);
+                }
+
+                const { data, error } = await query;
+
+                if (error) throw error;
+
+                requests = (data || []).map(item => ({
+                    id: item.id,
+                    user_id: item.user_id,
+                    name: item.profiles?.full_name || '-',
+                    email: item.profiles?.email || '-',
+                    phone: item.profiles?.phone || '-',
+                    specialization: item.specialization || '-',
+                    license_number: item.license_number || '-',
+                    experience: item.years_experience || 0,
+                    hospital: item.hospital_affiliation || '-',
+                    qualification: item.qualification || '-',
+                    pc_expiry: item.practising_certificate_expiry || '-',
+                    status: item.approval_status || 'pending',
+                    created_at: item.created_at
+                }));
+
+                renderRequests();
+
+            } catch (error) {
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center;color:#c0392b;padding:2rem">
+                        Error: ${error.message}
+                        </td>
+                        </tr>
+                        `;
+            }
+        }
+
+        function renderRequests() {
+            const tbody = document.getElementById('request-table');
+            const search = document.getElementById('search-box').value.toLowerCase();
+
+            const filtered = requests.filter(item =>
+                item.name.toLowerCase().includes(search) ||
+                item.email.toLowerCase().includes(search) ||
+                item.specialization.toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">
+                        No specialist requests found.
+                        </td>
+                        </tr>
+                        `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => {
+                const joinedDate = item.created_at
+                    ? new Date(item.created_at).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    })
+                    : '-';
+
+                const statusBadge =
+                    item.status === 'approved'
+                        ? 'badge-green'
+                        : item.status === 'rejected'
+                            ? 'badge-rose'
+                            : 'badge-gold';
+
+                let buttons = '';
+
+                if (item.status === 'pending') {
+                    buttons = `
+            
+            <button
+            class="btn btn-outline btn-sm"
+            onclick="viewDetails('${item.id}')">
+            View
+            </button>
+            <button
+            class="btn btn-primary btn-sm"
+            onclick="approveRequest('${item.id}')">
+            Approve
+            </button>
+
+            <button
+
+            class="btn btn-ghost btn-sm"
+            style="color:#c0392b"
+            onclick="rejectRequest('${item.id}')">
+            Reject
+            </button>
+            `;
+                } else {
+                    buttons = `
+            <button
+            class="btn btn-outline btn-sm"
+            onclick="setPending('${item.id}')">
+
+            Set Pending
+            </button>
+            `;
+                }
+
+                return `
+                <tr>
+            <td>${item.name}</td>
+            <td>${item.email}</td>
+            <td>${item.specialization}</td>
+            <td>${item.experience} years</td>
+            <td>
+                <span class="badge ${statusBadge}">
+                ${item.status}
+                </span>
+            </td>
+            <td>${joinedDate}</td>
+            <td>
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+                ${buttons}
+                </div>
+            </td>
+            </tr>
+        `;
+            }).join('');
+        }
+
+        function viewDetails(id) {
+            const item = requests.find(r => r.id === id);
+            if (!item) return;
+
+            document.getElementById('details-content').innerHTML = `
+    <p><strong>Name:</strong> ${item.name}</p>
+    <p><strong>Email:</strong> ${item.email}</p>
+    <p><strong>Phone:</strong> ${item.phone}</p>
+    <hr>
+
+    <p><strong>Specialization:</strong> ${item.specialization}</p>
+    <p><strong>SMC / MCR Number:</strong> ${item.license_number}</p>
+    <p><strong>Years of Experience:</strong> ${item.experience}</p>
+    <p><strong>Hospital / Clinic:</strong> ${item.hospital}</p>
+    <p><strong>Medical Qualification:</strong> ${item.qualification}</p>
+    <p><strong>Practising Certificate Expiry:</strong> ${item.pc_expiry}</p>
+    <hr>
+    <p><strong>Status:</strong> ${item.status}</p>
+    `;
+
+            document.getElementById('details-modal').style.display = 'flex';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').style.display = 'none';
+        }
+
+        async function approveRequest(id) {
+            if (!confirm('Approve this specialist request?')) return;
+
+            const { data: specialist, error: fetchError } = await supabaseClient
+                .from('specialist_profiles')
+                .select(`
+                id,
+                user_id,
+                profiles:user_id (
+                email
+                )
+                `)
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                showToast(fetchError.message, 'error');
+                return;
+            }
+
+            await supabaseClient
+                .from('specialist_profiles')
+                .update({
+                    approval_status: 'approved',
+                    is_verified: true,
+                    verified_at: new Date().toISOString()
+                })
+                .eq('id', id);
+
+            await supabaseClient
+                .from('profiles')
+                .update({ is_active: true })
+                .eq('id', specialist.user_id);
+
+            const { error: resendError } = await supabaseClient.auth.resend({
+                type: 'signup',
+                email: specialist.profiles.email,
+                options: {
+                    emailRedirectTo:
+                        window.location.origin.replace('/admin', '') +
+                        '/login.html?verified=1'
+                }
+            });
+
+            if (resendError) {
+                showToast('Approved, but email not sent: ' + resendError.message, 'error');
+                await loadRequests();
+                return;
+            }
+
+            showToast('Specialist approved and email sent!', 'success');
+            await loadRequests();
+
+            await supabaseClient
+                .from('email_notifications')
+                .insert({
+                    recipient_email: specialist.email,
+                    recipient_name: specialist.full_name,
+                    subject: 'TinyBloom Specialist Account Approved',
+                    message:
+                        'Hi ' + specialist.full_name + ',\n\n' +
+                        'Your TinyBloom specialist account has been approved.\n\n' +
+                        'You may now log in and start using your specialist dashboard.\n\n' +
+                        'Login here: http://127.0.0.1:5500/login.html\n\n' +
+                        'Thank you,\nTinyBloom Team'
+                });
+            alert('Specialist approved. Approval email notification created.');
+        }
+
+        async function rejectRequest(id) {
+            if (!confirm('Reject and delete this specialist application completely?')) return;
+
+            const { data: specialist, error: fetchError } = await supabaseClient
+                .from('specialist_profiles')
+                .select('id, user_id')
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                showToast(fetchError.message, 'error');
+                return;
+            }
+
+            const { error: deleteSpecialistError } = await supabaseClient
+                .from('specialist_profiles')
+                .delete()
+                .eq('id', id);
+
+            if (deleteSpecialistError) {
+                showToast(deleteSpecialistError.message, 'error');
+                return;
+            }
+
+            const { error: deleteProfileError } = await supabaseClient
+                .from('profiles')
+                .delete()
+                .eq('id', specialist.user_id);
+
+            if (deleteProfileError) {
+                showToast(deleteProfileError.message, 'error');
+                return;
+            }
+
+            showToast('Specialist application rejected and deleted.', 'success');
+            await loadRequests();
+        }
+
+        async function setPending(id) {
+            if (!confirm('Set this specialist request back to pending?')) return;
+
+            const { error } = await supabaseClient
+                .from('specialist_profiles')
+                .update({
+                    approval_status: 'pending',
+                    is_verified: false,
+                    verified_at: null
+                })
+                .eq('id', id);
+
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+
+            showToast('Specialist set to pending.', 'success');
+            await loadRequests();
+        }
+    </script>
+</body>
+
+</html>

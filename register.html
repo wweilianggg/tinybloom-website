@@ -1,215 +1,395 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register — TinyBloom</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .role-btn { display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1rem;border-radius:var(--radius-sm);border:1.5px solid rgba(92,79,74,0.15);background:white;font-size:0.88rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;text-align:left;width:100%; }
-    .role-btn:hover { border-color:var(--rose);background:var(--blush); }
-    .role-btn.selected { border-color:var(--rose-deep);background:var(--blush);color:var(--rose-deep);font-weight:600; }
-    .plan-card { border:2px solid rgba(92,79,74,0.12);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all 0.2s;background:white;margin-bottom:0.85rem; }
-    .plan-card:hover { border-color:var(--teal);background:#f9fdfd; }
-    .plan-card.selected { border-color:var(--teal);background:var(--teal-light); }
-    .step-bar { display:flex;align-items:center;gap:0.5rem;margin-bottom:1.75rem; }
-    .step-dot { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0; }
-    .step-dot.active { background:var(--teal);color:white; }
-    .step-dot.done { background:var(--sage);color:white; }
-    .step-dot.inactive { background:rgba(92,79,74,0.1);color:var(--text-light); }
-    .step-line { flex:1;height:2px;background:rgba(92,79,74,0.1); }
-    .step-line.done { background:var(--sage); }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    .validation-error { color:#e05c5c;font-size:0.78rem;margin-top:0.25rem;display:none; }
-    .input-error { border-color:#e05c5c !important; }
-    .input-success { border-color:var(--sage) !important; }
+    .role-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid rgba(92, 79, 74, 0.15);
+      background: white;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      text-align: left;
+      width: 100%;
+    }
+
+    .role-btn:hover {
+      border-color: var(--rose);
+      background: var(--blush);
+    }
+
+    .role-btn.selected {
+      border-color: var(--rose-deep);
+      background: var(--blush);
+      color: var(--rose-deep);
+      font-weight: 600;
+    }
+
+    .plan-card {
+      border: 2px solid rgba(92, 79, 74, 0.12);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      margin-bottom: 0.85rem;
+    }
+
+    .plan-card:hover {
+      border-color: var(--teal);
+      background: #f9fdfd;
+    }
+
+    .plan-card.selected {
+      border-color: var(--teal);
+      background: var(--teal-light);
+    }
+
+    .step-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-dot.active {
+      background: var(--teal);
+      color: white;
+    }
+
+    .step-dot.done {
+      background: var(--sage);
+      color: white;
+    }
+
+    .step-dot.inactive {
+      background: rgba(92, 79, 74, 0.1);
+      color: var(--text-light);
+    }
+
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: rgba(92, 79, 74, 0.1);
+    }
+
+    .step-line.done {
+      background: var(--sage);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .validation-error {
+      color: #e05c5c;
+      font-size: 0.78rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    .input-error {
+      border-color: #e05c5c !important;
+    }
+
+    .input-success {
+      border-color: var(--sage) !important;
+    }
   </style>
 </head>
+
 <body>
-<div id="navbar-placeholder"></div>
+  <div id="navbar-placeholder"></div>
 
-<div style="background:var(--blush);min-height:calc(100vh - 70px);padding:4rem 2.5rem;">
-  <div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:3.5rem;align-items:start;">
+  <div style="background:var(--blush);min-height:calc(100vh - 70px);padding:4rem 2.5rem;">
+    <div
+      style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:3.5rem;align-items:start;">
 
-    <!-- Left branding -->
-    <div style="text-align:center">
-      <div class="form-brand">TinyBloom</div>
-      <p style="color:var(--text-mid);margin-bottom:2rem;line-height:1.7;">Join thousands of mothers, families, and healthcare professionals on TinyBloom.</p>
-      <div id="register-illustration">
-        <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" fill="none" style="max-width:320px;width:100%;display:block;margin:1.5rem auto">
-          <ellipse cx="100" cy="175" rx="55" ry="65" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5"/>
-          <circle cx="100" cy="95" r="32" fill="none" stroke="#c97b75" stroke-width="1.5"/>
-          <path d="M82 142 C82 155 88 168 100 175 C112 168 118 155 118 142" stroke="#c97b75" stroke-width="1.5" fill="none"/>
-          <circle cx="150" cy="220" r="16" fill="#e8a9a3" opacity="0.7"/>
-          <circle cx="150" cy="220" r="8" fill="#c97b75" opacity="0.8"/>
-          <circle cx="150" cy="200" r="10" fill="#e8a9a3" opacity="0.5"/>
-          <circle cx="162" cy="212" r="10" fill="#e8a9a3" opacity="0.5"/>
-          <circle cx="138" cy="212" r="10" fill="#e8a9a3" opacity="0.5"/>
-          <path d="M145 238 C140 255 132 265 120 272" stroke="#7a9e8e" stroke-width="1.5" fill="none"/>
-          <ellipse cx="128" cy="260" rx="8" ry="14" transform="rotate(-25 128 260)" fill="#7a9e8e" opacity="0.5"/>
-        </svg>
-      </div>
-      <div class="divider"></div>
-      <p style="font-size:0.85rem;color:var(--text-light)">Already have an account? <a href="login.html">Log in here</a></p>
-    </div>
-
-    <!-- Right form -->
-    <div class="form-card">
-
-      <!-- Step indicator (hidden on step 1) -->
-      <div class="step-bar" id="step-bar" style="display:none">
-        <div class="step-dot active" id="dot1">1</div>
-        <div class="step-line" id="line1"></div>
-        <div class="step-dot inactive" id="dot2">2</div>
+      <!-- Left branding -->
+      <div style="text-align:center">
+        <div class="form-brand">TinyBloom</div>
+        <p style="color:var(--text-mid);margin-bottom:2rem;line-height:1.7;">Join thousands of mothers, families, and
+          healthcare professionals on TinyBloom.</p>
+        <div id="register-illustration">
+          <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" fill="none"
+            style="max-width:320px;width:100%;display:block;margin:1.5rem auto">
+            <ellipse cx="100" cy="175" rx="55" ry="65" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5" />
+            <circle cx="100" cy="95" r="32" fill="none" stroke="#c97b75" stroke-width="1.5" />
+            <path d="M82 142 C82 155 88 168 100 175 C112 168 118 155 118 142" stroke="#c97b75" stroke-width="1.5"
+              fill="none" />
+            <circle cx="150" cy="220" r="16" fill="#e8a9a3" opacity="0.7" />
+            <circle cx="150" cy="220" r="8" fill="#c97b75" opacity="0.8" />
+            <circle cx="150" cy="200" r="10" fill="#e8a9a3" opacity="0.5" />
+            <circle cx="162" cy="212" r="10" fill="#e8a9a3" opacity="0.5" />
+            <circle cx="138" cy="212" r="10" fill="#e8a9a3" opacity="0.5" />
+            <path d="M145 238 C140 255 132 265 120 272" stroke="#7a9e8e" stroke-width="1.5" fill="none" />
+            <ellipse cx="128" cy="260" rx="8" ry="14" transform="rotate(-25 128 260)" fill="#7a9e8e" opacity="0.5" />
+          </svg>
+        </div>
+        <div class="divider"></div>
+        <p style="font-size:0.85rem;color:var(--text-light)">Already have an account? <a href="login.html">Log in
+            here</a></p>
       </div>
 
-      <!-- STEP 1: Role selection -->
-      <div id="step1">
-        <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.35rem;">Create Your Account</h2>
-        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.75rem;">Choose your role to get started</p>
+      <!-- Right form -->
+      <div class="form-card">
 
-        <div class="form-group">
-          <label>I am joining as a...</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-top:0.5rem">
-            <button type="button" class="role-btn" onclick="selectRole('mum',this)"><span>🤰</span> Pregnant Mum</button>
-            <button type="button" class="role-btn" onclick="selectRole('next_of_kin',this)"><span>💑</span> Next of Kin</button>
-            <button type="button" class="role-btn" onclick="selectRole('specialist',this)"><span>👩‍⚕️</span> Specialist / Doctor</button>
-            <button type="button" class="role-btn" onclick="selectRole('volunteer',this)"><span>🤝</span> Volunteer</button>
-          </div>
+        <!-- Step indicator (hidden on step 1) -->
+        <div class="step-bar" id="step-bar" style="display:none">
+          <div class="step-dot active" id="dot1">1</div>
+          <div class="step-line" id="line1"></div>
+          <div class="step-dot inactive" id="dot2">2</div>
         </div>
 
-        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem;margin-top:0.5rem" onclick="goToStep2()" id="step1-next">Continue →</button>
-      </div>
+        <!-- STEP 1: Role selection -->
+        <div id="step1">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.35rem;">Create Your Account
+          </h2>
+          <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.75rem;">Choose your role to get started
+          </p>
 
-      <!-- STEP 2: Plan selection (mum) or Details form (others) -->
-      <div id="step2" style="display:none">
-
-        <!-- Plan cards (mum only) -->
-        <div id="plan-section" style="display:none">
-          <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:0.35rem">Choose Your Plan</h2>
-          <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem">You can upgrade anytime.</p>
-
-          <div class="plan-card" id="plan-free" onclick="selectPlan('free',this)">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <div style="font-weight:700;font-size:1rem">Basic — Free</div>
-                <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">Pregnancy articles, FAQ, basic tracking</div>
-              </div>
-              <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--text-dark)">$0</div>
-            </div>
-          </div>
-
-          <div class="plan-card" id="plan-monthly" onclick="selectPlan('premium_monthly',this)">
-            <div style="display:flex;justify-content:space-between;align-items:start">
-              <div>
-                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-                  <span style="font-weight:700;font-size:1rem">Premium Monthly</span>
-                  <span style="font-size:0.72rem;background:var(--teal);color:white;padding:2px 8px;border-radius:50px;font-weight:700">POPULAR</span>
-                </div>
-                <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">All features, AI tips, video consultations</div>
-              </div>
-              <div style="text-align:right;flex-shrink:0;margin-left:1rem">
-                <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--teal)" id="price-monthly">$9.90</div>
-                <div style="font-size:0.72rem;color:var(--text-light)">/month</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="plan-card" id="plan-yearly" onclick="selectPlan('premium_yearly',this)">
-            <div style="display:flex;justify-content:space-between;align-items:start">
-              <div>
-                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-                  <span style="font-weight:700;font-size:1rem">Premium Annual</span>
-                  <span style="font-size:0.72rem;background:var(--gold);color:white;padding:2px 8px;border-radius:50px;font-weight:700">SAVE 24%</span>
-                </div>
-                <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">Best value — all premium features</div>
-              </div>
-              <div style="text-align:right;flex-shrink:0;margin-left:1rem">
-                <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--gold)" id="price-yearly">$90</div>
-                <div style="font-size:0.72rem;color:var(--text-light)">/year</div>
-              </div>
-            </div>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem">
-            <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back</button>
-          </div>
-        </div>
-
-        <!-- Details form -->
-        <div id="details-form" style="display:none">
-          <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:0.35rem" id="details-title">Your Details</h2>
-          <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem" id="details-sub">Fill in your information below.</p>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-name">Full Name *</label>
-              <input type="text" id="reg-name" placeholder="e.g. Sarah Lim" />
-              <div class="validation-error" id="name-error">Please enter a valid full name (at least 2 characters).</div>
-            </div>
-            <div class="form-group">
-              <label for="reg-phone">Phone Number *</label>
-              <input type="tel" id="reg-phone" placeholder="e.g. 91234567" maxlength="8" />
-              <div class="validation-error" id="phone-error">Please enter a valid 8-digit phone number starting with 8 or 9.</div>
-            </div>
-          </div>
           <div class="form-group">
-            <label for="reg-email">Email Address *</label>
-            <input type="email" id="reg-email" placeholder="e.g. sarah@gmail.com" />
-            <div class="validation-error" id="email-error">Please use a valid email with @gmail.com, @outlook.com, @hotmail.com, or @yahoo.com.</div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-password">Password *</label>
-              <input type="password" id="reg-password" placeholder="Min. 8 characters" />
-            </div>
-            <div class="form-group">
-              <label for="reg-confirm">Confirm Password *</label>
-              <input type="password" id="reg-confirm" placeholder="Re-enter password" />
+            <label>I am joining as a...</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-top:0.5rem">
+              <button type="button" class="role-btn" onclick="selectRole('mum',this)"><span>🤰</span> Pregnant
+                Mum</button>
+              <button type="button" class="role-btn" onclick="selectRole('next_of_kin',this)"><span>💑</span> Next of
+                Kin</button>
+              <button type="button" class="role-btn" onclick="selectRole('specialist',this)"><span>👩‍⚕️</span>
+                Specialist / Doctor</button>
+              <button type="button" class="role-btn" onclick="selectRole('volunteer',this)"><span>🤝</span>
+                Volunteer</button>
             </div>
           </div>
 
-          <!-- Specialist extras -->
-          <div id="specialist-fields" style="display:none">
-            <div class="divider"></div>
-            <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Professional Details</p>
-            <div class="form-group"><label>Specialization *</label><input type="text" id="spec-field" placeholder="e.g. Obstetrician, Midwife" /></div>
-            <div class="form-row">
-              <div class="form-group"><label>License Number</label><input type="text" id="spec-license" placeholder="e.g. SMC-12345" /></div>
-              <div class="form-group"><label>Years of Experience</label><input type="number" id="spec-years" placeholder="e.g. 8" min="0" /></div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem;margin-top:0.5rem"
+            onclick="goToStep2()" id="step1-next">Continue →</button>
+        </div>
+
+        <!-- STEP 2: Plan selection (mum) or Details form (others) -->
+        <div id="step2" style="display:none">
+
+          <!-- Plan cards (mum only) -->
+          <div id="plan-section" style="display:none">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:0.35rem">Choose Your Plan
+            </h2>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem">You can upgrade anytime.</p>
+
+            <div class="plan-card" id="plan-free" onclick="selectPlan('free',this)">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-weight:700;font-size:1rem">Basic — Free</div>
+                  <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">Pregnancy articles, FAQ, basic
+                    tracking</div>
+                </div>
+                <div
+                  style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--text-dark)">
+                  $0</div>
+              </div>
             </div>
-            <div class="form-group"><label>Hospital / Clinic</label><input type="text" id="spec-hospital" placeholder="e.g. KK Women's Hospital" /></div>
+
+            <div class="plan-card" id="plan-monthly" onclick="selectPlan('premium_monthly',this)">
+              <div style="display:flex;justify-content:space-between;align-items:start">
+                <div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+                    <span style="font-weight:700;font-size:1rem">Premium Monthly</span>
+                    <span
+                      style="font-size:0.72rem;background:var(--teal);color:white;padding:2px 8px;border-radius:50px;font-weight:700">POPULAR</span>
+                  </div>
+                  <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">All features, AI tips, video
+                    consultations</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;margin-left:1rem">
+                  <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--teal)"
+                    id="price-monthly">$9.90</div>
+                  <div style="font-size:0.72rem;color:var(--text-light)">/month</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-card" id="plan-yearly" onclick="selectPlan('premium_yearly',this)">
+              <div style="display:flex;justify-content:space-between;align-items:start">
+                <div>
+                  <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+                    <span style="font-weight:700;font-size:1rem">Premium Annual</span>
+                    <span
+                      style="font-size:0.72rem;background:var(--gold);color:white;padding:2px 8px;border-radius:50px;font-weight:700">SAVE
+                      24%</span>
+                  </div>
+                  <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">Best value — all premium
+                    features</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;margin-left:1rem">
+                  <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--gold)"
+                    id="price-yearly">$90</div>
+                  <div style="font-size:0.72rem;color:var(--text-light)">/year</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem">
+              <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back</button>
+            </div>
+          </div>
+
+          <!-- Details form -->
+          <div id="details-form" style="display:none">
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:0.35rem" id="details-title">
+              Your Details</h2>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem" id="details-sub">Fill in your
+              information below.</p>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-name">Full Name *</label>
+                <input type="text" id="reg-name" placeholder="e.g. Sarah Lim" />
+                <div class="validation-error" id="name-error">Please enter a valid full name (at least 2 characters).
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="reg-phone">Phone Number *</label>
+                <input type="tel" id="reg-phone" placeholder="e.g. 91234567" maxlength="8" />
+                <div class="validation-error" id="phone-error">Please enter a valid 8-digit phone number starting with 8
+                  or 9.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="reg-email">Email Address *</label>
+              <input type="email" id="reg-email" placeholder="e.g. sarah@gmail.com" />
+              <div class="validation-error" id="email-error">Please use a valid email with @gmail.com, @outlook.com,
+                @hotmail.com, or @yahoo.com.</div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="reg-password">Password *</label>
+                <input type="password" id="reg-password" placeholder="Min. 8 characters" />
+              </div>
+              <div class="form-group">
+                <label for="reg-confirm">Confirm Password *</label>
+                <input type="password" id="reg-confirm" placeholder="Re-enter password" />
+              </div>
+            </div>
+
+            <div id="specialist-fields" style="display:none">
+              <div class="divider"></div>
+
+              <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">
+                Professional Details for Verification
+              </p>
+
+              <div class="form-group">
+                <label>Specialization *</label>
+                <input type="text" id="spec-field"
+                  placeholder="e.g. Obstetrician, Gynaecologist, Lactation Consultant" />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>SMC / MCR Number *</label>
+                  <input type="text" id="spec-license" placeholder="e.g. M12345A" />
+                </div>
+
+                <div class="form-group">
+                  <label>Years of Experience *</label>
+                  <input type="number" id="spec-years" placeholder="e.g. 8" min="0" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Hospital / Clinic / Place of Practice *</label>
+                <input type="text" id="spec-hospital" placeholder="e.g. KK Women's and Children's Hospital" />
+              </div>
+
+              <div class="form-group">
+                <label>Medical Qualification *</label>
+                <input type="text" id="spec-qualification" placeholder="e.g. MBBS, MD, MRCOG" />
+              </div>
+
+              <div class="form-group">
+                <label>Practising Certificate Expiry Date *</label>
+                <input type="date" id="spec-pc-expiry" />
+              </div>
+
+              <div class="validation-error" id="expiry-error">
+                Practising Certificate Expiry Date must be after today.
+              </div>
+
+              <div class="validation-error" id="specialist-error">
+                Please complete all required specialist professional details.
+              </div>
+            </div>
           </div>
 
           <!-- Volunteer extras -->
           <div id="volunteer-fields" style="display:none">
             <div class="divider"></div>
-            <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Volunteer Details</p>
-            <div class="form-group"><label>Area of Expertise *</label><input type="text" id="vol-expertise" placeholder="e.g. General Health, Nutrition" /></div>
+            <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Volunteer Details
+            </p>
+            <div class="form-group"><label>Area of Expertise *</label><input type="text" id="vol-expertise"
+                placeholder="e.g. General Health, Nutrition" /></div>
             <div class="form-row">
-              <div class="form-group"><label>Certification / License</label><input type="text" id="vol-license" placeholder="e.g. Certified Lactation Consultant" /></div>
-              <div class="form-group"><label>Years of Experience</label><input type="number" id="vol-years" placeholder="e.g. 5" min="0" /></div>
+              <div class="form-group"><label>Certification / License</label><input type="text" id="vol-license"
+                  placeholder="e.g. Certified Lactation Consultant" /></div>
+              <div class="form-group"><label>Years of Experience</label><input type="number" id="vol-years"
+                  placeholder="e.g. 5" min="0" /></div>
             </div>
-            <div class="form-group"><label>Organisation / Affiliation</label><input type="text" id="vol-affiliation" placeholder="e.g. Singapore Red Cross" /></div>
+            <div class="form-group"><label>Organisation / Affiliation</label><input type="text" id="vol-affiliation"
+                placeholder="e.g. Singapore Red Cross" /></div>
           </div>
 
           <!-- Next of Kin extras -->
           <div id="kin-fields" style="display:none">
             <div class="divider"></div>
-            <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Family Connection</p>
+            <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Family Connection
+            </p>
             <div class="form-group">
               <label>Relationship to Expectant Mother</label>
               <select id="kin-relationship">
                 <option value="">Select relationship</option>
-                <option>Husband / Partner</option><option>Mother</option><option>Father</option>
-                <option>Sister</option><option>Brother</option><option>Friend</option><option>Other</option>
+                <option>Husband / Partner</option>
+                <option>Mother</option>
+                <option>Father</option>
+                <option>Sister</option>
+                <option>Brother</option>
+                <option>Friend</option>
+                <option>Other</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Mum's User ID * <span style="font-weight:400;color:var(--text-light)">— ask the mum to share her ID</span></label>
+              <label>Mum's User ID * <span style="font-weight:400;color:var(--text-light)">— ask the mum to share
+                  her ID</span></label>
               <div style="display:flex;gap:0.5rem">
-                <input type="text" id="mum-user-code" placeholder="e.g. A1B2C3D4" style="text-transform:uppercase;letter-spacing:0.1em;flex:1" maxlength="8" oninput="this.value=this.value.toUpperCase()" />
-                <button type="button" class="btn btn-outline btn-sm" onclick="verifyMumCode()" id="verify-btn">Verify</button>
+                <input type="text" id="mum-user-code" placeholder="e.g. A1B2C3D4"
+                  style="text-transform:uppercase;letter-spacing:0.1em;flex:1" maxlength="8"
+                  oninput="this.value=this.value.toUpperCase()" />
+                <button type="button" class="btn btn-outline btn-sm" onclick="verifyMumCode()"
+                  id="verify-btn">Verify</button>
               </div>
               <div id="mum-verify-result" style="font-size:0.82rem;margin-top:0.4rem;display:none"></div>
             </div>
@@ -220,9 +400,11 @@
 
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem">
             <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back</button>
-            <button class="btn btn-primary" style="padding:0.75rem 1.75rem" onclick="handleRegister()" id="reg-btn">Create Account</button>
+            <button class="btn btn-primary" style="padding:0.75rem 1.75rem" onclick="handleRegister()"
+              id="reg-btn">Create Account</button>
           </div>
-          <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:1rem">By registering you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.</p>
+          <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:1rem">By registering you
+            agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.</p>
         </div>
       </div>
 
@@ -230,346 +412,459 @@
 
     </div>
   </div>
-</div>
+  </div>
 
-<div id="footer-placeholder"></div>
-<style>@keyframes spin { to { transform:rotate(360deg); } }</style>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/app.js"></script>
-<script>
-// ---- State ----
-var selectedRole = '';
-var selectedPlan = '';
-var verifiedMumId = null;
-
-// ---- Init ----
-document.addEventListener('DOMContentLoaded', async function() {
-  // Load prices
-  try {
-    var res = await supabaseClient.from('site_settings').select('setting_key,setting_value')
-      .in('setting_key', ['premium_monthly_price','premium_yearly_price']);
-    if (res.data) res.data.forEach(function(s) {
-      if (s.setting_key === 'premium_monthly_price') {
-        var el = document.getElementById('price-monthly');
-        if (el) el.textContent = '$' + s.setting_value;
+  <div id="footer-placeholder"></div>
+  <style>
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
       }
-      if (s.setting_key === 'premium_yearly_price') {
-        var el = document.getElementById('price-yearly');
-        if (el) el.textContent = '$' + s.setting_value;
-      }
-    });
-  } catch(e) {}
-
-  // Load register illustration
-  try {
-    var imgRes = await supabaseClient.from('site_settings').select('setting_value')
-      .eq('setting_key','register_image').single();
-    if (imgRes.data && imgRes.data.setting_value) {
-      var wrap = document.getElementById('register-illustration');
-      if (wrap) wrap.innerHTML = '<img src="' + imgRes.data.setting_value + '" alt="TinyBloom" style="max-width:100%;width:280px;display:block;margin:1.5rem auto;border-radius:var(--radius)" />';
     }
-  } catch(e) {}
+  </style>
 
-  // Add real-time validation for name, phone, and email
-  document.getElementById('reg-name').addEventListener('input', validateName);
-  document.getElementById('reg-phone').addEventListener('input', validatePhone);
-  document.getElementById('reg-email').addEventListener('input', validateEmail);
-});
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // ---- State ----
+    var selectedRole = '';
+    var selectedPlan = '';
+    var verifiedMumId = null;
 
-// ---- Validation Functions ----
-function validateName() {
-  var nameInput = document.getElementById('reg-name');
-  var nameError = document.getElementById('name-error');
-  var name = nameInput.value.trim();
-  
-  if (name.length < 2) {
-    nameInput.classList.add('input-error');
-    nameInput.classList.remove('input-success');
-    nameError.style.display = 'block';
-    return false;
-  } else {
-    nameInput.classList.remove('input-error');
-    nameInput.classList.add('input-success');
-    nameError.style.display = 'none';
-    return true;
-  }
-}
+    // ---- Init ----
+    document.addEventListener('DOMContentLoaded', async function () {
+      ['spec-field', 'spec-license', 'spec-years', 'spec-hospital', 'spec-qualification', 'spec-pc-expiry']
+        .forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.addEventListener('input', validateSpecialistFields);
+          if (el) el.addEventListener('change', validateSpecialistFields);
+        });
 
-function validatePhone() {
-  var phoneInput = document.getElementById('reg-phone');
-  var phoneError = document.getElementById('phone-error');
-  var phone = phoneInput.value.trim();
-  
-  // Remove any non-digit characters for validation
-  var cleanPhone = phone.replace(/\D/g, '');
-  
-  // Check if phone number starts with 8 or 9 and is exactly 8 digits
-  if (cleanPhone.length === 8 && (cleanPhone[0] === '8' || cleanPhone[0] === '9')) {
-    phoneInput.classList.remove('input-error');
-    phoneInput.classList.add('input-success');
-    phoneError.style.display = 'none';
-    return true;
-  } else {
-    phoneInput.classList.add('input-error');
-    phoneInput.classList.remove('input-success');
-    phoneError.style.display = 'block';
-    return false;
-  }
-}
+      const expiryInput = document.getElementById('spec-pc-expiry');
 
-function validateEmail() {
-  var emailInput = document.getElementById('reg-email');
-  var emailError = document.getElementById('email-error');
-  var email = emailInput.value.trim().toLowerCase();
-  
-  // Define allowed domains
-  var allowedDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
-  
-  // Check if email contains @ and has a domain
-  if (email.includes('@')) {
-    var parts = email.split('@');
-    if (parts.length === 2 && parts[0].length > 0 && parts[1].length > 0) {
-      var domain = parts[1];
-      if (allowedDomains.includes(domain)) {
-        emailInput.classList.remove('input-error');
-        emailInput.classList.add('input-success');
-        emailError.style.display = 'none';
+      if (expiryInput) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        expiryInput.min = tomorrow.toISOString().split('T')[0];
+      }
+      // Load prices
+      try {
+        var res = await supabaseClient.from('site_settings').select('setting_key,setting_value')
+          .in('setting_key', ['premium_monthly_price', 'premium_yearly_price']);
+        if (res.data) res.data.forEach(function (s) {
+          if (s.setting_key === 'premium_monthly_price') {
+            var el = document.getElementById('price-monthly');
+            if (el) el.textContent = '$' + s.setting_value;
+          }
+          if (s.setting_key === 'premium_yearly_price') {
+            var el = document.getElementById('price-yearly');
+            if (el) el.textContent = '$' + s.setting_value;
+          }
+        });
+      } catch (e) { }
+
+      // Load register illustration
+      try {
+        var imgRes = await supabaseClient.from('site_settings').select('setting_value')
+          .eq('setting_key', 'register_image').single();
+        if (imgRes.data && imgRes.data.setting_value) {
+          var wrap = document.getElementById('register-illustration');
+          if (wrap) wrap.innerHTML = '<img src="' + imgRes.data.setting_value + '" alt="TinyBloom" style="max-width:100%;width:280px;display:block;margin:1.5rem auto;border-radius:var(--radius)" />';
+        }
+      } catch (e) { }
+
+      // Add real-time validation for name, phone, and email
+      document.getElementById('reg-name').addEventListener('input', validateName);
+      document.getElementById('reg-phone').addEventListener('input', validatePhone);
+      document.getElementById('reg-email').addEventListener('input', validateEmail);
+    });
+
+    // ---- Validation Functions ----
+    function validateName() {
+      var nameInput = document.getElementById('reg-name');
+      var nameError = document.getElementById('name-error');
+      var name = nameInput.value.trim();
+
+      if (name.length < 2) {
+        nameInput.classList.add('input-error');
+        nameInput.classList.remove('input-success');
+        nameError.style.display = 'block';
+        return false;
+      } else {
+        nameInput.classList.remove('input-error');
+        nameInput.classList.add('input-success');
+        nameError.style.display = 'none';
         return true;
       }
     }
-  }
-  
-  // Invalid email
-  emailInput.classList.add('input-error');
-  emailInput.classList.remove('input-success');
-  emailError.style.display = 'block';
-  return false;
-}
 
-// ---- Step 1 ----
-function selectRole(role, btn) {
-  selectedRole = role;
-  document.querySelectorAll('.role-btn').forEach(function(b) { b.classList.remove('selected'); });
-  btn.classList.add('selected');
-}
+    function validatePhone() {
+      var phoneInput = document.getElementById('reg-phone');
+      var phoneError = document.getElementById('phone-error');
+      var phone = phoneInput.value.trim();
 
-function goToStep2() {
-  if (!selectedRole) {
-    alert('Please select your role first.');
-    return;
-  }
-  document.getElementById('step1').style.display = 'none';
-  document.getElementById('step2').style.display = 'block';
-  document.getElementById('step-bar').style.display = 'flex';
-  document.getElementById('dot1').className = 'step-dot done';
-  document.getElementById('dot1').textContent = '✓';
-  document.getElementById('line1').className = 'step-line done';
-  document.getElementById('dot2').className = 'step-dot active';
-  // Remove dot3 reference - only 2 steps now
-  if (selectedRole === 'mum') {
-    document.getElementById('plan-section').style.display = 'block';
-    document.getElementById('details-form').style.display = 'none';
-  } else {
-    document.getElementById('plan-section').style.display = 'none';
-    document.getElementById('details-form').style.display = 'block';
-    document.getElementById('specialist-fields').style.display = selectedRole === 'specialist' ? 'block' : 'none';
-    document.getElementById('volunteer-fields').style.display = selectedRole === 'volunteer' ? 'block' : 'none';
-    document.getElementById('kin-fields').style.display = selectedRole === 'next_of_kin' ? 'block' : 'none';
-    document.getElementById('details-title').textContent = 'Your Details';
-    document.getElementById('details-sub').textContent = 'Fill in your information to create your account.';
-  }
-}
+      // Remove any non-digit characters for validation
+      var cleanPhone = phone.replace(/\D/g, '');
 
-// ---- Step 2: Plan ----
-function selectPlan(plan, card) {
-  selectedPlan = plan;
-  document.querySelectorAll('.plan-card').forEach(function(c) { c.classList.remove('selected'); });
-  card.classList.add('selected');
+      // Check if phone number starts with 8 or 9 and is exactly 8 digits
+      if (cleanPhone.length === 8 && (cleanPhone[0] === '8' || cleanPhone[0] === '9')) {
+        phoneInput.classList.remove('input-error');
+        phoneInput.classList.add('input-success');
+        phoneError.style.display = 'none';
+        return true;
+      } else {
+        phoneInput.classList.add('input-error');
+        phoneInput.classList.remove('input-success');
+        phoneError.style.display = 'block';
+        return false;
+      }
+    }
 
-  // Hide role-specific fields (mum never needs them)
-  document.getElementById('specialist-fields').style.display = 'none';
-  document.getElementById('volunteer-fields').style.display = 'none';
-  document.getElementById('kin-fields').style.display = 'none';
+    function validateEmail() {
+      var emailInput = document.getElementById('reg-email');
+      var emailError = document.getElementById('email-error');
+      var email = emailInput.value.trim().toLowerCase();
 
-  // Clear form
-  ['reg-name','reg-phone','reg-email','reg-password','reg-confirm'].forEach(function(id) {
-    var el = document.getElementById(id); if (el) el.value = '';
-  });
-  document.getElementById('reg-error').style.display = 'none';
-  document.getElementById('reg-success').style.display = 'none';
+      // Define allowed domains
+      var allowedDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 
-  // Always go to details form for both free and premium
-  document.getElementById('plan-section').style.display = 'none';
-  document.getElementById('details-form').style.display = 'block';
-  document.getElementById('details-title').textContent = 'Your Details';
+      // Check if email contains @ and has a domain
+      if (email.includes('@')) {
+        var parts = email.split('@');
+        if (parts.length === 2 && parts[0].length > 0 && parts[1].length > 0) {
+          var domain = parts[1];
+          if (allowedDomains.includes(domain)) {
+            emailInput.classList.remove('input-error');
+            emailInput.classList.add('input-success');
+            emailError.style.display = 'none';
+            return true;
+          }
+        }
+      }
 
-  var btn = document.getElementById('reg-btn');
-  btn.disabled = false;
-  if (plan === 'free') {
-    document.getElementById('details-sub').textContent = 'Fill in your information to create your free account.';
-    btn.textContent = 'Create Account';
-  } else {
-    document.getElementById('details-sub').textContent = 'Fill in your information, then complete payment.';
-    btn.textContent = 'Continue to Payment →';
-  }
-}
+      // Invalid email
+      emailInput.classList.add('input-error');
+      emailInput.classList.remove('input-success');
+      emailError.style.display = 'block';
+      return false;
+    }
+
+    function validateSpecialistFields() {
+      if (selectedRole !== 'specialist') return true;
+
+      var specialization = document.getElementById('spec-field')?.value.trim();
+      var license = document.getElementById('spec-license')?.value.trim();
+      var years = document.getElementById('spec-years')?.value.trim();
+      var hospital = document.getElementById('spec-hospital')?.value.trim();
+      var qualification = document.getElementById('spec-qualification')?.value.trim();
+      var pcExpiry = document.getElementById('spec-pc-expiry')?.value;
+
+      var specialistError = document.getElementById('specialist-error');
+      var expiryError = document.getElementById('expiry-error');
+
+      var valid = true;
+
+      if (!specialization || !license || !years || !hospital || !qualification || !pcExpiry) {
+        valid = false;
+      }
+
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      var expiryDate = pcExpiry ? new Date(pcExpiry) : null;
+
+      if (!expiryDate || expiryDate <= today) {
+        valid = false;
+        if (expiryError) expiryError.style.display = 'block';
+      } else {
+        if (expiryError) expiryError.style.display = 'none';
+      }
+
+      if (specialistError) {
+        specialistError.style.display = valid ? 'none' : 'block';
+      }
+
+      return valid;
+    }
+
+    // ---- Step 1 ----
+    function selectRole(role, btn) {
+      selectedRole = role;
+      document.querySelectorAll('.role-btn').forEach(function (b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    }
+
+    function goToStep2() {
+      if (!selectedRole) {
+        alert('Please select your role first.');
+        return;
+      }
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('step-bar').style.display = 'flex';
+      document.getElementById('dot1').className = 'step-dot done';
+      document.getElementById('dot1').textContent = '✓';
+      document.getElementById('line1').className = 'step-line done';
+      document.getElementById('dot2').className = 'step-dot active';
+      // Remove dot3 reference - only 2 steps now
+      if (selectedRole === 'mum') {
+        document.getElementById('plan-section').style.display = 'block';
+        document.getElementById('details-form').style.display = 'none';
+      } else {
+        document.getElementById('plan-section').style.display = 'none';
+        document.getElementById('details-form').style.display = 'block';
+        document.getElementById('specialist-fields').style.display = selectedRole === 'specialist' ? 'block' : 'none';
+        document.getElementById('volunteer-fields').style.display = selectedRole === 'volunteer' ? 'block' : 'none';
+        document.getElementById('kin-fields').style.display = selectedRole === 'next_of_kin' ? 'block' : 'none';
+        document.getElementById('details-title').textContent = 'Your Details';
+        document.getElementById('details-sub').textContent = 'Fill in your information to create your account.';
+      }
+    }
+
+    // ---- Step 2: Plan ----
+    function selectPlan(plan, card) {
+      selectedPlan = plan;
+      document.querySelectorAll('.plan-card').forEach(function (c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+
+      // Hide role-specific fields (mum never needs them)
+      document.getElementById('specialist-fields').style.display = 'none';
+      document.getElementById('volunteer-fields').style.display = 'none';
+      document.getElementById('kin-fields').style.display = 'none';
+
+      // Clear form
+      ['reg-name', 'reg-phone', 'reg-email', 'reg-password', 'reg-confirm'].forEach(function (id) {
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+      document.getElementById('reg-error').style.display = 'none';
+      document.getElementById('reg-success').style.display = 'none';
+
+      // Always go to details form for both free and premium
+      document.getElementById('plan-section').style.display = 'none';
+      document.getElementById('details-form').style.display = 'block';
+      document.getElementById('details-title').textContent = 'Your Details';
+
+      var btn = document.getElementById('reg-btn');
+      btn.disabled = false;
+      if (plan === 'free') {
+        document.getElementById('details-sub').textContent = 'Fill in your information to create your free account.';
+        btn.textContent = 'Create Account';
+      } else {
+        document.getElementById('details-sub').textContent = 'Fill in your information, then complete payment.';
+        btn.textContent = 'Continue to Payment →';
+      }
+    }
 
 
 
-function goBack() {
-  var detailsVisible = document.getElementById('details-form').style.display === 'block';
+    function goBack() {
+      var detailsVisible = document.getElementById('details-form').style.display === 'block';
 
-  if (detailsVisible && selectedRole === 'mum') {
-    // Back to plan selection
-    document.getElementById('details-form').style.display = 'none';
-    document.getElementById('plan-section').style.display = 'block';
-    selectedPlan = '';
-    document.querySelectorAll('.plan-card').forEach(function(c) { c.classList.remove('selected'); });
-  } else {
-    // Back to step 1 role selection
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('step-bar').style.display = 'none';
-    document.getElementById('dot1').className = 'step-dot active';
-    document.getElementById('dot1').textContent = '1';
-    document.getElementById('line1').className = 'step-line';
-    document.getElementById('dot2').className = 'step-dot inactive';
-  }
-}
+      if (detailsVisible && selectedRole === 'mum') {
+        // Back to plan selection
+        document.getElementById('details-form').style.display = 'none';
+        document.getElementById('plan-section').style.display = 'block';
+        selectedPlan = '';
+        document.querySelectorAll('.plan-card').forEach(function (c) { c.classList.remove('selected'); });
+      } else {
+        // Back to step 1 role selection
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step-bar').style.display = 'none';
+        document.getElementById('dot1').className = 'step-dot active';
+        document.getElementById('dot1').textContent = '1';
+        document.getElementById('line1').className = 'step-line';
+        document.getElementById('dot2').className = 'step-dot inactive';
+      }
+    }
 
-// ---- Step 3: Register ----
-async function handleRegister() {
-  var name     = document.getElementById('reg-name').value.trim();
-  var email    = document.getElementById('reg-email').value.trim();
-  var password = document.getElementById('reg-password').value;
-  var confirm  = document.getElementById('reg-confirm').value;
-  var phone    = document.getElementById('reg-phone').value.trim();
-  var errEl    = document.getElementById('reg-error');
-  var btn      = document.getElementById('reg-btn');
-  errEl.style.display = 'none';
+    // ---- Step 3: Register ----
+    async function handleRegister() {
+      var name = document.getElementById('reg-name').value.trim();
+      var email = document.getElementById('reg-email').value.trim();
+      var password = document.getElementById('reg-password').value;
+      var confirm = document.getElementById('reg-confirm').value;
+      var phone = document.getElementById('reg-phone').value.trim();
+      var errEl = document.getElementById('reg-error');
+      var btn = document.getElementById('reg-btn');
 
-  // Validate name
-  if (!validateName()) {
-    errEl.textContent = 'Please enter a valid full name (at least 2 characters).';
-    errEl.style.display = 'block';
-    return;
-  }
+      errEl.style.display = 'none';
+      document.getElementById('reg-success').style.display = 'none';
 
-  // Validate phone (required field)
-  if (!validatePhone()) {
-    errEl.textContent = 'Please enter a valid 8-digit phone number starting with 8 or 9.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  // Validate email
-  if (!validateEmail()) {
-    errEl.textContent = 'Please use a valid email with @gmail.com, @outlook.com, @hotmail.com, or @yahoo.com.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  if (!email) { errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return; }
-  if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
-  if (password.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
-  if (selectedRole === 'next_of_kin' && !verifiedMumId) { errEl.textContent = "Please verify the mum's User ID first."; errEl.style.display = 'block'; return; }
-
-  // PREMIUM: save details to sessionStorage, go to payment FIRST
-  // Account is only created after successful payment
-  if (selectedRole === 'mum' && (selectedPlan === 'premium_monthly' || selectedPlan === 'premium_yearly')) {
-    try {
-      // Check email not already registered before proceeding
-      var checkRes = await supabaseClient.from('profiles').select('id').eq('email', email).maybeSingle();
-      if (checkRes.data) {
-        errEl.textContent = 'This email is already registered. Please log in instead.';
+      if (!validateName()) {
+        errEl.textContent = 'Please enter a valid full name (at least 2 characters).';
         errEl.style.display = 'block';
         return;
       }
-    } catch(e) {}
 
-    // Store pending registration details in sessionStorage
-    sessionStorage.setItem('tb_pending_reg', JSON.stringify({
-      name: name,
-      email: email,
-      password: password,
-      phone: phone,
-      plan: selectedPlan
-    }));
+      if (!validatePhone()) {
+        errEl.textContent = 'Please enter a valid 8-digit phone number starting with 8 or 9.';
+        errEl.style.display = 'block';
+        return;
+      }
 
-    // Go to payment page
-    window.location.href = 'payment.html?plan=' + selectedPlan;
-    return;
-  }
+      if (!validateEmail()) {
+        errEl.textContent = 'Please use a valid email with @gmail.com, @outlook.com, @hotmail.com, or @yahoo.com.';
+        errEl.style.display = 'block';
+        return;
+      }
 
-  // FREE or other roles: create account immediately
-  var finalRole = selectedRole === 'mum' ? 'free_user' : selectedRole;
-  btn.textContent = 'Creating account...'; btn.disabled = true;
+      if (!email) {
+        errEl.textContent = 'Please fill in all required fields.';
+        errEl.style.display = 'block';
+        return;
+      }
 
-  try {
-    var res = await supabaseClient.auth.signUp({ email: email, password: password, options: { data: { full_name: name, role: finalRole }, emailRedirectTo: `${window.location.origin}/login.html` } } );
-    if (res.error) throw new Error(res.error.message);
-    if (!res.data.user) throw new Error('Signup failed. Please try again.');
-    
-    var userId = res.data.user.id;
+      if (password !== confirm) {
+        errEl.textContent = 'Passwords do not match.';
+        errEl.style.display = 'block';
+        return;
+      }
 
-    var profRes = await supabaseClient.from('profiles').insert({ id: userId, full_name: name, email: email, role: finalRole, phone: phone });
-    if (profRes.error && profRes.error.code !== '23505') console.warn('Profile:', profRes.error.message);
+      if (password.length < 8) {
+        errEl.textContent = 'Password must be at least 8 characters.';
+        errEl.style.display = 'block';
+        return;
+      }
 
-    if (selectedRole === 'specialist') {
-      await supabaseClient.from('specialist_profiles').insert({
-        user_id: userId,
-        specialization: document.getElementById('spec-field').value.trim() || '',
-        license_number: document.getElementById('spec-license').value.trim() || null,
-        years_experience: parseInt(document.getElementById('spec-years').value) || 0,
-        hospital_affiliation: document.getElementById('spec-hospital').value.trim() || null,
-      });
+      if (selectedRole === 'next_of_kin' && !verifiedMumId) {
+        errEl.textContent = "Please verify the mum's User ID first.";
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (!validateSpecialistFields()) {
+        errEl.textContent = 'Please complete all required specialist professional details.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (selectedRole === 'mum' && !selectedPlan) {
+        errEl.textContent = 'Please select a plan first.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Creating account...';
+      btn.disabled = true;
+
+      try {
+        var emailCheck = await supabaseClient
+          .from('profiles')
+          .select('email, role, is_active')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (emailCheck.data) {
+          if (emailCheck.data.role === 'specialist' && emailCheck.data.is_active === false) {
+            throw new Error('Your specialist application is currently pending approval.');
+          }
+
+          throw new Error('This email address is already registered. Please log in instead.');
+        }
+
+        if (selectedRole === 'mum' && (selectedPlan === 'premium_monthly' || selectedPlan === 'premium_yearly')) {
+          sessionStorage.setItem('tb_pending_reg', JSON.stringify({
+            name: name,
+            email: email,
+            password: password,
+            phone: phone,
+            plan: selectedPlan
+          }));
+
+          window.location.href = 'payment.html?plan=' + selectedPlan;
+          return;
+        }
+
+        var finalRole = selectedRole === 'mum' ? 'free_user' : selectedRole;
+
+        var userData = {
+          full_name: name,
+          role: finalRole,
+          phone: phone
+        };
+
+        if (selectedRole === 'specialist') {
+          userData.specialization = document.getElementById('spec-field').value.trim();
+          userData.license_number = document.getElementById('spec-license').value.trim();
+          userData.years_experience = document.getElementById('spec-years').value;
+          userData.hospital_affiliation = document.getElementById('spec-hospital').value.trim();
+          userData.qualification = document.getElementById('spec-qualification').value.trim();
+          userData.practising_certificate_expiry = document.getElementById('spec-pc-expiry').value;
+        }
+
+        var res = await supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: userData,
+            emailRedirectTo: window.location.origin + '/login.html'
+          }
+        });
+
+        if (res.error) throw new Error(res.error.message);
+        if (!res.data.user) throw new Error('Signup failed. Please try again.');
+
+        if (selectedRole === 'specialist') {
+          document.getElementById('reg-success').textContent =
+            'Specialist application submitted. Please verify your email first. You will only be able to log in after admin approval.';
+          document.getElementById('reg-success').style.display = 'block';
+          btn.textContent = 'Application Submitted';
+
+          setTimeout(function () {
+            window.location.replace('specialist-pending.html');
+          }, 2000);
+        } else {
+          document.getElementById('reg-success').textContent =
+            'Account created! Please check your email to verify your account.';
+          document.getElementById('reg-success').style.display = 'block';
+          btn.textContent = 'Account Created!';
+
+          setTimeout(function () {
+            window.location.replace('email-verification.html');
+          }, 2000);
+        }
+      } catch (e) {
+        console.error('Registration error:', e);
+
+        let msg = 'Registration failed.';
+
+        if (typeof e === 'string') {
+          msg = e;
+        } else if (e?.message) {
+          msg = e.message;
+        } else {
+          msg = JSON.stringify(e, null, 2);
+        }
+
+        if (msg.includes('already registered') || msg.includes('User already registered')) {
+          msg = 'This email is already registered. Please log in instead.';
+        }
+
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
+        btn.textContent = 'Create Account';
+        btn.disabled = false;
+      }
     }
-    if (selectedRole === 'volunteer') {
-      await supabaseClient.from('volunteer_profiles').insert({
-        user_id: userId,
-        expertise: document.getElementById('vol-expertise').value.trim() || '',
-        certification: document.getElementById('vol-license').value.trim() || null,
-        years_experience: parseInt(document.getElementById('vol-years').value) || 0,
-        affiliation: document.getElementById('vol-affiliation').value.trim() || null,
-      });
+
+    // ---- Mum code verify ----
+    async function verifyMumCode() {
+      var code = document.getElementById('mum-user-code').value.trim().toUpperCase();
+      var resultEl = document.getElementById('mum-verify-result');
+      var btn = document.getElementById('verify-btn');
+      if (!code || code.length < 6) { resultEl.textContent = 'Please enter a valid User ID.'; resultEl.style.color = '#c0392b'; resultEl.style.display = 'block'; return; }
+      btn.textContent = 'Checking...'; btn.disabled = true;
+      try {
+        var res = await supabaseClient.from('profiles').select('id,full_name,role').eq('user_code', code).single();
+        if (res.error || !res.data) { resultEl.textContent = '✗ User ID not found.'; resultEl.style.color = '#c0392b'; verifiedMumId = null; }
+        else if (res.data.role !== 'free_user' && res.data.role !== 'premium_user') { resultEl.textContent = '✗ This ID does not belong to a registered mum.'; resultEl.style.color = '#c0392b'; verifiedMumId = null; }
+        else { resultEl.textContent = '✓ Linked to: ' + res.data.full_name; resultEl.style.color = 'var(--sage)'; verifiedMumId = res.data.id; }
+        resultEl.style.display = 'block';
+      } catch (e) { resultEl.textContent = 'Verification failed.'; resultEl.style.color = '#c0392b'; resultEl.style.display = 'block'; }
+      btn.textContent = 'Verify'; btn.disabled = false;
     }
-    if (selectedRole === 'next_of_kin') {
-      await supabaseClient.from('next_of_kin_profiles').insert({ user_id: userId, relationship: document.getElementById('kin-relationship').value || null, linked_pregnant_user_id: verifiedMumId || null });
-    }
-
-    document.getElementById('reg-success').style.display = 'block';
-    btn.textContent = 'Account Created!';
-    
-    // Sign out of User Account after Sign Up - Testing Purposes Only
-    <!-- await supabaseClient.auth.signOut(); -->
-
-    setTimeout(function() { window.location.replace('email-verification.html'); }, 2000);
-
-  } catch(e) {
-    var msg = e.message || 'Registration failed.';
-    if (msg.includes('already registered') || msg.includes('User already registered')) msg = 'This email is already registered. Please log in instead.';
-    errEl.textContent = msg; errEl.style.display = 'block';
-    btn.textContent = 'Create Account'; btn.disabled = false;
-  }
-}
-
-// ---- Mum code verify ----
-async function verifyMumCode() {
-  var code = document.getElementById('mum-user-code').value.trim().toUpperCase();
-  var resultEl = document.getElementById('mum-verify-result');
-  var btn = document.getElementById('verify-btn');
-  if (!code || code.length < 6) { resultEl.textContent = 'Please enter a valid User ID.'; resultEl.style.color = '#c0392b'; resultEl.style.display = 'block'; return; }
-  btn.textContent = 'Checking...'; btn.disabled = true;
-  try {
-    var res = await supabaseClient.from('profiles').select('id,full_name,role').eq('user_code', code).single();
-    if (res.error || !res.data) { resultEl.textContent = '✗ User ID not found.'; resultEl.style.color = '#c0392b'; verifiedMumId = null; }
-    else if (res.data.role !== 'free_user' && res.data.role !== 'premium_user') { resultEl.textContent = '✗ This ID does not belong to a registered mum.'; resultEl.style.color = '#c0392b'; verifiedMumId = null; }
-    else { resultEl.textContent = '✓ Linked to: ' + res.data.full_name; resultEl.style.color = 'var(--sage)'; verifiedMumId = res.data.id; }
-    resultEl.style.display = 'block';
-  } catch(e) { resultEl.textContent = 'Verification failed.'; resultEl.style.color = '#c0392b'; resultEl.style.display = 'block'; }
-  btn.textContent = 'Verify'; btn.disabled = false;
-}
-</script>
+  </script>
 </body>
+
 </html>
