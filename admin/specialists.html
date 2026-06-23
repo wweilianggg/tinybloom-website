@@ -345,6 +345,21 @@
 
             showToast('Specialist approved and email sent!', 'success');
             await loadRequests();
+
+            await supabaseClient
+                .from('email_notifications')
+                .insert({
+                    recipient_email: specialist.email,
+                    recipient_name: specialist.full_name,
+                    subject: 'TinyBloom Specialist Account Approved',
+                    message:
+                        'Hi ' + specialist.full_name + ',\n\n' +
+                        'Your TinyBloom specialist account has been approved.\n\n' +
+                        'You may now log in and start using your specialist dashboard.\n\n' +
+                        'Login here: http://127.0.0.1:5500/login.html\n\n' +
+                        'Thank you,\nTinyBloom Team'
+                });
+            alert('Specialist approved. Approval email notification created.');
         }
 
         async function rejectRequest(id) {

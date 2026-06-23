@@ -552,74 +552,38 @@
     function validateSpecialistFields() {
       if (selectedRole !== 'specialist') return true;
 
-      var specialization = document.getElementById('spec-field');
-      var license = document.getElementById('spec-license');
-      var years = document.getElementById('spec-years');
-      var hospital = document.getElementById('spec-hospital');
-      var qualification = document.getElementById('spec-qualification');
-      var pcExpiry = document.getElementById('spec-pc-expiry');
-      var error = document.getElementById('specialist-error');
+      var specialization = document.getElementById('spec-field')?.value.trim();
+      var license = document.getElementById('spec-license')?.value.trim();
+      var years = document.getElementById('spec-years')?.value.trim();
+      var hospital = document.getElementById('spec-hospital')?.value.trim();
+      var qualification = document.getElementById('spec-qualification')?.value.trim();
+      var pcExpiry = document.getElementById('spec-pc-expiry')?.value;
+
+      var specialistError = document.getElementById('specialist-error');
+      var expiryError = document.getElementById('expiry-error');
 
       var valid = true;
 
-      [specialization, license, years, hospital, qualification, pcExpiry].forEach(function (el) {
-        el.classList.remove('input-error');
-        el.classList.remove('input-success');
-      });
-
-      if (!specialization.value.trim()) {
-        specialization.classList.add('input-error');
+      if (!specialization || !license || !years || !hospital || !qualification || !pcExpiry) {
         valid = false;
-      } else {
-        specialization.classList.add('input-success');
       }
 
-      if (!license.value.trim()) {
-        license.classList.add('input-error');
-        valid = false;
-      } else {
-        license.classList.add('input-success');
-      }
-
-      if (!years.value || parseInt(years.value) < 0) {
-        years.classList.add('input-error');
-        valid = false;
-      } else {
-        years.classList.add('input-success');
-      }
-
-      if (!hospital.value.trim()) {
-        hospital.classList.add('input-error');
-        valid = false;
-      } else {
-        hospital.classList.add('input-success');
-      }
-
-      if (!qualification.value.trim()) {
-        qualification.classList.add('input-error');
-        valid = false;
-      } else {
-        qualification.classList.add('input-success');
-      }
-
-      var expiryError = document.getElementById('expiry-error');
-
-      const today = new Date();
+      var today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const expiryDate = pcExpiry.value ? new Date(pcExpiry.value) : null;
+      var expiryDate = pcExpiry ? new Date(pcExpiry) : null;
 
-      if (!pcExpiry.value || expiryDate <= today) {
-        pcExpiry.classList.add('input-error');
-        pcExpiry.classList.remove('input-success');
-        expiryError.style.display = 'block';
+      if (!expiryDate || expiryDate <= today) {
         valid = false;
+        if (expiryError) expiryError.style.display = 'block';
       } else {
-        pcExpiry.classList.remove('input-error');
-        pcExpiry.classList.add('input-success');
-        expiryError.style.display = 'none';
+        if (expiryError) expiryError.style.display = 'none';
       }
-      error.style.display = valid ? 'none' : 'block';
+
+      if (specialistError) {
+        specialistError.style.display = valid ? 'none' : 'block';
+      }
+
       return valid;
     }
 
@@ -814,106 +778,64 @@
 
         var finalRole = selectedRole === 'mum' ? 'free_user' : selectedRole;
 
+        var userData = {
+          full_name: name,
+          role: finalRole,
+          phone: phone
+        };
+
+        if (selectedRole === 'specialist') {
+          userData.specialization = document.getElementById('spec-field').value.trim();
+          userData.license_number = document.getElementById('spec-license').value.trim();
+          userData.years_experience = document.getElementById('spec-years').value;
+          userData.hospital_affiliation = document.getElementById('spec-hospital').value.trim();
+          userData.qualification = document.getElementById('spec-qualification').value.trim();
+          userData.practising_certificate_expiry = document.getElementById('spec-pc-expiry').value;
+        }
+
         var res = await supabaseClient.auth.signUp({
           email: email,
           password: password,
           options: {
-            data: {
-              full_name: name,
-              role: finalRole
-            },
-            emailRedirectTo: window.location.origin + '/login.html?verified=1'
+            data: userData,
+            emailRedirectTo: window.location.origin + '/login.html'
           }
         });
 
         if (res.error) throw new Error(res.error.message);
         if (!res.data.user) throw new Error('Signup failed. Please try again.');
 
-        var userId = res.data.user.id;
-
-        var profRes = await supabaseClient
-          .from('profiles')
-          .insert({
-            id: userId,
-            full_name: name,
-            email: email,
-            role: finalRole,
-            phone: phone,
-            is_active: selectedRole === 'specialist' ? false : true
-          });
-
-        if (profRes.error && profRes.error.code !== '23505') {
-          throw new Error('Failed to create profile: ' + profRes.error.message);
-        }
-
         if (selectedRole === 'specialist') {
-          var specialistResult = await supabaseClient
-            .from('specialist_profiles')
-            .insert({
-              user_id: userId,
-              specialization: document.getElementById('spec-field').value.trim(),
-              license_number: document.getElementById('spec-license').value.trim(),
-              years_experience: parseInt(document.getElementById('spec-years').value) || 0,
-              hospital_affiliation: document.getElementById('spec-hospital').value.trim(),
-              qualification: document.getElementById('spec-qualification').value.trim(),
-              practising_certificate_expiry: document.getElementById('spec-pc-expiry').value,
-              approval_status: 'pending',
-              is_verified: false
-            });
+          document.getElementById('reg-success').textContent =
+            'Specialist application submitted. Please verify your email first. You will only be able to log in after admin approval.';
+          document.getElementById('reg-success').style.display = 'block';
+          btn.textContent = 'Application Submitted';
 
-          if (specialistResult.error) {
-            throw new Error('Failed to submit specialist application: ' + specialistResult.error.message);
-          }
+          setTimeout(function () {
+            window.location.replace('specialist-pending.html');
+          }, 2000);
+        } else {
+          document.getElementById('reg-success').textContent =
+            'Account created! Please check your email to verify your account.';
+          document.getElementById('reg-success').style.display = 'block';
+          btn.textContent = 'Account Created!';
+
+          setTimeout(function () {
+            window.location.replace('email-verification.html');
+          }, 2000);
         }
-
-        if (selectedRole === 'volunteer') {
-          var volunteerResult = await supabaseClient
-            .from('volunteer_profiles')
-            .insert({
-              user_id: userId,
-              expertise: document.getElementById('vol-expertise').value.trim() || '',
-              certification: document.getElementById('vol-license').value.trim() || null,
-              years_experience: parseInt(document.getElementById('vol-years').value) || 0,
-              affiliation: document.getElementById('vol-affiliation').value.trim() || null
-            });
-
-          if (volunteerResult.error) {
-            throw new Error('Failed to create volunteer profile: ' + volunteerResult.error.message);
-          }
-        }
-
-        if (selectedRole === 'next_of_kin') {
-          var kinResult = await supabaseClient
-            .from('next_of_kin_profiles')
-            .insert({
-              user_id: userId,
-              relationship: document.getElementById('kin-relationship').value || null,
-              linked_pregnant_user_id: verifiedMumId || null
-            });
-
-          if (kinResult.error) {
-            throw new Error('Failed to create next of kin profile: ' + kinResult.error.message);
-          }
-        }
-
-        await supabaseClient.auth.signOut();
-
-        document.getElementById('reg-success').textContent =
-          selectedRole === 'specialist'
-            ? 'Specialist application submitted! Please check your email to verify your account. You can only log in after admin approval.'
-            : 'Account created! Please check your email to verify your account.';
-
-        document.getElementById('reg-success').style.display = 'block';
-        btn.textContent =
-          selectedRole === 'specialist'
-            ? 'Application Submitted'
-            : 'Account Created!';
-
-        setTimeout(function () {
-          window.location.replace('email-verification.html');
-        }, 2000);
       } catch (e) {
-        var msg = e.message || 'Registration failed.';
+        console.error('Registration error:', e);
+
+        let msg = 'Registration failed.';
+
+        if (typeof e === 'string') {
+          msg = e;
+        } else if (e?.message) {
+          msg = e.message;
+        } else {
+          msg = JSON.stringify(e, null, 2);
+        }
 
         if (msg.includes('already registered') || msg.includes('User already registered')) {
           msg = 'This email is already registered. Please log in instead.';
