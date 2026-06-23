@@ -313,8 +313,8 @@ function getAdminSidebar(activePage) {
     { href: 'page-subscriptions.html', icon: '💰', label: 'Subscriptions' },
     { href: 'page-testimonials.html', icon: '⭐', label: 'Testimonials' },
     { href: 'page-faq.html', icon: '❓', label: 'FAQ' },
-    { divider: true, label: 'MANAGE' },
-    { href: 'content.html', icon: '📝', label: 'Articles' },
+    // { divider: true, label: 'MANAGE' },
+    // { href: 'content.html', icon: '📝', label: 'Articles' },
   ];
 
   const links = pages.map(p => {
