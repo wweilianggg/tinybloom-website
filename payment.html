@@ -12,6 +12,7 @@
     .card-input-wrap { position:relative; }
     .card-brands { position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); display:flex; gap:4px; }
     .card-brand { font-size:0.7rem; font-weight:700; padding:2px 5px; border-radius:3px; }
+    .expiry-error { color: #e05c5c; font-size: 0.75rem; margin-top: 0.25rem; display: none; }
     @media (max-width:768px) { .payment-grid { grid-template-columns:1fr; } }
   </style>
 </head>
@@ -52,6 +53,7 @@
         <div class="form-group">
           <label>Expiry Date</label>
           <input type="text" id="pay-expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" />
+          <div class="expiry-error" id="expiry-error">Card has expired. Please use a future date.</div>
         </div>
         <div class="form-group">
           <label>CVC</label>
@@ -162,10 +164,50 @@ function formatCard(input) {
   let v = input.value.replace(/\D/g,'').substring(0,16);
   input.value = v.replace(/(.{4})/g,'$1 ').trim();
 }
+
 function formatExpiry(input) {
   let v = input.value.replace(/\D/g,'').substring(0,4);
   if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
   input.value = v;
+  
+  // Hide expiry error as user types
+  document.getElementById('expiry-error').style.display = 'none';
+}
+
+function validateExpiry(expiry) {
+  if (!expiry || !expiry.includes('/') || expiry.length < 5) {
+    return { valid: false, message: 'Please enter a valid expiry date (MM/YY).' };
+  }
+  
+  const parts = expiry.split('/');
+  if (parts.length !== 2) {
+    return { valid: false, message: 'Please enter a valid expiry date (MM/YY).' };
+  }
+  
+  const month = parseInt(parts[0]);
+  const year = parseInt(parts[1]);
+  
+  // Check if month is valid (1-12)
+  if (isNaN(month) || month < 1 || month > 12) {
+    return { valid: false, message: 'Please enter a valid month (01-12).' };
+  }
+  
+  // Check if year is valid (2 digits)
+  if (isNaN(year) || year < 0 || year > 99) {
+    return { valid: false, message: 'Please enter a valid year (YY).' };
+  }
+  
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear() % 100; // Get last 2 digits of current year
+  const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+  
+  // Check if the card is expired
+  if (year < currentYear || (year === currentYear && month < currentMonth)) {
+    return { valid: false, message: 'Card has expired. Please use a future date.' };
+  }
+  
+  return { valid: true };
 }
 
 async function processPayment() {
@@ -175,12 +217,23 @@ async function processPayment() {
   const expiry = document.getElementById('pay-expiry').value;
   const cvc    = document.getElementById('pay-cvc').value;
   const errEl  = document.getElementById('pay-error');
+  const expiryErrorEl = document.getElementById('expiry-error');
   const btn    = document.getElementById('pay-btn');
+  
   errEl.style.display = 'none';
+  expiryErrorEl.style.display = 'none';
 
   if (!email || !name)          { errEl.textContent = 'Please enter your email and name.'; errEl.style.display = 'block'; return; }
   if (card.length < 16)         { errEl.textContent = 'Please enter a valid 16-digit card number.'; errEl.style.display = 'block'; return; }
-  if (!expiry.includes('/') || expiry.length < 5) { errEl.textContent = 'Please enter a valid expiry (MM/YY).'; errEl.style.display = 'block'; return; }
+  
+  // Validate expiry date
+  const expiryValidation = validateExpiry(expiry);
+  if (!expiryValidation.valid) {
+    expiryErrorEl.textContent = expiryValidation.message;
+    expiryErrorEl.style.display = 'block';
+    return;
+  }
+  
   if (cvc.length < 3)           { errEl.textContent = 'Please enter a valid CVC.'; errEl.style.display = 'block'; return; }
 
   btn.textContent = 'Processing...'; btn.disabled = true;
@@ -197,8 +250,13 @@ async function processPayment() {
       const signUpRes = await supabaseClient.auth.signUp({
         email: pending.email,
         password: pending.password,
-        options: { data: { full_name: pending.name, role: 'premium_user' } }
+        options: { data: { full_name: pending.name, role: 'premium_user' }, emailRedirectTo: window.location.origin + '/login.html' }
       });
+
+      setTimeout(function () {
+        window.location.replace('email-verification.html');
+      }, 2000);
+
       if (signUpRes.error) throw new Error(signUpRes.error.message);
       if (!signUpRes.data.user) throw new Error('Account creation failed.');
 
