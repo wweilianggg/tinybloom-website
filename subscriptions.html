@@ -1,178 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Subscriptions — TinyBloom</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
-<div id="navbar-placeholder"></div>
+  <div id="navbar-placeholder"></div>
 
-<div class="page-header">
-  <h1 id="sub-page-title">Simple Pricing</h1>
-  <p id="sub-page-subtitle">Start free and upgrade to unlock advanced features for a happier, better-supported pregnancy.</p>
-</div>
-
-<section class="section section-blush">
-  <div class="container">
-    <div class="pricing-grid">
-      <div class="pricing-card">
-        <div class="plan-name">Basic</div>
-        <div class="price">$0 <span>/ month</span></div>
-        <div class="price-desc" id="sub-basic-desc">Basic information &amp; simple tracking.</div>
-        <ul class="pricing-features" id="sub-basic-features">
-          <li>Pregnancy articles &amp; FAQ</li>
-          <li>Simple symptom logging</li>
-          <li>Basic week-by-week tracking</li>
-          <li>Appointment reminders</li>
-        </ul>
-        <a href="register.html" class="btn btn-teal" id="sub-basic-btn">Get Started</a>
-      </div>
-
-      <div class="pricing-card featured">
-        <div style="background:var(--teal);color:white;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.3rem 0.85rem;border-radius:50px;display:inline-block;margin-bottom:0.75rem" id="sub-popular-badge">Most Popular</div>
-        <div class="plan-name" id="sub-premium-name">Premium</div>
-        <div class="price" id="sub-price-monthly">$9.90 <span>/ month</span></div>
-        <div class="price-desc" id="sub-premium-monthly-desc">Personalised insights, advanced tracking &amp; full support features.</div>
-        <ul class="pricing-features" id="sub-premium-features">
-          <li>Everything in Basic</li>
-          <li>Personalised pregnancy tracking</li>
-          <li>Advanced symptom tracking &amp; alerts</li>
-          <li>Detailed baby development insights</li>
-          <li>Full access to all resources</li>
-          <li>AI-powered weekly recommendations</li>
-          <li>Video consultations with specialists</li>
-        </ul>
-        <a href="register.html?plan=premium" class="btn btn-teal" id="sub-premium-btn">Get Started</a>
-      </div>
-
-      <div class="pricing-card">
-        <div style="background:var(--gold);color:white;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.3rem 0.85rem;border-radius:50px;display:inline-block;margin-bottom:0.75rem" id="sub-value-badge">Best Value</div>
-        <div class="plan-name" id="sub-annual-name">Premium Annual</div>
-        <div class="price" id="sub-price-yearly">$90 <span>/ year</span></div>
-        <div class="price-desc" style="color:var(--sage);font-weight:600" id="sub-save-text">Save $28.80 vs monthly</div>
-        <ul class="pricing-features">
-          <li>Everything in Premium Monthly</li>
-          <li>Personalised pregnancy tracking</li>
-          <li>Advanced symptom tracking &amp; alerts</li>
-          <li>Detailed baby development insights</li>
-          <li>Full access to all resources</li>
-          <li>AI-powered weekly recommendations</li>
-          <li>Video consultations with specialists</li>
-        </ul>
-        <a href="register.html?plan=premium_yearly" class="btn btn-teal" id="sub-annual-btn">Get Started</a>
-      </div>
-    </div>
-
-    <!-- Comparison table -->
-    <div style="margin-top:4rem">
-      <h2 class="section-title" style="margin-bottom:2rem" id="sub-compare-title">Full Feature Comparison</h2>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table>
-          <thead>
-            <tr><th style="width:45%">Feature</th><th style="text-align:center">Basic (Free)</th><th style="text-align:center">Premium</th></tr>
-          </thead>
-          <tbody id="sub-compare-body">
-            <tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--text-light)">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Link to FAQ -->
-    <div style="text-align:center;margin-top:3rem;padding:2rem;background:white;border-radius:var(--radius);box-shadow:var(--shadow-soft)">
-      <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.5rem">Have questions about pricing?</h3>
-      <p style="color:var(--text-mid);margin-bottom:1.25rem;font-size:0.9rem">Check our FAQ page for answers to common questions about subscriptions and features.</p>
-      <a href="faq.html" class="btn btn-teal">View FAQ →</a>
-    </div>
+  <div class="page-header">
+    <h1 id="sub-page-title">Simple Pricing</h1>
+    <p id="sub-page-subtitle">Start free and upgrade to unlock advanced features for a happier, better-supported
+      pregnancy.</p>
   </div>
-</section>
 
-<div id="footer-placeholder"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/app.js"></script>
-<script>
-async function loadSubSettings() {
-  try {
-    const { data } = await supabaseClient.from('site_settings').select('setting_key, setting_value');
-    if (!data) return;
-    const s = {};
-    data.forEach(r => { s[r.setting_key] = r.setting_value; });
+  <section class="section section-blush">
+    <div class="container">
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="plan-name">Basic</div>
+          <div class="price">$0 <span>/ month</span></div>
+          <div class="price-desc" id="sub-basic-desc">Basic information &amp; simple tracking.</div>
+          <ul class="pricing-features" id="sub-basic-features">
+            <li>Pregnancy articles &amp; FAQ</li>
+            <li>AI Pregnancy Chatbot</li>
+            <li>Health Log (Weight, BP & Symptoms)</li>
+            <li>Basic week-by-week tracking</li>
+            <li>Appointment reminders</li>
+            <li>Emergency Notifications</li>
+            <li>Volunteer Doctor Consultations</li>
+          </ul>
+          <a href="register.html" class="btn btn-teal" id="sub-basic-btn">Get Started</a>
+        </div>
 
-    // Prices
-    if (s.premium_monthly_price) {
-      const m = parseFloat(s.premium_monthly_price);
-      document.getElementById('sub-price-monthly').innerHTML = `$${m.toFixed(2)} <span>/ month</span>`;
-    }
-    if (s.premium_yearly_price) {
-      const y = parseFloat(s.premium_yearly_price);
-      const m = parseFloat(s.premium_monthly_price) || 9.90;
-      document.getElementById('sub-price-yearly').innerHTML = `$${y.toFixed(2)} <span>/ year</span>`;
-      const saved = ((m * 12) - y).toFixed(2);
-      if (saved > 0) document.getElementById('sub-save-text').textContent = `Save $${saved} vs monthly`;
-    }
+        <div class="pricing-card featured">
+          <div
+            style="background:var(--teal);color:white;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.3rem 0.85rem;border-radius:50px;display:inline-block;margin-bottom:0.75rem"
+            id="sub-popular-badge">Most Popular</div>
+          <div class="plan-name" id="sub-premium-name">Premium</div>
+          <div class="price" id="sub-price-monthly">$9.90 <span>/ month</span></div>
+          <div class="price-desc" id="sub-premium-monthly-desc">Personalised insights, advanced tracking &amp; full
+            support features.</div>
+          <ul class="pricing-features" id="sub-premium-features">
+            <li>Everything in Basic</li>
+            <li>Advanced symptom tracking &amp; alerts</li>
+            <li>Detailed baby development insights</li>
+            <li>AI Personalised Weekly Tips</li>
+            <li>AI Personalised Recommendations</li>
+            <li>Video consultations with specialists</li>
+          </ul>
+          <a href="register.html?plan=premium" class="btn btn-teal" id="sub-premium-btn">Get Started</a>
+        </div>
 
-    // Page text
-    const textMap = {
-      sub_page_title: 'sub-page-title', sub_page_subtitle: 'sub-page-subtitle',
-      sub_premium_name: 'sub-premium-name', sub_annual_name: 'sub-annual-name',
-      sub_popular_badge: 'sub-popular-badge', sub_value_badge: 'sub-value-badge',
-      sub_compare_title: 'sub-compare-title',
-      sub_basic_btn: 'sub-basic-btn', sub_premium_btn: 'sub-premium-btn', sub_annual_btn: 'sub-annual-btn',
-    };
-    Object.entries(textMap).forEach(([key, id]) => {
-      if (s[key]) { const el = document.getElementById(id); if (el) el.textContent = s[key]; }
-    });
-    // Load comparison rows
-    const rowData = data.find(s => s.setting_key === 'sub_compare_rows');
-    const sections = (s.sub_compare_sections || 'Tracking,Support,AI & Education').split(',').map(x => x.trim());
-    let rowsArr = [];
-    if (rowData && rowData.setting_value) {
-      try { rowsArr = JSON.parse(rowData.setting_value); } catch {}
-    }
-    if (!rowsArr.length) {
-      // Default rows if none saved
-      rowsArr = [
-        { feature:'Basic week-by-week tracking', category:'Tracking', basic:true, premium:true },
-        { feature:'Baby movement & kick counter', category:'Tracking', basic:true, premium:true },
-        { feature:'Health log (weight, BP, symptoms)', category:'Tracking', basic:true, premium:true },
-        { feature:'Personalised pregnancy timeline', category:'Tracking', basic:false, premium:true },
-        { feature:'Advanced symptom tracking & alerts', category:'Tracking', basic:false, premium:true },
-        { feature:'Detailed baby development insights', category:'Tracking', basic:false, premium:true },
-        { feature:'Pregnancy articles & FAQ', category:'Support', basic:true, premium:true },
-        { feature:'Chat with volunteer doctors', category:'Support', basic:true, premium:true },
-        { feature:'1-on-1 video with specialists', category:'Support', basic:false, premium:true },
-        { feature:'Basic article library', category:'AI & Education', basic:true, premium:true },
-        { feature:'AI weekly personalised tips', category:'AI & Education', basic:false, premium:true },
-        { feature:'Full education library + videos', category:'AI & Education', basic:false, premium:true },
-      ];
-    }
-    // Build table by sections
-    const tbody = document.getElementById('sub-compare-body');
-    if (tbody) {
-      let html = '';
-      let lastCat = null;
-      // Sort by section order
-      const sectionOrder = {};
-      sections.forEach((s, i) => { sectionOrder[s] = i; });
-      rowsArr.sort((a, b) => (sectionOrder[a.category] ?? 99) - (sectionOrder[b.category] ?? 99));
-      rowsArr.forEach(r => {
-        if (r.category !== lastCat) {
-          lastCat = r.category;
-          html += `<tr><td colspan="3" style="background:var(--blush);font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--rose-deep);padding:0.75rem 1rem">${r.category}</td></tr>`;
+        <div class="pricing-card">
+          <div
+            style="background:var(--gold);color:white;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.3rem 0.85rem;border-radius:50px;display:inline-block;margin-bottom:0.75rem"
+            id="sub-value-badge">Best Value</div>
+          <div class="plan-name" id="sub-annual-name">Premium Annual</div>
+          <div class="price" id="sub-price-yearly">$90 <span>/ year</span></div>
+          <div class="price-desc" style="color:var(--sage);font-weight:600" id="sub-save-text">Save $28.80 vs monthly
+          </div>
+          <ul class="pricing-features">
+            <li>Everything in Basic</li>
+            <li>Advanced symptom tracking &amp; alerts</li>
+            <li>Detailed baby development insights</li>
+            <li>AI Personalised Weekly Tips</li>
+            <li>AI Personalised Recommendations</li>
+            <li>Video consultations with specialists</li>
+          </ul>
+          <a href="register.html?plan=premium_yearly" class="btn btn-teal" id="sub-annual-btn">Get Started</a>
+        </div>
+      </div>
+
+      <!-- Comparison table -->
+      <div style="margin-top:4rem">
+        <h2 class="section-title" style="margin-bottom:2rem" id="sub-compare-title">Full Feature Comparison</h2>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:45%">Feature</th>
+                <th style="text-align:center">Basic (Free)</th>
+                <th style="text-align:center">Premium</th>
+              </tr>
+            </thead>
+            <tbody id="sub-compare-body">
+              <tr>
+                <td colspan="3" style="text-align:center;padding:1rem;color:var(--text-light)">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Link to FAQ -->
+      <div
+        style="text-align:center;margin-top:3rem;padding:2rem;background:white;border-radius:var(--radius);box-shadow:var(--shadow-soft)">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.5rem">Have questions about
+          pricing?</h3>
+        <p style="color:var(--text-mid);margin-bottom:1.25rem;font-size:0.9rem">Check our FAQ page for answers to common
+          questions about subscriptions and features.</p>
+        <a href="faq.html" class="btn btn-teal">View FAQ →</a>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/app.js"></script>
+  <script>
+    async function loadSubSettings() {
+      try {
+        const { data } = await supabaseClient.from('site_settings').select('setting_key, setting_value');
+        if (!data) return;
+        const s = {};
+        data.forEach(r => { s[r.setting_key] = r.setting_value; });
+
+        // Prices
+        if (s.premium_monthly_price) {
+          const m = parseFloat(s.premium_monthly_price);
+          document.getElementById('sub-price-monthly').innerHTML = `$${m.toFixed(2)} <span>/ month</span>`;
         }
-        html += `<tr>
+        if (s.premium_yearly_price) {
+          const y = parseFloat(s.premium_yearly_price);
+          const m = parseFloat(s.premium_monthly_price) || 9.90;
+          document.getElementById('sub-price-yearly').innerHTML = `$${y.toFixed(2)} <span>/ year</span>`;
+          const saved = ((m * 12) - y).toFixed(2);
+          if (saved > 0) document.getElementById('sub-save-text').textContent = `Save $${saved} vs monthly`;
+        }
+
+        // Page text
+        const textMap = {
+          sub_page_title: 'sub-page-title', sub_page_subtitle: 'sub-page-subtitle',
+          sub_premium_name: 'sub-premium-name', sub_annual_name: 'sub-annual-name',
+          sub_popular_badge: 'sub-popular-badge', sub_value_badge: 'sub-value-badge',
+          sub_compare_title: 'sub-compare-title',
+          sub_basic_btn: 'sub-basic-btn', sub_premium_btn: 'sub-premium-btn', sub_annual_btn: 'sub-annual-btn',
+        };
+        Object.entries(textMap).forEach(([key, id]) => {
+          if (s[key]) { const el = document.getElementById(id); if (el) el.textContent = s[key]; }
+        });
+        // Load comparison rows
+        const rowData = data.find(s => s.setting_key === 'sub_compare_rows');
+        const sections = (s.sub_compare_sections || 'Tracking,Support,AI & Education').split(',').map(x => x.trim());
+        let rowsArr = [];
+        if (rowData && rowData.setting_value) {
+          try { rowsArr = JSON.parse(rowData.setting_value); } catch { }
+        }
+        if (!rowsArr.length) {
+          // Default rows if none saved
+          rowsArr = [
+            { feature: 'Basic week-by-week tracking', category: 'Tracking', basic: true, premium: true },
+            { feature: 'Baby movement & kick counter', category: 'Tracking', basic: true, premium: true },
+            { feature: 'Health log (weight, BP, symptoms)', category: 'Tracking', basic: true, premium: true },
+            { feature: 'Personalised pregnancy timeline', category: 'Tracking', basic: false, premium: true },
+            { feature: 'Advanced symptom tracking & alerts', category: 'Tracking', basic: false, premium: true },
+            { feature: 'Detailed baby development insights', category: 'Tracking', basic: false, premium: true },
+            { feature: 'Pregnancy articles & FAQ', category: 'Support', basic: true, premium: true },
+            { feature: 'Chat with volunteer doctors', category: 'Support', basic: true, premium: true },
+            { feature: '1-on-1 video with specialists', category: 'Support', basic: false, premium: true },
+            { feature: 'Basic article library', category: 'AI & Education', basic: true, premium: true },
+            { feature: 'AI weekly personalised tips', category: 'AI & Education', basic: false, premium: true },
+            { feature: 'Full education library + videos', category: 'AI & Education', basic: false, premium: true },
+          ];
+        }
+        // Build table by sections
+        const tbody = document.getElementById('sub-compare-body');
+        if (tbody) {
+          let html = '';
+          let lastCat = null;
+          // Sort by section order
+          const sectionOrder = {};
+          sections.forEach((s, i) => { sectionOrder[s] = i; });
+          rowsArr.sort((a, b) => (sectionOrder[a.category] ?? 99) - (sectionOrder[b.category] ?? 99));
+          rowsArr.forEach(r => {
+            if (r.category !== lastCat) {
+              lastCat = r.category;
+              html += `<tr><td colspan="3" style="background:var(--blush);font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--rose-deep);padding:0.75rem 1rem">${r.category}</td></tr>`;
+            }
+            html += `<tr>
           <td>${r.feature}</td>
           <td style="text-align:center">${r.basic ? '✓' : '—'}</td>
           <td style="text-align:center">${r.premium ? '✓' : '—'}</td>
         </tr>`;
-      });
-      tbody.innerHTML = html;
+          });
+          tbody.innerHTML = html;
+        }
+      } catch { }
     }
-  } catch {}
-}
-document.addEventListener('DOMContentLoaded', loadSubSettings);
-</script>
+    document.addEventListener('DOMContentLoaded', loadSubSettings);
+  </script>
 </body>
+
 </html>
