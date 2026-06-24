@@ -69,23 +69,6 @@ async function loadRecentUsers() {
     ? data.map(u=>`<tr><td>${u.full_name}</td><td><span class="badge ${badge[u.role]||'badge-gray'}">${u.role.replace(/_/g,' ')}</span></td><td>${new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</td></tr>`).join('')
     : '<tr><td colspan="3" style="text-align:center;color:var(--text-light)">No users yet.</td></tr>';
 }
-async function loadPendingTestimonials() {
-  const { data } = await supabaseClient.from('testimonials').select('*').eq('is_published',false).order('created_at',{ascending:false}).limit(5);
-  const c = document.getElementById('pending-testimonials');
-  if (!data?.length) { c.innerHTML='<p style="text-align:center;color:var(--text-light);padding:1rem">No pending testimonials ✓</p>'; return; }
-  c.innerHTML = data.map(t=>`
-    <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
-      <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem">
-        <div><strong style="font-size:0.88rem">${t.reviewer_name}</strong><span style="color:#f0b429;margin-left:0.5rem">${'★'.repeat(t.rating)}</span>
-        <p style="font-size:0.8rem;color:var(--text-mid);margin-top:0.25rem">${t.content.substring(0,80)}...</p></div>
-        <div style="display:flex;gap:0.5rem;flex-shrink:0">
-          <button class="btn btn-teal btn-sm" onclick="approveTest('${t.id}',this)">✓</button>
-          <button class="btn btn-ghost btn-sm" onclick="deleteTest('${t.id}',this)">✗</button>
-        </div>
-      </div>
-    </div>`).join('');
-}
-async function approveTest(id,btn) { await supabaseClient.from('testimonials').update({is_published:true}).eq('id',id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Approved!','success'); loadStats(); }
-async function deleteTest(id,btn) { await supabaseClient.from('testimonials').delete().eq('id',id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Removed.'); loadStats(); }
+
 </script>
 </body></html>
