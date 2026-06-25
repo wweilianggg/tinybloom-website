@@ -327,21 +327,6 @@
                 .update({ is_active: true })
                 .eq('id', specialist.user_id);
 
-            const { error: resendError } = await supabaseClient.auth.resend({
-                type: 'signup',
-                email: specialist.profiles.email,
-                options: {
-                    emailRedirectTo:
-                        window.location.origin.replace('/admin', '') +
-                        '/login.html?verified=1'
-                }
-            });
-
-            if (resendError) {
-                showToast('Approved, but email not sent: ' + resendError.message, 'error');
-                await loadRequests();
-                return;
-            }
 
             showToast('Specialist approved and email sent!', 'success');
             await loadRequests();
