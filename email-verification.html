@@ -1,169 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verify Your Email — TinyBloom</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .provider-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;margin-top:0.25rem; }
-    .provider-btn {
-      display:flex;flex-direction:column;align-items:center;gap:0.4rem;
-      padding:0.75rem 0.4rem;border-radius:var(--radius-sm);
-      border:1.5px solid rgba(92,79,74,0.15);background:white;cursor:pointer;
-      font-family:'DM Sans',sans-serif;font-size:0.74rem;font-weight:600;color:var(--text-mid);
-      transition:all 0.2s;
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+      margin-top: 0.25rem;
     }
-    .provider-btn:hover { border-color:var(--teal);background:var(--teal-light);color:var(--teal); }
-    .provider-btn svg { width:22px;height:22px; }
+
+    .provider-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.75rem 0.4rem;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid rgba(92, 79, 74, 0.15);
+      background: white;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      transition: all 0.2s;
+    }
+
+    .provider-btn:hover {
+      border-color: var(--teal);
+      background: var(--teal-light);
+      color: var(--teal);
+    }
+
+    .provider-btn svg {
+      width: 22px;
+      height: 22px;
+    }
   </style>
 </head>
+
 <body>
-<div id="navbar-placeholder"></div>
+  <div id="navbar-placeholder"></div>
 
-<div style="background:var(--blush);min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;">
-  <div style="width:100%;max-width:440px;">
+  <div
+    style="background:var(--blush);min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;">
+    <div style="width:100%;max-width:440px;">
 
-    <div class="form-card" style="text-align:center;">
-      <div style="text-align:center;margin-bottom:1.5rem">
-        <a href="index.html" style="font-family:'Playfair Display',serif;font-size:1.75rem;color:var(--rose-deep);text-decoration:none">TinyBloom</a>
-      </div>
-
-      <!-- Envelope icon -->
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--teal-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-          <polyline points="22,6 12,13 2,6"></polyline>
-        </svg>
-      </div>
-
-      <h1 style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text-dark);margin-bottom:0.6rem">
-        Thank you for registering!
-      </h1>
-      <p style="font-size:0.92rem;color:var(--text-mid);margin-bottom:0.25rem">
-        Please verify your email address to activate your account.
-      </p>
-      <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:1.75rem" id="email-line">
-        We've sent a verification link to your email.
-      </p>
-
-      <!-- Shown when we know the email: one smart button -->
-      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem;display:none" id="open-email-btn">
-        Open My Email
-      </button>
-
-      <!-- Shown when we don't know the email: provider picker -->
-      <div id="provider-picker" style="display:none">
-        <p style="font-size:0.78rem;font-weight:600;color:var(--text-mid);margin-bottom:0.6rem;text-align:left">Open your inbox with:</p>
-        <div class="provider-grid">
-          <button type="button" class="provider-btn" onclick="window.open('https://mail.google.com/mail/u/0/#inbox','_blank','noopener')">
-            <svg viewBox="0 0 24 24"><path fill="#EA4335" d="M2 6.5C2 5.12 3.12 4 4.5 4h15C20.88 4 22 5.12 22 6.5v11c0 1.38-1.12 2.5-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5v-11Z"/><path fill="#fff" d="m4 6 8 6 8-6"/><path stroke="#fff" stroke-width="1.2" d="m4 6 8 6 8-6"/></svg>
-            Gmail
-          </button>
-          <button type="button" class="provider-btn" onclick="window.open('https://outlook.live.com/mail/0/inbox','_blank','noopener')">
-            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="#0072C6"/><path fill="#fff" d="M6 8h12v8H6z" opacity=".15"/><circle cx="9" cy="12" r="3" fill="#fff"/></svg>
-            Outlook
-          </button>
-          <button type="button" class="provider-btn" onclick="window.open('https://mail.yahoo.com','_blank','noopener')">
-            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="#6001D2"/><path fill="#fff" d="M7 8h2.4l2.6 4.2L14.6 8H17l-3.8 6v3h-2.4v-3z"/></svg>
-            Yahoo
-          </button>
-          <button type="button" class="provider-btn" onclick="window.open('https://www.icloud.com/mail','_blank','noopener')">
-            <svg viewBox="0 0 24 24"><path fill="#3693F3" d="M7 16a4 4 0 0 1-.4-7.98 5 5 0 0 1 9.6-1.6A4.5 4.5 0 0 1 17 16H7Z"/></svg>
-            iCloud
-          </button>
+      <div class="form-card" style="text-align:center;">
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <a href="index.html"
+            style="font-family:'Playfair Display',serif;font-size:1.75rem;color:var(--rose-deep);text-decoration:none">TinyBloom</a>
         </div>
-        <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:0.9rem">
-          Other provider? <a href="#" id="default-mail-link">Open your default mail app</a>
+
+        <!-- Envelope icon -->
+        <div
+          style="width:64px;height:64px;border-radius:50%;background:var(--teal-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+        </div>
+
+        <h1 style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text-dark);margin-bottom:0.6rem">
+          Thank you for registering!
+        </h1>
+        <p style="font-size:0.92rem;color:var(--text-mid);margin-bottom:0.25rem">
+          Please verify your email address to activate your account.
+        </p>
+        <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:1.75rem" id="email-line">
+          We've sent a verification link to your email.
+        </p>
+
+        <!-- Shown when we know the email: one smart button -->
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.8rem;display:none"
+          id="open-email-btn">
+          Open My Email
+        </button>
+
+        <!-- Shown when we don't know the email: provider picker -->
+        <div id="provider-picker" style="display:none">
+          <p style="font-size:0.78rem;font-weight:600;color:var(--text-mid);margin-bottom:0.6rem;text-align:left">Open
+            your inbox with:</p>
+          <div class="provider-grid">
+            <button type="button" class="provider-btn"
+              onclick="window.open('https://mail.google.com/mail/u/0/#inbox','_blank','noopener')">
+              <svg viewBox="0 0 24 24">
+                <path fill="#EA4335"
+                  d="M2 6.5C2 5.12 3.12 4 4.5 4h15C20.88 4 22 5.12 22 6.5v11c0 1.38-1.12 2.5-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5v-11Z" />
+                <path fill="#fff" d="m4 6 8 6 8-6" />
+                <path stroke="#fff" stroke-width="1.2" d="m4 6 8 6 8-6" />
+              </svg>
+              Gmail
+            </button>
+            <button type="button" class="provider-btn"
+              onclick="window.open('https://outlook.live.com/mail/0/inbox','_blank','noopener')">
+              <svg viewBox="0 0 24 24">
+                <rect x="2" y="4" width="20" height="16" rx="2" fill="#0072C6" />
+                <path fill="#fff" d="M6 8h12v8H6z" opacity=".15" />
+                <circle cx="9" cy="12" r="3" fill="#fff" />
+              </svg>
+              Outlook
+            </button>
+            <button type="button" class="provider-btn"
+              onclick="window.open('https://mail.yahoo.com','_blank','noopener')">
+              <svg viewBox="0 0 24 24">
+                <rect x="2" y="4" width="20" height="16" rx="2" fill="#6001D2" />
+                <path fill="#fff" d="M7 8h2.4l2.6 4.2L14.6 8H17l-3.8 6v3h-2.4v-3z" />
+              </svg>
+              Yahoo
+            </button>
+            <button type="button" class="provider-btn"
+              onclick="window.open('https://www.icloud.com/mail','_blank','noopener')">
+              <svg viewBox="0 0 24 24">
+                <path fill="#3693F3" d="M7 16a4 4 0 0 1-.4-7.98 5 5 0 0 1 9.6-1.6A4.5 4.5 0 0 1 17 16H7Z" />
+              </svg>
+              iCloud
+            </button>
+          </div>
+          <p style="text-align:center;font-size:0.78rem;color:var(--text-light);margin-top:0.9rem">
+            Other provider? <a href="#" id="default-mail-link">Open your default mail app</a>
+          </p>
+        </div>
+
+        <div class="divider"></div>
+        <p style="text-align:center;font-size:0.85rem;color:var(--text-light)">
+          Already verified? <a href="login.html">Log in here</a>
         </p>
       </div>
-
-      <div class="divider"></div>
-      <p style="text-align:center;font-size:0.85rem;color:var(--text-light)">
-        Already verified? <a href="login.html">Log in here</a>
-      </p>
     </div>
   </div>
-</div>
 
-<div id="footer-placeholder"></div>
+  <div id="footer-placeholder"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/app.js"></script>
-<script>
-  // Map common email domains to their webmail inbox URL
-  function getInboxUrl(email) {
-    if (!email || !email.includes('@')) return null;
-    var domain = email.split('@')[1].toLowerCase();
-    var providers = {
-      'gmail.com': 'https://mail.google.com/mail/u/0/#inbox',
-      'googlemail.com': 'https://mail.google.com/mail/u/0/#inbox',
-      'outlook.com': 'https://outlook.live.com/mail/0/inbox',
-      'hotmail.com': 'https://outlook.live.com/mail/0/inbox',
-      'live.com': 'https://outlook.live.com/mail/0/inbox',
-      'msn.com': 'https://outlook.live.com/mail/0/inbox',
-      'yahoo.com': 'https://mail.yahoo.com',
-      'icloud.com': 'https://www.icloud.com/mail',
-      'me.com': 'https://www.icloud.com/mail',
-      'mac.com': 'https://www.icloud.com/mail',
-      'aol.com': 'https://mail.aol.com',
-      'protonmail.com': 'https://mail.proton.me',
-      'proton.me': 'https://mail.proton.me',
-      'zoho.com': 'https://mail.zoho.com'
-    };
-    return providers[domain] || null;
-  }
-
-  // Try to discover the user's email without requiring any other page to pass it in:
-  //   1. URL query string, e.g. ?email=sarah@example.com (used if present, but not required)
-  //   2. sessionStorage 'tb_pending_reg' (already written by the premium signup flow)
-  //   3. An active Supabase session, if one happens to exist
-  async function discoverEmail() {
-    var fromQuery = new URLSearchParams(window.location.search).get('email');
-    if (fromQuery) return fromQuery;
-
-    try {
-      var pending = sessionStorage.getItem('tb_pending_reg');
-      if (pending) {
-        var parsed = JSON.parse(pending);
-        if (parsed && parsed.email) return parsed.email;
-      }
-    } catch (e) {}
-
-    try {
-      var res = await supabaseClient.auth.getUser();
-      if (res && res.data && res.data.user && res.data.user.email) {
-        return res.data.user.email;
-      }
-    } catch (e) {}
-
-    return null;
-  }
-
-  document.addEventListener('DOMContentLoaded', async function() {
-    var email = await discoverEmail();
-    var defaultMailLink = document.getElementById('default-mail-link');
-    defaultMailLink.href = 'mailto:' + (email || '');
-
-    if (email) {
-      document.getElementById('email-line').innerHTML =
-        'We\'ve sent a verification link to <strong style="color:var(--text-mid)">' + email + '</strong>.';
-
-      var inboxUrl = getInboxUrl(email);
-      var openBtn = document.getElementById('open-email-btn');
-      openBtn.style.display = 'inline-flex';
-      openBtn.addEventListener('click', function() {
-        if (inboxUrl) {
-          window.open(inboxUrl, '_blank', 'noopener');
-        } else {
-          window.location.href = 'mailto:' + email;
-        }
-      });
-    } else {
-      // No email available anywhere — let the person choose their provider directly
-      document.getElementById('provider-picker').style.display = 'block';
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Map common email domains to their webmail inbox URL
+    function getInboxUrl(email) {
+      if (!email || !email.includes('@')) return null;
+      var domain = email.split('@')[1].toLowerCase();
+      var providers = {
+        'gmail.com': 'https://mail.google.com/mail/u/0/#inbox',
+        'googlemail.com': 'https://mail.google.com/mail/u/0/#inbox',
+        'outlook.com': 'https://outlook.live.com/mail/0/inbox',
+        'hotmail.com': 'https://outlook.live.com/mail/0/inbox',
+        'live.com': 'https://outlook.live.com/mail/0/inbox',
+        'msn.com': 'https://outlook.live.com/mail/0/inbox',
+        'yahoo.com': 'https://mail.yahoo.com',
+        'icloud.com': 'https://www.icloud.com/mail',
+        'me.com': 'https://www.icloud.com/mail',
+        'mac.com': 'https://www.icloud.com/mail',
+        'aol.com': 'https://mail.aol.com',
+        'protonmail.com': 'https://mail.proton.me',
+        'proton.me': 'https://mail.proton.me',
+        'zoho.com': 'https://mail.zoho.com'
+      };
+      return providers[domain] || null;
     }
-  });
-</script>
+
+    // Try to discover the user's email without requiring any other page to pass it in:
+    //   1. URL query string, e.g. ?email=sarah@example.com (used if present, but not required)
+    //   2. sessionStorage 'tb_pending_reg' (already written by the premium signup flow)
+    //   3. An active Supabase session, if one happens to exist
+    async function discoverEmail() {
+
+      // Email passed from registration page
+      var fromQuery = new URLSearchParams(window.location.search).get('email');
+
+      if (fromQuery) {
+        return decodeURIComponent(fromQuery);
+      }
+
+      // Premium signup flow
+      try {
+        var pending = sessionStorage.getItem('tb_pending_reg');
+
+        if (pending) {
+          var parsed = JSON.parse(pending);
+
+          if (parsed && parsed.email) {
+            return parsed.email;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      return null;
+    }
+    document.addEventListener('DOMContentLoaded', async function () {
+      var email = await discoverEmail();
+      var defaultMailLink = document.getElementById('default-mail-link');
+      defaultMailLink.href = 'mailto:' + (email || '');
+
+      if (email) {
+        document.getElementById('email-line').innerHTML =
+          'We\'ve sent a verification link to <strong style="color:var(--text-mid)">' + email + '</strong>.';
+
+        var inboxUrl = getInboxUrl(email);
+        var openBtn = document.getElementById('open-email-btn');
+        openBtn.style.display = 'inline-flex';
+        openBtn.addEventListener('click', function () {
+          if (inboxUrl) {
+            window.open(inboxUrl, '_blank', 'noopener');
+          } else {
+            window.location.href = 'mailto:' + email;
+          }
+        });
+      } else {
+        // No email available anywhere — let the person choose their provider directly
+        document.getElementById('provider-picker').style.display = 'block';
+      }
+    });
+  </script>
 </body>
+
 </html>
