@@ -253,7 +253,7 @@
               </div>
             </div>
 
-            
+
           </div>
 
           <!-- Details form -->
@@ -818,8 +818,14 @@
           document.getElementById('reg-success').style.display = 'block';
           btn.textContent = 'Account Created!';
 
+          // Prevent previous logged-in user session from interfering
+          await supabaseClient.auth.signOut();
+
           setTimeout(function () {
-            window.location.replace('email-verification.html');
+            window.location.replace(
+              'email-verification.html?email=' +
+              encodeURIComponent(email)
+            );
           }, 2000);
         }
       } catch (e) {
