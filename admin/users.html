@@ -146,11 +146,11 @@
         <tr style="background:rgba(201,123,117,0.05)">
           <td>
             <div style="display:flex;align-items:center;gap:0.5rem">
-              ${u.full_name}
+              ${escapeHtml(u.full_name)}
               <span style="font-size:0.7rem;background:var(--rose-deep);color:white;padding:0.1rem 0.45rem;border-radius:50px;font-weight:700">ADMIN</span>
             </div>
           </td>
-          <td style="color:var(--text-light)">${u.email}</td>
+          <td style="color:var(--text-light)">${escapeHtml(u.email)}</td>
           <td><span class="badge badge-rose">admin</span></td>
           <td><span class="badge badge-green">Active</span></td>
           <td>${new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
@@ -161,9 +161,9 @@
         // Regular user row — edit + delete
         return `
       <tr>
-        <td>${u.full_name}</td>
-        <td style="color:var(--text-light)">${u.email}</td>
-        <td><span class="badge ${badge[u.role] || 'badge-gray'}">${u.role.replace(/_/g, ' ')}</span></td>
+        <td>${escapeHtml(u.full_name)}</td>
+        <td style="color:var(--text-light)">${escapeHtml(u.email)}</td>
+        <td><span class="badge ${badge[u.role] || 'badge-gray'}">${escapeHtml((u.role || '').replace(/_/g, ' '))}</span></td>
 
         <td>
           <span class="badge ${u.role === 'specialist' && !u.is_active
@@ -186,11 +186,11 @@
         <td>
           <div style="display:flex;gap:0.4rem">
             <button class="btn btn-ghost btn-sm"
-              onclick="openEdit('${u.id}','${u.full_name.replace(/'/g, "\\'")}','${u.role}','${u.is_active}')">
+              onclick="openEdit('${escapeJsString(u.id)}','${escapeJsString(u.full_name)}','${escapeJsString(u.role)}','${escapeJsString(u.is_active)}')">
               Edit
             </button>
             <button class="btn btn-ghost btn-sm" style="color:#c0392b;border-color:rgba(192,57,43,0.2)"
-              onclick="openDeleteModal('${u.id}','${u.full_name.replace(/'/g, "\\'")}')">
+              onclick="openDeleteModal('${escapeJsString(u.id)}','${escapeJsString(u.full_name)}')">
               Delete
             </button>
           </div>

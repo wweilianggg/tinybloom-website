@@ -182,9 +182,9 @@ async function loadArticles() {
   const sb = { published:'badge-green', draft:'badge-gray', archived:'badge-rose' };
   tbody.innerHTML = data.map(a => `
     <tr>
-      <td style="max-width:200px"><div style="font-weight:600;font-size:0.88rem">${a.title}</div><div style="font-size:0.75rem;color:var(--text-light)">${a.slug}</div></td>
-      <td>${a.category||'—'}</td>
-      <td><span class="badge ${sb[a.status]||'badge-gray'}">${a.status}</span></td>
+      <td style="max-width:200px"><div style="font-weight:600;font-size:0.88rem">${escapeHtml(a.title)}</div><div style="font-size:0.75rem;color:var(--text-light)">${escapeHtml(a.slug)}</div></td>
+      <td>${escapeHtml(a.category || '—')}</td>
+      <td><span class="badge ${sb[a.status]||'badge-gray'}">${escapeHtml(a.status)}</span></td>
       <td>${a.is_premium_only ? '<span class="badge badge-gold">⭐</span>' : '—'}</td>
       <td>${a.view_count||0}</td>
       <td>${new Date(a.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</td>

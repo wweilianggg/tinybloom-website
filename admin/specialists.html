@@ -246,13 +246,13 @@
 
                 return `
                 <tr>
-            <td>${item.name}</td>
-            <td>${item.email}</td>
-            <td>${item.specialization}</td>
-            <td>${item.experience} years</td>
+            <td>${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.email)}</td>
+            <td>${escapeHtml(item.specialization)}</td>
+            <td>${escapeHtml(item.experience)} years</td>
             <td>
                 <span class="badge ${statusBadge}">
-                ${item.status}
+                ${escapeHtml(item.status)}
                 </span>
             </td>
             <td>${joinedDate}</td>
@@ -271,19 +271,19 @@
             if (!item) return;
 
             document.getElementById('details-content').innerHTML = `
-    <p><strong>Name:</strong> ${item.name}</p>
-    <p><strong>Email:</strong> ${item.email}</p>
-    <p><strong>Phone:</strong> ${item.phone}</p>
+    <p><strong>Name:</strong> ${escapeHtml(item.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(item.email)}</p>
+    <p><strong>Phone:</strong> ${escapeHtml(item.phone)}</p>
     <hr>
 
-    <p><strong>Specialization:</strong> ${item.specialization}</p>
-    <p><strong>SMC / MCR Number:</strong> ${item.license_number}</p>
-    <p><strong>Years of Experience:</strong> ${item.experience}</p>
-    <p><strong>Hospital / Clinic:</strong> ${item.hospital}</p>
-    <p><strong>Medical Qualification:</strong> ${item.qualification}</p>
-    <p><strong>Practising Certificate Expiry:</strong> ${item.pc_expiry}</p>
+    <p><strong>Specialization:</strong> ${escapeHtml(item.specialization)}</p>
+    <p><strong>SMC / MCR Number:</strong> ${escapeHtml(item.license_number)}</p>
+    <p><strong>Years of Experience:</strong> ${escapeHtml(item.experience)}</p>
+    <p><strong>Hospital / Clinic:</strong> ${escapeHtml(item.hospital)}</p>
+    <p><strong>Medical Qualification:</strong> ${escapeHtml(item.qualification)}</p>
+    <p><strong>Practising Certificate Expiry:</strong> ${escapeHtml(item.pc_expiry)}</p>
     <hr>
-    <p><strong>Status:</strong> ${item.status}</p>
+    <p><strong>Status:</strong> ${escapeHtml(item.status)}</p>
     `;
 
             document.getElementById('details-modal').style.display = 'flex';

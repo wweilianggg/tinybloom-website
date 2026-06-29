@@ -128,7 +128,7 @@ async function loadFaqs() {
 
   container.innerHTML = Object.entries(grouped).map(([cat, faqs]) => `
     <div style="margin-bottom:2rem">
-      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--blush)">${cat}</h2>
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--blush)">${escapeHtml(cat)}</h2>
       <div class="card" style="padding:0;overflow:hidden">
         <table>
           <thead><tr><th>Question</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead>
@@ -136,8 +136,8 @@ async function loadFaqs() {
             ${faqs.map(f => `
               <tr>
                 <td style="max-width:400px">
-                  <div style="font-weight:600;font-size:0.88rem">${f.question}</div>
-                  <div style="font-size:0.78rem;color:var(--text-light);margin-top:0.2rem">${f.answer.substring(0,80)}...</div>
+                  <div style="font-weight:600;font-size:0.88rem">${escapeHtml(f.question)}</div>
+                  <div style="font-size:0.78rem;color:var(--text-light);margin-top:0.2rem">${escapeHtml((f.answer || '').substring(0,80))}...</div>
                 </td>
                 <td><span class="badge ${f.is_published?'badge-green':'badge-gray'}">${f.is_published?'Published':'Hidden'}</span></td>
                 <td>${f.display_order}</td>

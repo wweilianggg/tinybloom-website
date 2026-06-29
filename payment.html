@@ -28,48 +28,30 @@
   <div class="payment-grid">
     <!-- Left: Payment form -->
     <div class="card">
-      <h2 style="font-family:'Playfair Display',serif;font-size:1.25rem;margin-bottom:1.5rem">Payment Details</h2>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.25rem;margin-bottom:1.5rem">Demo Checkout</h2>
 
       <div class="form-group">
         <label>Email Address</label>
         <input type="email" id="pay-email" placeholder="your@email.com" />
       </div>
       <div class="form-group">
-        <label>Cardholder Name</label>
-        <input type="text" id="pay-name" placeholder="Name as shown on card" />
+        <label>Full Name</label>
+        <input type="text" id="pay-name" placeholder="Your name" />
       </div>
-      <div class="form-group">
-        <label>Card Number</label>
-        <div class="card-input-wrap">
-          <input type="text" id="pay-card" placeholder="1234 5678 9012 3456" maxlength="19"
-            oninput="formatCard(this)" style="padding-right:5rem" />
-          <div class="card-brands">
-            <span class="card-brand" style="background:#1a1f71;color:white">VISA</span>
-            <span class="card-brand" style="background:#eb001b;color:white">MC</span>
-          </div>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Expiry Date</label>
-          <input type="text" id="pay-expiry" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" />
-          <div class="expiry-error" id="expiry-error">Card has expired. Please use a future date.</div>
-        </div>
-        <div class="form-group">
-          <label>CVC</label>
-          <input type="text" id="pay-cvc" placeholder="123" maxlength="3" />
-        </div>
+      <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;font-size:0.82rem;color:var(--teal);margin-bottom:1rem">
+        This prototype does not collect card numbers, expiry dates, or CVC values. Connect a hosted payment provider before accepting real payments.
       </div>
 
-      <div style="background:var(--teal-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;font-size:0.82rem;color:var(--teal);margin-bottom:1.5rem">
-        🔒 Your payment information is encrypted and secure.
+      <div style="display:flex;gap:0.65rem;align-items:flex-start;margin-bottom:1.5rem;font-size:0.85rem;color:var(--text-mid)">
+        <input type="checkbox" id="demo-confirm" style="width:auto;margin-top:0.2rem" />
+        <label for="demo-confirm" style="font-weight:500">Mark this demo subscription as paid.</label>
       </div>
 
       <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="pay-error"></div>
-      <div class="form-success" id="pay-success" style="display:none">✓ Payment successful! Your premium account is now active.</div>
+      <div class="form-success" id="pay-success" style="display:none">✓ Demo subscription activated. Your premium account is now active.</div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.85rem;font-size:1rem" onclick="processPayment()" id="pay-btn">
-        Subscribe Now
+        Activate Demo Subscription
       </button>
       <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:0.75rem" onclick="goBack()" id="back-btn">
         ← Back
@@ -213,28 +195,14 @@ function validateExpiry(expiry) {
 async function processPayment() {
   const email  = document.getElementById('pay-email').value.trim();
   const name   = document.getElementById('pay-name').value.trim();
-  const card   = document.getElementById('pay-card').value.replace(/\s/g,'');
-  const expiry = document.getElementById('pay-expiry').value;
-  const cvc    = document.getElementById('pay-cvc').value;
+  const demoConfirmed = document.getElementById('demo-confirm').checked;
   const errEl  = document.getElementById('pay-error');
-  const expiryErrorEl = document.getElementById('expiry-error');
   const btn    = document.getElementById('pay-btn');
   
   errEl.style.display = 'none';
-  expiryErrorEl.style.display = 'none';
 
   if (!email || !name)          { errEl.textContent = 'Please enter your email and name.'; errEl.style.display = 'block'; return; }
-  if (card.length < 16)         { errEl.textContent = 'Please enter a valid 16-digit card number.'; errEl.style.display = 'block'; return; }
-  
-  // Validate expiry date
-  const expiryValidation = validateExpiry(expiry);
-  if (!expiryValidation.valid) {
-    expiryErrorEl.textContent = expiryValidation.message;
-    expiryErrorEl.style.display = 'block';
-    return;
-  }
-  
-  if (cvc.length < 3)           { errEl.textContent = 'Please enter a valid CVC.'; errEl.style.display = 'block'; return; }
+  if (!demoConfirmed)           { errEl.textContent = 'Please confirm this is a demo subscription activation.'; errEl.style.display = 'block'; return; }
 
   btn.textContent = 'Processing...'; btn.disabled = true;
 
@@ -307,9 +275,9 @@ async function processPayment() {
     setTimeout(() => { window.location.replace('download.html'); }, 2500);
 
   } catch(e) {
-    errEl.textContent = 'Payment failed: ' + (e.message || 'Please try again.');
+    errEl.textContent = 'Demo activation failed: ' + (e.message || 'Please try again.');
     errEl.style.display = 'block';
-    btn.textContent = 'Subscribe Now'; btn.disabled = false;
+    btn.textContent = 'Activate Demo Subscription'; btn.disabled = false;
   }
 }
 </script>

@@ -9,6 +9,33 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+}
+
+function escapeJsString(value) {
+  return String(value ?? '').replace(/[\\'"\n\r\u2028\u2029]/g, char => ({
+    '\\': '\\\\',
+    "'": "\\'",
+    '"': '\\"',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\u2028': '\\u2028',
+    '\u2029': '\\u2029'
+  }[char]));
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
 async function getCurrentUser() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -59,9 +86,6 @@ async function requireAdmin() {
   try {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) { window.location.href = '../login.html'; return null; }
-    const metaRole = user.user_metadata?.role;
-    if (metaRole === 'admin') return { id: user.id, email: user.email, role: 'admin', full_name: user.user_metadata?.full_name || 'Admin' };
-    if (user.email === 'admin@tinybloom.com') return { id: user.id, email: user.email, role: 'admin', full_name: 'TinyBloom Admin' };
     const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
     if (profile?.role === 'admin') return profile;
     await supabaseClient.auth.signOut();
@@ -114,7 +138,8 @@ async function requireAdmin() {
         } else {
           // Logged in - don't allow going back to login page
           if (isLoginPage) {
-            const isAdmin = user.email === 'admin@tinybloom.com' || user.user_metadata?.role === 'admin';
+            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+            const isAdmin = profile?.role === 'admin';
             window.location.replace(isAdmin ? 'admin/index.html' : 'download.html');
           }
         }
@@ -263,14 +288,19 @@ function renderTestimonialCard(t) {
   const dateStr = new Date(t.review_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const avatarUrl = t.reviewer_image_url
     || `https://api.dicebear.com/7.x/personas/svg?seed=${encodeURIComponent(t.reviewer_name)}`;
+  const safeName = escapeHtml(t.reviewer_name);
+  const safeContent = escapeHtml(t.content);
+  const safeAvatarUrl = escapeHtml(avatarUrl);
+  const safeAvatarFallback = escapeJsString(`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(t.reviewer_name)}`);
+  const rating = Math.max(0, Math.min(5, Number(t.rating) || 0));
   return `
     <div class="testimonial-card">
-      <img src="${avatarUrl}" alt="${t.reviewer_name}" class="testimonial-avatar"
-           onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(t.reviewer_name)}'">
-      <div class="testimonial-name">${t.reviewer_name}</div>
+      <img src="${safeAvatarUrl}" alt="${safeName}" class="testimonial-avatar"
+           onerror="this.src='${safeAvatarFallback}'">
+      <div class="testimonial-name">${safeName}</div>
       <div class="testimonial-date">${dateStr}</div>
-      <p class="testimonial-text">${t.content}</p>
-      <div class="stars">${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}</div>
+      <p class="testimonial-text">${safeContent}</p>
+      <div class="stars">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
     </div>`;
 }
 

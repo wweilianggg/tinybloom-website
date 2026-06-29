@@ -40,6 +40,16 @@
             <div class="stat-value" id="stat-articles">—</div>
             <div class="stat-sub">Live on site</div>
           </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending Reviews</div>
+            <div class="stat-value" id="stat-reviews">—</div>
+            <div class="stat-sub">Awaiting approval</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending Specialists</div>
+            <div class="stat-value" id="stat-specialists">—</div>
+            <div class="stat-sub">Awaiting review</div>
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem">
           <div class="card">
@@ -116,17 +126,17 @@
         supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'specialist').eq('approval_status', 'pending'),
       ]);
 
-      document.getElementById('stat-users').textContent = u.count ?? 0;
-      document.getElementById('stat-premium').textContent = p.count ?? 0;
-      document.getElementById('stat-articles').textContent = a.count ?? 0;
-      document.getElementById('stat-reviews').textContent = r.count ?? 0;
-      document.getElementById('stat-specialists').textContent = s.count ?? 0;
+      setText('stat-users', u.count ?? 0);
+      setText('stat-premium', p.count ?? 0);
+      setText('stat-articles', a.count ?? 0);
+      setText('stat-reviews', r.count ?? 0);
+      setText('stat-specialists', s.count ?? 0);
     }
     async function loadRecentUsers() {
       const { data } = await supabaseClient.from('profiles').select('full_name,role,created_at').order('created_at', { ascending: false }).limit(6);
       const badge = { free_user: 'badge-teal', premium_user: 'badge-gold', admin: 'badge-rose', specialist: 'badge-green', volunteer: 'badge-green', next_of_kin: 'badge-gray' };
       document.getElementById('recent-users').innerHTML = data?.length
-        ? data.map(u => `<tr><td>${u.full_name}</td><td><span class="badge ${badge[u.role] || 'badge-gray'}">${u.role.replace(/_/g, ' ')}</span></td><td>${new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td></tr>`).join('')
+        ? data.map(u => `<tr><td>${escapeHtml(u.full_name)}</td><td><span class="badge ${badge[u.role] || 'badge-gray'}">${escapeHtml((u.role || '').replace(/_/g, ' '))}</span></td><td>${new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td></tr>`).join('')
         : '<tr><td colspan="3" style="text-align:center;color:var(--text-light)">No users yet.</td></tr>';
     }
     async function loadPendingTestimonials() {
@@ -136,8 +146,8 @@
       c.innerHTML = data.map(t => `
     <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
       <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem">
-        <div><strong style="font-size:0.88rem">${t.reviewer_name}</strong><span style="color:#f0b429;margin-left:0.5rem">${'★'.repeat(t.rating)}</span>
-        <p style="font-size:0.8rem;color:var(--text-mid);margin-top:0.25rem">${t.content.substring(0, 80)}...</p></div>
+        <div><strong style="font-size:0.88rem">${escapeHtml(t.reviewer_name)}</strong><span style="color:#f0b429;margin-left:0.5rem">${'★'.repeat(t.rating)}</span>
+        <p style="font-size:0.8rem;color:var(--text-mid);margin-top:0.25rem">${escapeHtml((t.content || '').substring(0, 80))}...</p></div>
         <div style="display:flex;gap:0.5rem;flex-shrink:0">
           <button class="btn btn-teal btn-sm" onclick="approveTest('${t.id}',this)">✓</button>
           <button class="btn btn-ghost btn-sm" onclick="deleteTest('${t.id}',this)">✗</button>
@@ -168,9 +178,9 @@
     <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
       <div style="display:flex;justify-content:space-between;align-items:start">
         <div>
-          <strong>${s.full_name}</strong>
+          <strong>${escapeHtml(s.full_name)}</strong>
           <p style="font-size:0.8rem;color:var(--text-mid)">
-            ${s.specialization || 'No specialization'}
+            ${escapeHtml(s.specialization || 'No specialization')}
           </p>
         </div>
 
@@ -189,7 +199,7 @@
 <style>
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 1.5rem;
   }
 </style>

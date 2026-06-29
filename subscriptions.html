@@ -179,10 +179,10 @@
           rowsArr.forEach(r => {
             if (r.category !== lastCat) {
               lastCat = r.category;
-              html += `<tr><td colspan="3" style="background:var(--blush);font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--rose-deep);padding:0.75rem 1rem">${r.category}</td></tr>`;
+              html += `<tr><td colspan="3" style="background:var(--blush);font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--rose-deep);padding:0.75rem 1rem">${escapeHtml(r.category)}</td></tr>`;
             }
             html += `<tr>
-          <td>${r.feature}</td>
+          <td>${escapeHtml(r.feature)}</td>
           <td style="text-align:center">${r.basic ? '✓' : '—'}</td>
           <td style="text-align:center">${r.premium ? '✓' : '—'}</td>
         </tr>`;

@@ -55,9 +55,6 @@ async function requireAdmin() {
   try {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) { window.location.href = '../login.html'; return null; }
-    const metaRole = user.user_metadata?.role;
-    if (metaRole === 'admin') return { id: user.id, email: user.email, role: 'admin', full_name: user.user_metadata?.full_name || 'Admin' };
-    if (user.email === 'admin@tinybloom.com') return { id: user.id, email: user.email, role: 'admin', full_name: 'TinyBloom Admin' };
     const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
     if (profile?.role === 'admin') return profile;
     await supabaseClient.auth.signOut();

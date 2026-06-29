@@ -37,7 +37,8 @@
         } else {
           // Logged in - don't allow going back to login page
           if (isLoginPage) {
-            const isAdmin = user.email === 'admin@tinybloom.com' || user.user_metadata?.role === 'admin';
+            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+            const isAdmin = profile?.role === 'admin';
             window.location.replace(isAdmin ? 'admin/index.html' : 'download.html');
           }
         }
