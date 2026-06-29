@@ -123,7 +123,7 @@
         supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'premium_user'),
         supabaseClient.from('articles').select('id', { count: 'exact', head: true }).eq('status', 'published'),
         supabaseClient.from('testimonials').select('id', { count: 'exact', head: true }).eq('is_published', false),
-        supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'specialist').eq('approval_status', 'pending'),
+        supabaseClient.from('specialist_profiles').select('id', { count: 'exact', head: true }).eq('approval_status', 'pending'),
       ]);
 
       setText('stat-users', u.count ?? 0);
@@ -157,12 +157,16 @@
     }
     async function loadPendingSpecialists() {
       const { data } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('role', 'specialist')
-        .eq('approval_status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(5);
+      .from('specialist_profiles')
+      .select(`
+        id,
+        specialization,
+        created_at,
+        profiles:user_id ( full_name )
+      `)
+      .eq('approval_status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(5);
 
       const c = document.getElementById('pending-specialists');
 
@@ -175,22 +179,18 @@
       }
 
       c.innerHTML = data.map(s => `
-    <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
-      <div style="display:flex;justify-content:space-between;align-items:start">
-        <div>
-          <strong>${escapeHtml(s.full_name)}</strong>
-          <p style="font-size:0.8rem;color:var(--text-mid)">
-            ${escapeHtml(s.specialization || 'No specialization')}
-          </p>
-        </div>
-
-        <a href="specialists.html"
-          class="btn btn-teal btn-sm">
-          Review
-        </a>
+  <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
+    <div style="display:flex;justify-content:space-between;align-items:start">
+      <div>
+        <strong>${escapeHtml(s.profiles?.full_name || 'Unknown')}</strong>
+        <p style="font-size:0.8rem;color:var(--text-mid)">
+          ${escapeHtml(s.specialization || 'No specialization')}
+        </p>
       </div>
+      <a href="specialists.html" class="btn btn-teal btn-sm">Review</a>
     </div>
-  `).join('');
+  </div>
+`).join('');
     }
     async function approveTest(id, btn) { await supabaseClient.from('testimonials').update({ is_published: true }).eq('id', id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Approved!', 'success'); loadStats(); }
     async function deleteTest(id, btn) { await supabaseClient.from('testimonials').delete().eq('id', id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Removed.'); loadStats(); }
