@@ -161,6 +161,13 @@
 
                 renderRequests();
 
+                const params = new URLSearchParams(window.location.search);
+                const viewId = params.get('view');
+                if (viewId) {
+                const match = requests.find(r => r.id === viewId);
+                if (match) viewDetails(viewId);
+                    }
+
             } catch (error) {
                 tbody.innerHTML = `
                 <tr>
