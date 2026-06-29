@@ -28,10 +28,10 @@
         font-family:'DM Sans',sans-serif;
         font-size:0.88rem;
     ">
+                        <option value="">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="approved">Approved</option>
                         <option value="rejected">Rejected</option>
-                        <option value="">All Status</option>
                     </select>
 
                     <input type="text" id="search-box" placeholder="Search name or email..." oninput="renderRequests()"
@@ -54,10 +54,10 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Specialization</th>
-                            <th>Experience</th>
-                            <th>Status</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
+                            <th style="width:100px">Experience</th>
+                            <th style="width:100px">Status</th>
+                            <th style="width:110px">Joined</th>
+                            <th style="width:200px">Actions</th>
                         </tr>
                     </thead>
 
@@ -241,15 +241,19 @@
             </button>
             `;
                 } else {
-                    buttons = `
-            <button
-            class="btn btn-outline btn-sm"
-            onclick="setPending('${item.id}')">
-
-            Set Pending
-            </button>
-            `;
-                }
+                buttons = `
+                <button
+                class="btn btn-outline btn-sm"
+                onclick="viewDetails('${item.id}')">
+                View
+                </button>
+                <button
+                class="btn btn-outline btn-sm"
+                onclick="setPending('${item.id}')">
+                Set Pending
+                </button>
+                `;
+            }
 
                 return `
                 <tr>
@@ -264,7 +268,7 @@
             </td>
             <td>${joinedDate}</td>
             <td>
-                <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+                <div style="display:flex;gap:0.4rem;flex-wrap:nowrap">
                 ${buttons}
                 </div>
             </td>
