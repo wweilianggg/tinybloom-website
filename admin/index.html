@@ -50,8 +50,13 @@
             <div class="stat-value" id="stat-specialists">—</div>
             <div class="stat-sub">Awaiting review</div>
           </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending Volunteers</div>
+            <div class="stat-value" id="stat-volunteers">—</div>
+            <div class="stat-sub">Awaiting review</div>
+          </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1.5rem">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
               <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">Recent Registrations</h2>
@@ -97,6 +102,22 @@
               </p>
             </div>
           </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+              <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">
+                Pending Volunteer Approvals
+              </h2>
+              <a href="volunteers.html" style="font-size:0.82rem">
+                Manage →
+              </a>
+            </div>
+
+            <div id="pending-volunteers">
+              <p style="text-align:center;color:var(--text-light);padding:2rem">
+                Loading...
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -116,14 +137,16 @@
       loadRecentUsers();
       loadPendingTestimonials();
       loadPendingSpecialists();
+      loadPendingVolunteers();
     });
     async function loadStats() {
-      const [u, p, a, r, s] = await Promise.all([
+      const [u, p, a, r, s, v] = await Promise.all([
         supabaseClient.from('profiles').select('id', { count: 'exact', head: true }),
         supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'premium_user'),
         supabaseClient.from('articles').select('id', { count: 'exact', head: true }).eq('status', 'published'),
         supabaseClient.from('testimonials').select('id', { count: 'exact', head: true }).eq('is_published', false),
         supabaseClient.from('specialist_profiles').select('id', { count: 'exact', head: true }).eq('approval_status', 'pending'),
+        supabaseClient.from('volunteer_profiles').select('id', { count: 'exact', head: true }).eq('approval_status', 'pending'),
       ]);
 
       setText('stat-users', u.count ?? 0);
@@ -131,6 +154,7 @@
       setText('stat-articles', a.count ?? 0);
       setText('stat-reviews', r.count ?? 0);
       setText('stat-specialists', s.count ?? 0);
+      setText('stat-volunteers', v.count ?? 0);
     }
     async function loadRecentUsers() {
       const { data } = await supabaseClient.from('profiles').select('full_name,role,created_at').order('created_at', { ascending: false }).limit(6);
@@ -192,6 +216,43 @@
   </div>
 `).join('');
     }
+    async function loadPendingVolunteers() {
+      const { data } = await supabaseClient
+      .from('volunteer_profiles')
+      .select(`
+        id,
+        expertise,
+        created_at,
+        profiles:user_id ( full_name )
+      `)
+      .eq('approval_status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+      const c = document.getElementById('pending-volunteers');
+
+      if (!data?.length) {
+        c.innerHTML = `
+      <p style="text-align:center;color:var(--text-light);padding:1rem">
+        No pending volunteer approvals ✓
+      </p>`;
+        return;
+      }
+
+      c.innerHTML = data.map(v => `
+  <div style="padding:0.85rem 0;border-bottom:1px solid rgba(92,79,74,0.08)">
+    <div style="display:flex;justify-content:space-between;align-items:start">
+      <div>
+        <strong>${escapeHtml(v.profiles?.full_name || 'Unknown')}</strong>
+        <p style="font-size:0.8rem;color:var(--text-mid)">
+          ${escapeHtml(v.expertise || 'No expertise listed')}
+        </p>
+      </div>
+      <a href="volunteers.html?view=${v.id}" class="btn btn-teal btn-sm">Review</a>
+    </div>
+  </div>
+`).join('');
+    }
     async function approveTest(id, btn) { await supabaseClient.from('testimonials').update({ is_published: true }).eq('id', id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Approved!', 'success'); loadStats(); }
     async function deleteTest(id, btn) { await supabaseClient.from('testimonials').delete().eq('id', id); btn.closest('div[style*="border-bottom"]').remove(); showToast('Removed.'); loadStats(); }
   </script>
@@ -199,7 +260,7 @@
 <style>
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 1.5rem;
   }
 </style>

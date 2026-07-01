@@ -336,7 +336,8 @@ function getAdminSidebar(activePage) {
   const pages = [
     { href: 'index.html', icon: '📊', label: 'Dashboard' },
     { href: 'users.html', icon: '👥', label: 'Users' },
-    { href: 'specialists.html', icon: '👩‍⚕️', label: 'Specialist Management' },
+    { href: 'specialists.html', icon: '👩‍⚕️', label: 'Manage Specialists' },
+    { href: 'volunteers.html', icon: '🤝', label: 'Manage Volunteers' },
     { divider: true, label: 'PAGE CONTENT' },
     { href: 'page-home.html', icon: '🏠', label: 'Home' },
     { href: 'page-features.html', icon: '✨', label: 'Features' },

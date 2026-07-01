@@ -341,6 +341,14 @@
               <div class="validation-error" id="specialist-error">
                 Please complete all required specialist professional details.
               </div>
+
+              <div class="form-group">
+                <label for="spec-document">Verification Document * <span
+                    style="font-weight:400;color:var(--text-light)">(license or certificate, PDF/image,
+                    max 5MB)</span></label>
+                <input type="file" id="spec-document" accept="application/pdf,image/*" />
+                <div class="validation-error" id="spec-document-error">Please upload a verification document (PDF or image, under 5MB).</div>
+              </div>
             </div>
           </div>
 
@@ -359,6 +367,13 @@
             </div>
             <div class="form-group"><label>Organisation / Affiliation</label><input type="text" id="vol-affiliation"
                 placeholder="e.g. Singapore Red Cross" /></div>
+            <div class="form-group">
+              <label for="vol-document">Verification Document * <span
+                  style="font-weight:400;color:var(--text-light)">(certificate or ID, PDF/image, max
+                  5MB)</span></label>
+              <input type="file" id="vol-document" accept="application/pdf,image/*" />
+              <div class="validation-error" id="vol-document-error">Please upload a verification document (PDF or image, under 5MB).</div>
+            </div>
           </div>
 
           <!-- Next of Kin extras -->
@@ -437,6 +452,11 @@
           if (el) el.addEventListener('input', validateSpecialistFields);
           if (el) el.addEventListener('change', validateSpecialistFields);
         });
+
+      var specDocInput = document.getElementById('spec-document');
+      if (specDocInput) specDocInput.addEventListener('change', function () { validateDocumentFile('spec-document', 'spec-document-error'); });
+      var volDocInput = document.getElementById('vol-document');
+      if (volDocInput) volDocInput.addEventListener('change', function () { validateDocumentFile('vol-document', 'vol-document-error'); });
 
       const expiryInput = document.getElementById('spec-pc-expiry');
 
@@ -582,6 +602,20 @@
         specialistError.style.display = valid ? 'none' : 'block';
       }
 
+      return valid;
+    }
+
+    function validateDocumentFile(inputId, errorId) {
+      var input = document.getElementById(inputId);
+      var errorEl = document.getElementById(errorId);
+      var file = input && input.files[0];
+      if (!file) { if (errorEl) errorEl.style.display = 'block'; return false; }
+
+      var allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      var maxBytes = 5 * 1024 * 1024;
+      var valid = allowedTypes.includes(file.type) && file.size <= maxBytes;
+
+      if (errorEl) errorEl.style.display = valid ? 'none' : 'block';
       return valid;
     }
 
@@ -737,6 +771,14 @@
         return;
       }
 
+      if (selectedRole === 'specialist' && !validateDocumentFile('spec-document', 'spec-document-error')) {
+        return;
+      }
+
+      if (selectedRole === 'volunteer' && !validateDocumentFile('vol-document', 'vol-document-error')) {
+        return;
+      }
+
       if (selectedRole === 'mum' && !selectedPlan) {
         errEl.textContent = 'Please select a plan first.';
         errEl.style.display = 'block';
@@ -756,6 +798,10 @@
         if (emailCheck.data) {
           if (emailCheck.data.role === 'specialist' && emailCheck.data.is_active === false) {
             throw new Error('Your specialist application is currently pending approval.');
+          }
+
+          if (emailCheck.data.role === 'volunteer' && emailCheck.data.is_active === false) {
+            throw new Error('Your volunteer application is currently pending approval.');
           }
 
           throw new Error('This email address is already registered. Please log in instead.');
@@ -791,31 +837,76 @@
           userData.practising_certificate_expiry = document.getElementById('spec-pc-expiry').value;
         }
 
+        if (selectedRole === 'volunteer') {
+          userData.expertise = document.getElementById('vol-expertise').value.trim();
+          userData.license_number = document.getElementById('vol-license').value.trim();
+          userData.years_experience = document.getElementById('vol-years').value;
+          userData.affiliation = document.getElementById('vol-affiliation').value.trim();
+        }
+
         if (selectedRole === 'next_of_kin') {
           userData.relationship = document.getElementById('kin-relationship').value;
           userData.linked_pregnant_user_id = verifiedMumId;
         }
 
-        var res = await supabaseClient.auth.signUp({
-          email: email,
-          password: password,
-          options: {
-            data: userData,
-            emailRedirectTo: 'https://wweilianggg.github.io/tinybloom-website/login.html'
+        if (selectedRole === 'specialist' || selectedRole === 'volunteer') {
+          var docInputId = selectedRole === 'specialist' ? 'spec-document' : 'vol-document';
+          var docFile = document.getElementById(docInputId).files[0];
+          if (docFile) {
+            var ext = docFile.name.split('.').pop();
+            var docPath = selectedRole + '/' + crypto.randomUUID() + '.' + ext;
+            var uploadRes = await supabaseClient.storage.from('verification-documents').upload(docPath, docFile);
+            if (uploadRes.error) throw new Error('Document upload failed: ' + uploadRes.error.message);
+            userData.document_path = docPath;
           }
-        });
+        }
+
+        var res;
+
+        if (selectedRole === 'specialist' || selectedRole === 'volunteer') {
+          // Routed through an Edge Function so the account is created with
+          // email_confirm:false (no auto-sent confirmation email). Admin
+          // approval triggers the real confirmation email later via
+          // supabase.auth.resend().
+          var fnRes = await supabaseClient.functions.invoke('create-pending-account', {
+            body: { email: email, password: password, userData: userData }
+          });
+
+          if (fnRes.error) throw new Error(fnRes.error.message || 'Registration failed. Please try again.');
+          if (fnRes.data?.error) throw new Error(fnRes.data.error);
+
+          res = { data: { user: fnRes.data.user }, error: null };
+        } else {
+          res = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: userData,
+              emailRedirectTo: 'https://wweilianggg.github.io/tinybloom-website/login.html'
+            }
+          });
+        }
 
         if (res.error) throw new Error(res.error.message);
         if (!res.data.user) throw new Error('Signup failed. Please try again.');
 
         if (selectedRole === 'specialist') {
           document.getElementById('reg-success').textContent =
-            'Specialist application submitted. Please verify your email first. You will only be able to log in after admin approval.';
+            'Specialist application submitted. Once admin approves your application, you will receive a confirmation email — you must confirm it before you can log in.';
           document.getElementById('reg-success').style.display = 'block';
           btn.textContent = 'Application Submitted';
 
           setTimeout(function () {
             window.location.replace('specialist-pending.html');
+          }, 2000);
+        } else if (selectedRole === 'volunteer') {
+          document.getElementById('reg-success').textContent =
+            'Volunteer application submitted. Once admin approves your application, you will receive a confirmation email — you must confirm it before you can log in.';
+          document.getElementById('reg-success').style.display = 'block';
+          btn.textContent = 'Application Submitted';
+
+          setTimeout(function () {
+            window.location.replace('volunteer-pending.html');
           }, 2000);
         } else {
           document.getElementById('reg-success').textContent =

@@ -212,6 +212,27 @@
           return;
         }
 
+        // Volunteer cannot login until admin approves (volunteer rejections are
+        // soft-rejects, so is_active alone can't distinguish pending vs rejected)
+        if (loginProfile?.role === 'volunteer' && loginProfile?.is_active === false) {
+          const { data: volunteerProfile } = await supabaseClient
+            .from('volunteer_profiles')
+            .select('approval_status')
+            .eq('user_id', data.user.id)
+            .single();
+
+          await supabaseClient.auth.signOut();
+
+          errEl.textContent = volunteerProfile?.approval_status === 'rejected'
+            ? 'Your volunteer application was not approved. Please contact support.'
+            : 'Your volunteer application is pending admin approval.';
+          errEl.style.display = 'block';
+
+          btn.textContent = 'Log In';
+          btn.disabled = false;
+          return;
+        }
+
         // All approved/normal users go to download page
         window.location.replace('download.html');
         return;
