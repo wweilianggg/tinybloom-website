@@ -791,6 +791,11 @@
           userData.practising_certificate_expiry = document.getElementById('spec-pc-expiry').value;
         }
 
+        if (selectedRole === 'next_of_kin') {
+          userData.relationship = document.getElementById('kin-relationship').value;
+          userData.linked_pregnant_user_id = verifiedMumId;
+        }
+
         var res = await supabaseClient.auth.signUp({
           email: email,
           password: password,
