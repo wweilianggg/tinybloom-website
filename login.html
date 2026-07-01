@@ -212,6 +212,32 @@
           return;
         }
 
+        // Next of kin: finish linking to the mum's account now that we have
+        // a real session (metadata was set at signup but couldn't be written
+        // to next_of_kin_profiles until RLS could see an authenticated user).
+        if (loginProfile?.role === 'next_of_kin') {
+          try {
+            const { data: { user: fullUser } } = await supabaseClient.auth.getUser();
+            const meta = fullUser?.user_metadata || {};
+            if (meta.linked_pregnant_user_id) {
+              const { data: existingLink } = await supabaseClient
+                .from('next_of_kin_profiles')
+                .select('id')
+                .eq('user_id', data.user.id)
+                .maybeSingle();
+              if (!existingLink) {
+                await supabaseClient.from('next_of_kin_profiles').insert({
+                  user_id: data.user.id,
+                  linked_pregnant_user_id: meta.linked_pregnant_user_id,
+                  relationship: meta.relationship || null
+                });
+              }
+            }
+          } catch (linkErr) {
+            console.error('Next-of-kin link completion failed:', linkErr);
+          }
+        }
+
         // All approved/normal users go to download page
         window.location.replace('download.html');
         return;
