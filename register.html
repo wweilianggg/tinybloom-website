@@ -303,8 +303,26 @@
 
               <div class="form-group">
                 <label>Specialization *</label>
-                <input type="text" id="spec-field"
-                  placeholder="e.g. Obstetrician, Gynaecologist, Lactation Consultant" />
+                <select id="spec-field">
+                  <option value="">Select specialization</option>
+                  <option>OB/GYN</option>
+                  <option>Maternal-Fetal Medicine (Perinatologist)</option>
+                  <option>Midwife (CNM)</option>
+                  <option>Anesthesiologist</option>
+                  <option>Reproductive Endocrinologist (REI)</option>
+                  <option>Genetic Counselor</option>
+                  <option>Urologist/Andrologist</option>
+                  <option>Endocrinologist</option>
+                  <option>Cardiologist</option>
+                  <option>Nephrologist</option>
+                  <option>Hematologist</option>
+                  <option>Neonatologist</option>
+                  <option>Pediatrician</option>
+                  <option>Psychiatrist/Psychologist (perinatal)</option>
+                  <option>Pelvic Floor PT</option>
+                  <option>Lactation Consultant (IBCLC)</option>
+                  <option>Dietitian/Nutritionist</option>
+                </select>
               </div>
 
               <div class="form-row">
@@ -315,7 +333,7 @@
 
                 <div class="form-group">
                   <label>Years of Experience *</label>
-                  <input type="number" id="spec-years" placeholder="e.g. 8" min="0" />
+                  <input type="number" id="spec-years" placeholder="e.g. 8" min="1" />
                 </div>
               </div>
 
@@ -583,6 +601,10 @@
       var valid = true;
 
       if (!specialization || !license || !years || !hospital || !qualification || !pcExpiry) {
+        valid = false;
+      }
+
+      if (!years || Number(years) < 1) {
         valid = false;
       }
 
