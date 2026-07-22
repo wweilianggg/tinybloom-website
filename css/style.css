@@ -74,6 +74,8 @@ body {
 .btn-outline:hover { background: var(--rose); color: white; }
 .btn-primary { background: var(--rose-deep); color: white; }
 .btn-primary:hover { background: #b56b65; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(201,123,117,0.4); }
+.btn:disabled { background: #ccc; color: #888; cursor: not-allowed; box-shadow: none; transform: none; opacity: 0.7; }
+.btn:disabled:hover { background: #ccc; transform: none; box-shadow: none; }
 .btn-teal { background: var(--teal); color: white; }
 .btn-teal:hover { background: #4a8d8f; transform: translateY(-1px); }
 .btn-ghost { background: transparent; color: var(--text-mid); border: 1.5px solid rgba(92,79,74,0.2); }
