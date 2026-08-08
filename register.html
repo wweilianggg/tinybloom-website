@@ -471,12 +471,12 @@
       }
       // Load specialization options
       try {
-        var specRes = await supabaseClient.from('specializations').select('label')
-          .eq('is_active', true).order('display_order').order('label');
+        var specRes = await supabaseClient.from('specialties').select('name')
+          .eq('is_active', true).order('name');
         var specSelect = document.getElementById('spec-field');
         if (specSelect && specRes.data) specRes.data.forEach(function (s) {
           var opt = document.createElement('option');
-          opt.textContent = s.label;
+          opt.textContent = s.name;
           specSelect.appendChild(opt);
         });
       } catch (e) { }

@@ -10,18 +10,36 @@
   <div id="admin-sidebar-placeholder"></div>
   <div class="admin-content">
     <div class="admin-header">
-      <div><h1>🩺 Specialization List</h1><div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem">Manage the specialization options shown in the specialist sign-up dropdown.</div></div>
+      <div><h1>🩺 Specialization List</h1><div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem">Manage the specialization options shown in the specialist sign-up dropdown. This is the same list used by the app.</div></div>
       <div style="display:flex;gap:0.75rem">
+        <button class="btn btn-outline" onclick="openGroupPanel()">⚙ Manage Groups</button>
         <button class="btn btn-primary" onclick="openItemForm()">+ New Specialization</button>
       </div>
+    </div>
+
+    <div id="group-panel" style="display:none" class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.25rem">Manage Groups</h2>
+      <input type="hidden" id="group-id" />
+      <div style="display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:0.5rem">
+        <div class="form-group" style="flex:1;margin-bottom:0"><input type="text" id="group-name" placeholder="Group name" /></div>
+        <button class="btn btn-primary btn-sm" onclick="saveGroup()">Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetGroupForm()">Clear</button>
+      </div>
+      <div class="form-group" style="margin-bottom:0.5rem">
+        <label>Secondary Groups * <span style="font-weight:400;color:var(--text-light)">(select at least one)</span></label>
+        <div id="secondary-groups-checklist" style="display:flex;flex-wrap:wrap;gap:0.4rem 1.25rem;padding:0.5rem 0"></div>
+      </div>
+      <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="group-error"></div>
+      <div id="groups-list-container"></div>
+      <div style="margin-top:1rem"><button class="btn btn-ghost btn-sm" onclick="closeGroupPanel()">Close</button></div>
     </div>
 
     <div id="item-form-panel" style="display:none" class="card" style="margin-bottom:1.5rem">
       <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.25rem" id="item-form-title">New Specialization</h2>
       <input type="hidden" id="item-id" />
       <div class="form-row">
-        <div class="form-group"><label>Label *</label><input type="text" id="item-label" placeholder="e.g. OB/GYN" /></div>
-        <div class="form-group"><label>Display Order</label><input type="number" id="item-order" value="0" min="0" /></div>
+        <div class="form-group"><label>Name *</label><input type="text" id="item-name" placeholder="e.g. OB/GYN" /></div>
+        <div class="form-group"><label>Group *</label><select id="item-group"><option value="">-- Select group --</option></select></div>
       </div>
       <div class="form-group" style="display:flex;align-items:center;gap:0.5rem"><input type="checkbox" id="item-active" checked style="width:auto" /><label for="item-active" style="display:inline;margin:0;font-size:0.88rem">Active (shown in dropdown)</label></div>
       <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="item-error"></div>
@@ -33,9 +51,32 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/app.js"></script>
 <script>
-const TABLE_NAME = 'specializations';
+const TABLE_NAME = 'specialties';
+const MAP_TABLE_NAME = 'specialty_group_map';
+const GROUP_TABLE_NAME = 'review_groups';
+const SECONDARY_MAP_TABLE_NAME = 'group_secondary_map';
 let editingItemId = null;
-document.addEventListener('DOMContentLoaded', async () => { await requireAdmin(); loadItems(); });
+let groupsCache = [];
+let groupMapById = {}; // specialty_id -> group_id
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+  await loadGroups();
+  loadItems();
+});
+
+async function loadGroups() {
+  const { data, error } = await supabaseClient.from(GROUP_TABLE_NAME).select('id,name').order('name');
+  groupsCache = data || [];
+  const select = document.getElementById('item-group');
+  const current = select.value;
+  select.innerHTML = '<option value="">-- Select group --</option>' +
+    groupsCache.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+  select.value = current;
+  if (error) console.error('loadGroups error:', error);
+}
+
+/* ---------- Specialization CRUD ---------- */
 
 function openItemForm(item = null) {
   const panel = document.getElementById('item-form-panel');
@@ -46,14 +87,14 @@ function openItemForm(item = null) {
     editingItemId = item.id;
     document.getElementById('item-form-title').textContent = 'Edit Specialization';
     document.getElementById('item-id').value = item.id;
-    document.getElementById('item-label').value = item.label || '';
-    document.getElementById('item-order').value = item.display_order || 0;
+    document.getElementById('item-name').value = item.name || '';
+    document.getElementById('item-group').value = groupMapById[item.id] || '';
     document.getElementById('item-active').checked = item.is_active ?? true;
   } else {
     document.getElementById('item-form-title').textContent = 'New Specialization';
     document.getElementById('item-id').value = '';
-    document.getElementById('item-label').value = '';
-    document.getElementById('item-order').value = 0;
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-group').value = '';
     document.getElementById('item-active').checked = true;
   }
 }
@@ -66,17 +107,27 @@ function closeItemForm() {
 async function saveItem() {
   const errEl = document.getElementById('item-error');
   errEl.style.display = 'none';
-  const label = document.getElementById('item-label').value.trim();
-  if (!label) { errEl.textContent = 'Label is required.'; errEl.style.display = 'block'; return; }
-  const payload = {
-    label,
-    display_order: parseInt(document.getElementById('item-order').value) || 0,
-    is_active: document.getElementById('item-active').checked
-  };
-  const { error } = editingItemId
-    ? await supabaseClient.from(TABLE_NAME).update(payload).eq('id', editingItemId)
-    : await supabaseClient.from(TABLE_NAME).insert(payload);
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  const name = document.getElementById('item-name').value.trim();
+  if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
+  const groupId = document.getElementById('item-group').value;
+  if (!groupId) { errEl.textContent = 'Please select a group.'; errEl.style.display = 'block'; return; }
+  const payload = { name, is_active: document.getElementById('item-active').checked };
+
+  let specialtyId = editingItemId;
+  if (specialtyId) {
+    const { error } = await supabaseClient.from(TABLE_NAME).update(payload).eq('id', specialtyId);
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  } else {
+    const { data, error } = await supabaseClient.from(TABLE_NAME).insert(payload).select().single();
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+    specialtyId = data.id;
+  }
+
+  const { error: mapDeleteError } = await supabaseClient.from(MAP_TABLE_NAME).delete().eq('specialty_id', specialtyId);
+  if (mapDeleteError) { errEl.textContent = mapDeleteError.message; errEl.style.display = 'block'; return; }
+  const { error: mapInsertError } = await supabaseClient.from(MAP_TABLE_NAME).insert({ specialty_id: specialtyId, group_id: parseInt(groupId) });
+  if (mapInsertError) { errEl.textContent = mapInsertError.message; errEl.style.display = 'block'; return; }
+
   showToast('Saved!', 'success');
   closeItemForm();
   loadItems();
@@ -85,17 +136,128 @@ async function saveItem() {
 async function loadItems() {
   const container = document.getElementById('items-container');
   container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>';
-  const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('display_order').order('label');
-  if (error) { container.innerHTML = `<div style="color:#c0392b;padding:2rem">Error: ${escapeHtml(error.message)}</div>`; return; }
+  const [itemsRes, mapRes] = await Promise.all([
+    supabaseClient.from(TABLE_NAME).select('*').order('name'),
+    supabaseClient.from(MAP_TABLE_NAME).select('specialty_id,group_id')
+  ]);
+  if (itemsRes.error) { container.innerHTML = `<div style="color:#c0392b;padding:2rem">Error: ${escapeHtml(itemsRes.error.message)}</div>`; return; }
+  const data = itemsRes.data;
+  groupMapById = {};
+  (mapRes.data || []).forEach(m => { groupMapById[m.specialty_id] = m.group_id; });
+  const groupNameById = {};
+  groupsCache.forEach(g => { groupNameById[g.id] = g.name; });
+
   if (!data?.length) { container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">No specializations yet.</div>'; return; }
-  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Label</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead><tbody>${data.map(i => `<tr><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td><td><span class="badge ${i.is_active ? 'badge-green' : 'badge-gray'}">${i.is_active ? 'Active' : 'Hidden'}</span></td><td>${escapeHtml(i.display_order)}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Name</th><th>Group</th><th>Status</th><th>Actions</th></tr></thead><tbody>${data.map(i => `<tr><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.name)}</td><td>${escapeHtml(groupNameById[groupMapById[i.id]] || '—')}</td><td><span class="badge ${i.is_active ? 'badge-green' : 'badge-gray'}">${i.is_active ? 'Active' : 'Hidden'}</span></td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 async function deleteItem(id) {
-  if (!confirm('Delete?')) return;
-  await supabaseClient.from(TABLE_NAME).delete().eq('id', id);
+  if (!confirm('Delete? This also removes it from any review-group mappings.')) return;
+  const { error } = await supabaseClient.from(TABLE_NAME).delete().eq('id', id);
+  if (error) {
+    if (error.code === '23503') {
+      showToast('Cannot delete — this specialization is still assigned to one or more specialists. Reassign them first.', 'error');
+    } else {
+      showToast(error.message, 'error');
+    }
+    return;
+  }
   showToast('Deleted.');
   loadItems();
+}
+
+/* ---------- Group CRUD ---------- */
+
+function openGroupPanel() {
+  document.getElementById('group-panel').style.display = 'block';
+  document.getElementById('group-panel').scrollIntoView({ behavior: 'smooth' });
+  resetGroupForm();
+  renderGroupsList();
+}
+
+function closeGroupPanel() {
+  document.getElementById('group-panel').style.display = 'none';
+}
+
+function renderSecondaryGroupChecklist(excludeId, checkedIds) {
+  const container = document.getElementById('secondary-groups-checklist');
+  const options = groupsCache.filter(g => g.id !== excludeId);
+  if (!options.length) { container.innerHTML = '<div style="color:var(--text-light);font-size:0.85rem">No other groups exist yet — add another group first.</div>'; return; }
+  container.innerHTML = options.map(g => `<label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;font-weight:400"><input type="checkbox" class="secondary-group-checkbox" value="${g.id}" style="width:auto" ${checkedIds.includes(g.id) ? 'checked' : ''} /> ${escapeHtml(g.name)}</label>`).join('');
+}
+
+function resetGroupForm() {
+  document.getElementById('group-id').value = '';
+  document.getElementById('group-name').value = '';
+  document.getElementById('group-error').style.display = 'none';
+  renderSecondaryGroupChecklist(null, []);
+}
+
+async function editGroup(id, name) {
+  document.getElementById('group-id').value = id;
+  document.getElementById('group-name').value = name;
+  document.getElementById('group-error').style.display = 'none';
+  const { data } = await supabaseClient.from(SECONDARY_MAP_TABLE_NAME).select('secondary_group_id').eq('primary_group_id', id);
+  renderSecondaryGroupChecklist(id, (data || []).map(r => r.secondary_group_id));
+}
+
+async function saveGroup() {
+  const errEl = document.getElementById('group-error');
+  errEl.style.display = 'none';
+  const name = document.getElementById('group-name').value.trim();
+  if (!name) { errEl.textContent = 'Group name is required.'; errEl.style.display = 'block'; return; }
+  const secondaryIds = Array.from(document.querySelectorAll('.secondary-group-checkbox:checked')).map(cb => parseInt(cb.value));
+  if (!secondaryIds.length) { errEl.textContent = 'Please select at least one secondary group.'; errEl.style.display = 'block'; return; }
+
+  const idVal = document.getElementById('group-id').value;
+  let groupId = idVal ? parseInt(idVal) : null;
+  if (groupId) {
+    const { error } = await supabaseClient.from(GROUP_TABLE_NAME).update({ name }).eq('id', groupId);
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  } else {
+    const { data, error } = await supabaseClient.from(GROUP_TABLE_NAME).insert({ name }).select().single();
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+    groupId = data.id;
+  }
+
+  const { error: mapDeleteError } = await supabaseClient.from(SECONDARY_MAP_TABLE_NAME).delete().eq('primary_group_id', groupId);
+  if (mapDeleteError) { errEl.textContent = mapDeleteError.message; errEl.style.display = 'block'; return; }
+  const rows = secondaryIds.map(sid => ({ primary_group_id: groupId, secondary_group_id: sid }));
+  const { error: mapInsertError } = await supabaseClient.from(SECONDARY_MAP_TABLE_NAME).insert(rows);
+  if (mapInsertError) { errEl.textContent = mapInsertError.message; errEl.style.display = 'block'; return; }
+
+  showToast('Saved!', 'success');
+  resetGroupForm();
+  await loadGroups();
+  renderGroupsList();
+  loadItems();
+}
+
+async function deleteGroup(id) {
+  const [specRes, secPrimaryRes, secSecondaryRes] = await Promise.all([
+    supabaseClient.from(MAP_TABLE_NAME).select('specialty_id', { count: 'exact', head: true }).eq('group_id', id),
+    supabaseClient.from(SECONDARY_MAP_TABLE_NAME).select('primary_group_id', { count: 'exact', head: true }).eq('primary_group_id', id),
+    supabaseClient.from(SECONDARY_MAP_TABLE_NAME).select('secondary_group_id', { count: 'exact', head: true }).eq('secondary_group_id', id)
+  ]);
+  const parts = [];
+  if (specRes.count > 0) parts.push(`${specRes.count} specialization(s)`);
+  if ((secPrimaryRes.count > 0) || (secSecondaryRes.count > 0)) parts.push('its secondary-group links');
+  const msg = parts.length
+    ? `Delete this group? This will also affect: ${parts.join(' and ')}.`
+    : 'Delete this group?';
+  if (!confirm(msg)) return;
+  const { error } = await supabaseClient.from(GROUP_TABLE_NAME).delete().eq('id', id);
+  if (error) { showToast(error.message, 'error'); return; }
+  showToast('Deleted.');
+  await loadGroups();
+  renderGroupsList();
+  loadItems();
+}
+
+function renderGroupsList() {
+  const container = document.getElementById('groups-list-container');
+  if (!groupsCache.length) { container.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-light)">No groups yet.</div>'; return; }
+  container.innerHTML = `<table><thead><tr><th>Name</th><th>Actions</th></tr></thead><tbody>${groupsCache.map(g => `<tr><td style="font-size:0.88rem">${escapeHtml(g.name)}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id}, '${escapeJsString(g.name)}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteGroup(${g.id})">Delete</button></div></td></tr>`).join('')}</tbody></table>`;
 }
 </script>
 </body>
