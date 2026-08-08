@@ -344,6 +344,9 @@ function getAdminSidebar(activePage) {
     { href: 'page-subscriptions.html', icon: '💰', label: 'Subscriptions' },
     { href: 'page-testimonials.html', icon: '⭐', label: 'Testimonials' },
     { href: 'page-faq.html', icon: '❓', label: 'FAQ' },
+    { divider: true, label: 'LISTS' },
+    { href: 'list-specializations.html', icon: '🩺', label: 'Specialization' },
+    { href: 'list-expertise.html', icon: '🤝', label: 'Area of Expertise' },
     // { divider: true, label: 'MANAGE' },
     // { href: 'content.html', icon: '📝', label: 'Articles' },
   ];

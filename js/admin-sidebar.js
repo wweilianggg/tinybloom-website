@@ -4,14 +4,19 @@ function getAdminSidebar(activePage) {
   const pages = [
     { href: 'index.html', icon: '📊', label: 'Dashboard' },
     { href: 'users.html', icon: '👥', label: 'Users' },
+    { href: 'specialists.html', icon: '👩‍⚕️', label: 'Manage Specialists' },
+    { href: 'volunteers.html', icon: '🤝', label: 'Manage Volunteers' },
     { divider: true, label: 'PAGE CONTENT' },
     { href: 'page-home.html', icon: '🏠', label: 'Home' },
     { href: 'page-features.html', icon: '✨', label: 'Features' },
     { href: 'page-subscriptions.html', icon: '💰', label: 'Subscriptions' },
     { href: 'page-testimonials.html', icon: '⭐', label: 'Testimonials' },
     { href: 'page-faq.html', icon: '❓', label: 'FAQ' },
-    { divider: true, label: 'MANAGE' },
-    { href: 'content.html', icon: '📝', label: 'Articles' },
+    { divider: true, label: 'LISTS' },
+    { href: 'list-specializations.html', icon: '🩺', label: 'Specialization' },
+    { href: 'list-expertise.html', icon: '🤝', label: 'Area of Expertise' },
+    // { divider: true, label: 'MANAGE' },
+    // { href: 'content.html', icon: '📝', label: 'Articles' },
   ];
 
   const links = pages.map(p => {

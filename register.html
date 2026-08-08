@@ -305,23 +305,6 @@
                 <label>Specialization *</label>
                 <select id="spec-field">
                   <option value="">Select specialization</option>
-                  <option>OB/GYN</option>
-                  <option>Maternal-Fetal Medicine (Perinatologist)</option>
-                  <option>Midwife (CNM)</option>
-                  <option>Anesthesiologist</option>
-                  <option>Reproductive Endocrinologist (REI)</option>
-                  <option>Genetic Counselor</option>
-                  <option>Urologist/Andrologist</option>
-                  <option>Endocrinologist</option>
-                  <option>Cardiologist</option>
-                  <option>Nephrologist</option>
-                  <option>Hematologist</option>
-                  <option>Neonatologist</option>
-                  <option>Pediatrician</option>
-                  <option>Psychiatrist/Psychologist (perinatal)</option>
-                  <option>Pelvic Floor PT</option>
-                  <option>Lactation Consultant (IBCLC)</option>
-                  <option>Dietitian/Nutritionist</option>
                 </select>
               </div>
 
@@ -378,14 +361,6 @@
             <div class="form-group"><label>Area of Expertise *</label>
               <select id="vol-expertise">
                 <option value="">Select area of expertise</option>
-                <option>Preconception & fertility support</option>
-                <option>Pregnancy (general / trimester-specific)</option>
-                <option>High-risk pregnancy experience</option>
-                <option>Postpartum recovery</option>
-                <option>Breastfeeding & feeding support</option>
-                <option>Mental health & emotional support</option>
-                <option>Loss & grief support (miscarriage, stillbirth)</option>
-                <option>Nutrition & lifestyle</option>
               </select>
             </div>
             <div class="form-row">
@@ -494,6 +469,30 @@
         tomorrow.setDate(tomorrow.getDate() + 1);
         expiryInput.min = tomorrow.toISOString().split('T')[0];
       }
+      // Load specialization options
+      try {
+        var specRes = await supabaseClient.from('specializations').select('label')
+          .eq('is_active', true).order('display_order').order('label');
+        var specSelect = document.getElementById('spec-field');
+        if (specSelect && specRes.data) specRes.data.forEach(function (s) {
+          var opt = document.createElement('option');
+          opt.textContent = s.label;
+          specSelect.appendChild(opt);
+        });
+      } catch (e) { }
+
+      // Load area of expertise options
+      try {
+        var expRes = await supabaseClient.from('areas_of_expertise').select('label')
+          .eq('is_active', true).order('display_order').order('label');
+        var expSelect = document.getElementById('vol-expertise');
+        if (expSelect && expRes.data) expRes.data.forEach(function (a) {
+          var opt = document.createElement('option');
+          opt.textContent = a.label;
+          expSelect.appendChild(opt);
+        });
+      } catch (e) { }
+
       // Load prices
       try {
         var res = await supabaseClient.from('site_settings').select('setting_key,setting_value')
