@@ -257,7 +257,7 @@ async function deleteGroup(id) {
 function renderGroupsList() {
   const container = document.getElementById('groups-list-container');
   if (!groupsCache.length) { container.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-light)">No groups yet.</div>'; return; }
-  container.innerHTML = `<table><thead><tr><th>Name</th><th>Actions</th></tr></thead><tbody>${groupsCache.map(g => `<tr><td style="font-size:0.88rem">${escapeHtml(g.name)}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id}, '${escapeJsString(g.name)}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteGroup(${g.id})">Delete</button></div></td></tr>`).join('')}</tbody></table>`;
+  container.innerHTML = `<table><thead><tr><th style="width:3rem">ID</th><th>Name</th><th>Actions</th></tr></thead><tbody>${groupsCache.map(g => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${g.id}</td><td style="font-size:0.88rem">${escapeHtml(g.name)}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id}, '${escapeJsString(g.name)}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteGroup(${g.id})">Delete</button></div></td></tr>`).join('')}</tbody></table>`;
 }
 </script>
 </body>
