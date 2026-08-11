@@ -28,7 +28,7 @@ const FOOTER_HTML = `
   <div class="footer-grid">
     <div>
       <div class="footer-brand">TinyBloom</div>
-      <p class="footer-desc">Personalised pregnancy support for every mother. Better outcomes start with better support.</p>
+      <p class="footer-desc" id="footer-tagline">Personalised pregnancy support for every mother. Better outcomes start with better support.</p>
     </div>
     <div>
       <div class="footer-heading">Platform</div>
@@ -42,7 +42,7 @@ const FOOTER_HTML = `
       <div class="footer-heading">Support</div>
       <ul class="footer-links">
         <li><a href="faq.html">FAQ</a></li>
-        <li><a href="#">Contact Us</a></li>
+        <li><a href="mailto:support@tinybloom.com" id="footer-contact-link">Contact Us</a></li>
       </ul>
     </div>
     <div>
@@ -54,7 +54,7 @@ const FOOTER_HTML = `
     </div>
   </div>
   <div class="footer-bottom">
-    &copy; 2026 TinyBloom. All rights reserved. &nbsp;|&nbsp; support@tinybloom.com
+    &copy; <span id="footer-year">2026</span> TinyBloom. All rights reserved. &nbsp;|&nbsp; <span id="footer-contact-email">support@tinybloom.com</span>
   </div>
 </footer>`;
 
@@ -79,8 +79,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.classList.add('active');
   }
 
+  if (footerPlaceholder) loadFooterContent();
+
   updateNavbar();
 });
+
+async function loadFooterContent() {
+  const yearEl = document.getElementById('footer-year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  try {
+    const { data } = await supabaseClient.from('site_settings').select('setting_key,setting_value')
+      .in('setting_key', ['footer_tagline', 'contact_email']);
+    const s = {};
+    if (data) data.forEach(r => { s[r.setting_key] = r.setting_value; });
+
+    if (s.footer_tagline) {
+      const el = document.getElementById('footer-tagline');
+      if (el) el.textContent = s.footer_tagline;
+    }
+    if (s.contact_email) {
+      const emailEl = document.getElementById('footer-contact-email');
+      if (emailEl) emailEl.textContent = s.contact_email;
+      const linkEl = document.getElementById('footer-contact-link');
+      if (linkEl) linkEl.href = 'mailto:' + s.contact_email;
+    }
+  } catch (e) {}
+}
 
 function toggleMenu() {
   const links = document.getElementById('nav-links');

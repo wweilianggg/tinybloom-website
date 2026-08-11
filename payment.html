@@ -62,6 +62,14 @@
     <div class="card" style="position:sticky;top:90px">
       <h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Order Summary</h3>
 
+      <div style="display:flex;gap:0.6rem;margin-bottom:1.25rem" id="billing-toggle">
+        <button type="button" onclick="setBillingCycle('monthly')" id="btn-billing-monthly"
+          style="flex:1;padding:0.6rem;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:0.85rem;font-family:'DM Sans',sans-serif">Monthly</button>
+        <button type="button" onclick="setBillingCycle('yearly')" id="btn-billing-yearly"
+          style="flex:1;padding:0.6rem;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:0.85rem;font-family:'DM Sans',sans-serif">Annual
+          <span style="font-weight:500">(save 24%)</span></button>
+      </div>
+
       <div style="background:var(--blush);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.25rem">
         <div style="font-weight:700;font-size:0.95rem" id="summary-plan-name">TinyBloom Premium</div>
         <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem" id="summary-plan-desc">Monthly subscription</div>
@@ -103,13 +111,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch {}
 
-  // Set billing cycle from URL param
+  // Set initial billing cycle — defaults to monthly, but respects an old-style
+  // premium_yearly link for backward compatibility. User can switch via the toggle.
   const params = new URLSearchParams(window.location.search);
   const plan = params.get('plan');
-  if (plan === 'premium_yearly') billingCycle = 'yearly';
-  else billingCycle = 'monthly';
-
-  updateSummary();
+  setBillingCycle(plan === 'premium_yearly' ? 'yearly' : 'monthly');
 
   // Pre-fill email — from pending registration or logged-in user
   try {
@@ -124,6 +130,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch {}
 });
+
+function setBillingCycle(cycle) {
+  billingCycle = cycle;
+  const activeStyle = { border: '1.5px solid var(--teal)', background: 'var(--teal)', color: 'white' };
+  const inactiveStyle = { border: '1.5px solid rgba(92,79,74,0.15)', background: 'white', color: 'var(--text-mid)' };
+  const apply = (btn, style) => { btn.style.border = style.border; btn.style.background = style.background; btn.style.color = style.color; };
+  apply(document.getElementById('btn-billing-monthly'), cycle === 'monthly' ? activeStyle : inactiveStyle);
+  apply(document.getElementById('btn-billing-yearly'), cycle === 'yearly' ? activeStyle : inactiveStyle);
+  updateSummary();
+}
 
 function updateSummary() {
   const price = billingCycle === 'monthly' ? prices.monthly : prices.yearly;

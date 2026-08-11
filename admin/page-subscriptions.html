@@ -43,6 +43,7 @@
     <div class="card" style="margin-bottom:1.5rem">
       <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.25rem">Plan Names &amp; Labels</h2>
       <div class="form-row">
+        <div class="form-group"><label>Basic Plan Name</label><input type="text" id="s-sub_basic_name" placeholder="Basic" /></div>
         <div class="form-group"><label>Premium Plan Name</label><input type="text" id="s-sub_premium_name" placeholder="Premium" /></div>
         <div class="form-group"><label>Annual Plan Name</label><input type="text" id="s-sub_annual_name" placeholder="Premium Annual" /></div>
       </div>
@@ -50,6 +51,16 @@
         <div class="form-group"><label>"Most Popular" Badge</label><input type="text" id="s-sub_popular_badge" placeholder="Most Popular" /></div>
         <div class="form-group"><label>"Best Value" Badge</label><input type="text" id="s-sub_value_badge" placeholder="Best Value" /></div>
       </div>
+    </div>
+
+    <!-- Plan Descriptions & Features -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:0.35rem">Plan Descriptions &amp; Feature Lists</h2>
+      <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:1.25rem">One feature per line. Premium and Premium Annual share the same feature list (only price/billing period differs).</p>
+      <div class="form-group"><label>Basic — Short Description</label><input type="text" id="s-sub_basic_desc" placeholder="Basic information &amp; simple tracking." /></div>
+      <div class="form-group"><label>Basic — Feature List</label><textarea id="s-sub_basic_features" rows="6" style="resize:vertical" placeholder="Pregnancy articles &amp; FAQ&#10;AI Pregnancy Chatbot&#10;..."></textarea></div>
+      <div class="form-group"><label>Premium — Short Description</label><input type="text" id="s-sub_premium_monthly_desc" placeholder="Personalised insights, advanced tracking &amp; full support features." /></div>
+      <div class="form-group"><label>Premium / Premium Annual — Feature List</label><textarea id="s-sub_premium_features" rows="6" style="resize:vertical" placeholder="Everything in Basic&#10;Advanced symptom tracking &amp; alerts&#10;..."></textarea></div>
     </div>
 
     <!-- Comparison Table -->
@@ -97,7 +108,11 @@
 <script src="../js/app.js"></script>
 <script>
 const TEXT_KEYS = ['sub_page_title','sub_page_subtitle','premium_monthly_price','premium_yearly_price',
-  'sub_premium_name','sub_annual_name','sub_popular_badge','sub_value_badge','sub_compare_title','sub_compare_sections'];
+  'sub_basic_name','sub_premium_name','sub_annual_name','sub_popular_badge','sub_value_badge',
+  'sub_basic_desc','sub_premium_monthly_desc',
+  'sub_compare_title','sub_compare_sections'];
+
+const LIST_KEYS = ['sub_basic_features','sub_premium_features'];
 
 // Default rows if none saved
 const DEFAULT_ROWS = [
@@ -122,8 +137,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { data } = await supabaseClient.from('site_settings').select('*');
   if (data) {
     data.forEach(s => {
+      if (LIST_KEYS.includes(s.setting_key)) return;
       const el = document.getElementById('s-' + s.setting_key);
       if (el) el.value = s.setting_value || '';
+    });
+    // Load feature lists (JSON array -> one item per line)
+    LIST_KEYS.forEach(key => {
+      const el = document.getElementById('s-' + key);
+      const row = data.find(s => s.setting_key === key);
+      if (!el) return;
+      if (row && row.setting_value) {
+        try {
+          const items = JSON.parse(row.setting_value);
+          if (Array.isArray(items)) el.value = items.join('\n');
+        } catch { }
+      }
     });
     // Load comparison rows
     const rowData = data.find(s => s.setting_key === 'sub_compare_rows');
@@ -248,6 +276,15 @@ async function saveAll() {
       { setting_key: 'sub_compare_rows', setting_value: JSON.stringify(rows), updated_at: new Date().toISOString() },
       { onConflict: 'setting_key' }
     );
+    // Save feature lists as JSON (textarea lines -> array)
+    for (const key of LIST_KEYS) {
+      const el = document.getElementById('s-' + key); if (!el) continue;
+      const items = el.value.split('\n').map(x => x.trim()).filter(Boolean);
+      await supabaseClient.from('site_settings').upsert(
+        { setting_key: key, setting_value: JSON.stringify(items), updated_at: new Date().toISOString() },
+        { onConflict: 'setting_key' }
+      );
+    }
     document.getElementById('save-ok').style.display = 'block';
     setTimeout(() => document.getElementById('save-ok').style.display = 'none', 3000);
     showToast('Saved!', 'success');

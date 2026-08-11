@@ -19,6 +19,9 @@
     <div class="testimonials-grid" id="all-testimonials">
       <div style="grid-column:span 3;text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>
     </div>
+    <div class="text-center mt-3">
+      <button id="show-more-testimonials" class="btn btn-outline" style="display:none">Show More</button>
+    </div>
   </div>
 </section>
 
@@ -27,7 +30,7 @@
 <script src="js/app.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    loadTestimonialsInto('all-testimonials');
+    loadPaginatedTestimonialsInto('all-testimonials', 'show-more-testimonials', 9);
   });
 </script>
 </body>

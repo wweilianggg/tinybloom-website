@@ -61,3 +61,32 @@ async function loadTestimonialsInto(containerId, limit = null) {
     container.innerHTML = items.map(renderTestimonialCard).join('');
   }
 }
+
+// Load from DB (most recent first) showing pageSize at a time, with a button to reveal more.
+async function loadPaginatedTestimonialsInto(containerId, buttonId, pageSize = 9) {
+  const container = document.getElementById(containerId);
+  const button = document.getElementById(buttonId);
+  if (!container) return;
+
+  let allItems = SEED_TESTIMONIALS;
+  try {
+    const { data } = await supabaseClient
+      .from('testimonials')
+      .select('*')
+      .eq('is_published', true)
+      .order('review_date', { ascending: false });
+    if (data && data.length > 0) allItems = data;
+  } catch { }
+
+  let shown = 0;
+  function renderNextPage() {
+    const next = allItems.slice(shown, shown + pageSize);
+    container.insertAdjacentHTML('beforeend', next.map(renderTestimonialCard).join(''));
+    shown += next.length;
+    if (button) button.style.display = shown < allItems.length ? 'inline-block' : 'none';
+  }
+
+  container.innerHTML = '';
+  renderNextPage();
+  if (button) button.onclick = renderNextPage;
+}

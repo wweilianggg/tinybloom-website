@@ -124,6 +124,7 @@ function buildCardEl(n) {
   const title = settings['feat_card' + n + '_title'] || '';
   const desc = settings['feat_card' + n + '_desc'] || '';
   const badge = settings['feat_card' + n + '_badge'] || '';
+  const icon = settings['feat_card' + n + '_icon'] || '';
 
   div.innerHTML = `
     <div class="feat-card-header">
@@ -131,6 +132,10 @@ function buildCardEl(n) {
       <button class="btn btn-ghost btn-sm" style="color:#c0392b;font-size:0.78rem" onclick="removeCard(${n})">✕ Remove</button>
     </div>
     <div class="form-row">
+      <div class="form-group" style="flex:0 0 90px">
+        <label>Icon</label>
+        <input type="text" id="card${n}_icon" value="${escHtml(icon)}" placeholder="👶" />
+      </div>
       <div class="form-group" style="flex:1">
         <label>Title</label>
         <input type="text" id="card${n}_title" value="${escHtml(title)}" placeholder="e.g. Baby Monitor" />
@@ -157,6 +162,7 @@ function addCard() {
   settings['feat_card' + cardCount + '_title'] = '';
   settings['feat_card' + cardCount + '_desc'] = '';
   settings['feat_card' + cardCount + '_badge'] = '';
+  settings['feat_card' + cardCount + '_icon'] = '';
   const container = document.getElementById('cards-container');
   container.appendChild(buildCardEl(cardCount));
   document.getElementById('feat-card-' + cardCount).scrollIntoView({ behavior: 'smooth' });
@@ -172,12 +178,14 @@ async function removeCard(n) {
     settings['feat_card' + i + '_title'] = document.getElementById('card' + (i+1) + '_title')?.value || settings['feat_card' + (i+1) + '_title'] || '';
     settings['feat_card' + i + '_desc'] = document.getElementById('card' + (i+1) + '_desc')?.value || settings['feat_card' + (i+1) + '_desc'] || '';
     settings['feat_card' + i + '_badge'] = document.getElementById('card' + (i+1) + '_badge')?.value || settings['feat_card' + (i+1) + '_badge'] || '';
+    settings['feat_card' + i + '_icon'] = document.getElementById('card' + (i+1) + '_icon')?.value || settings['feat_card' + (i+1) + '_icon'] || '';
   }
 
   // Clear the last card's data from DB
   await supabaseClient.from('site_settings').delete().eq('setting_key', 'feat_card' + cardCount + '_title');
   await supabaseClient.from('site_settings').delete().eq('setting_key', 'feat_card' + cardCount + '_desc');
   await supabaseClient.from('site_settings').delete().eq('setting_key', 'feat_card' + cardCount + '_badge');
+  await supabaseClient.from('site_settings').delete().eq('setting_key', 'feat_card' + cardCount + '_icon');
 
   cardCount--;
   renderCards();

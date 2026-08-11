@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Applications — Admin</title>
+    <link rel="stylesheet" href="../css/style.css" />
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div id="admin-sidebar-placeholder"></div>
+
+        <div class="admin-content">
+            <div class="admin-header"
+                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+
+                <h1 style="margin:0">Specialist &amp; Volunteer Applications</h1>
+
+                <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+                    <select id="type-filter" onchange="loadRequests()" style="
+        padding:0.6rem 0.9rem;
+        border-radius:999px;
+        border:1px solid rgba(92,79,74,0.12);
+        background:white;
+        min-width:130px;
+        font-family:'DM Sans',sans-serif;
+        font-size:0.88rem;
+    ">
+                        <option value="">All Types</option>
+                        <option value="specialist">Specialist</option>
+                        <option value="volunteer">Volunteer</option>
+                    </select>
+
+                    <select id="status-filter" onchange="loadRequests()" style="
+        padding:0.6rem 0.9rem;
+        border-radius:999px;
+        border:1px solid rgba(92,79,74,0.12);
+        background:white;
+        min-width:140px;
+        font-family:'DM Sans',sans-serif;
+        font-size:0.88rem;
+    ">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+
+                    <input type="text" id="search-box" placeholder="Search name or email..." oninput="renderRequests()"
+                        style="
+        padding:0.6rem 0.9rem;
+        border-radius:999px;
+        border:1px solid rgba(92,79,74,0.12);
+        background:white;
+        min-width:240px;
+        font-family:'DM Sans',sans-serif;
+        font-size:0.88rem;
+    " />
+                </div>
+            </div>
+
+            <div class="card" style="padding:0;overflow:hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th style="width:100px">Type</th>
+                            <th>Specialization / Expertise</th>
+                            <th style="width:100px">Experience</th>
+                            <th style="width:100px">Status</th>
+                            <th style="width:110px">Joined</th>
+                            <th style="width:200px">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="request-table">
+                        <tr>
+                            <td colspan="8" style="text-align:center;padding:2rem;color:var(--text-light)">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="details-modal"
+        style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.4);z-index:9999;align-items:center;justify-content:center">
+        <div class="card" style="width:520px;max-width:90%;max-height:85vh;overflow:auto">
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem" id="details-title">
+                Application Details
+            </h3>
+
+            <div id="details-content" style="font-size:0.9rem;line-height:1.8;color:var(--text-mid)"></div>
+
+            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:0.75rem" id="details-actions">
+                <button class="btn btn-ghost" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/app.js"></script>
+
+    <script>
+        let requests = [];
+
+        const TABLE_BY_TYPE = { specialist: 'specialist_profiles', volunteer: 'volunteer_profiles' };
+        const LABEL_BY_TYPE = { specialist: 'Specialist', volunteer: 'Volunteer' };
+        const TYPE_BADGE = { specialist: 'badge-teal', volunteer: 'badge-gold' };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await requireAdmin();
+
+            // Preselect type from a dashboard link, e.g. applications.html?type=specialist&view=<id>
+            const params = new URLSearchParams(window.location.search);
+            const typeParam = params.get('type');
+            if (typeParam && TABLE_BY_TYPE[typeParam]) {
+                document.getElementById('type-filter').value = typeParam;
+            }
+
+            await loadRequests();
+        });
+
+        async function fetchSpecialists(status) {
+            let query = supabaseClient
+                .from('specialist_profiles')
+                .select(`
+                id, user_id, specialization, license_number, years_experience,
+                hospital_affiliation, qualification, practising_certificate_expiry,
+                document_path, approval_status, is_verified, verified_at, created_at,
+                profiles:user_id ( full_name, email, phone )
+                `)
+                .order('created_at', { ascending: false });
+            if (status) query = query.eq('approval_status', status);
+            const { data, error } = await query;
+            if (error) throw error;
+            return (data || []).map(item => ({
+                id: item.id,
+                user_id: item.user_id,
+                type: 'specialist',
+                name: item.profiles?.full_name || '-',
+                email: item.profiles?.email || '-',
+                phone: item.profiles?.phone || '-',
+                field: item.specialization || '-',
+                license_number: item.license_number || '-',
+                experience: item.years_experience || 0,
+                hospital: item.hospital_affiliation || '-',
+                qualification: item.qualification || '-',
+                pc_expiry: item.practising_certificate_expiry || '-',
+                affiliation: null,
+                document_path: item.document_path || null,
+                status: item.approval_status || 'pending',
+                created_at: item.created_at
+            }));
+        }
+
+        async function fetchVolunteers(status) {
+            let query = supabaseClient
+                .from('volunteer_profiles')
+                .select(`
+                id, user_id, expertise, certification, years_experience,
+                affiliation, document_path, approval_status, is_verified, verified_at, created_at,
+                profiles:user_id ( full_name, email, phone )
+                `)
+                .order('created_at', { ascending: false });
+            if (status) query = query.eq('approval_status', status);
+            const { data, error } = await query;
+            if (error) throw error;
+            return (data || []).map(item => ({
+                id: item.id,
+                user_id: item.user_id,
+                type: 'volunteer',
+                name: item.profiles?.full_name || '-',
+                email: item.profiles?.email || '-',
+                phone: item.profiles?.phone || '-',
+                field: item.expertise || '-',
+                license_number: item.certification || '-',
+                experience: item.years_experience || 0,
+                hospital: null,
+                qualification: null,
+                pc_expiry: null,
+                affiliation: item.affiliation || '-',
+                document_path: item.document_path || null,
+                status: item.approval_status || 'pending',
+                created_at: item.created_at
+            }));
+        }
+
+        async function loadRequests() {
+            const tbody = document.getElementById('request-table');
+            const type = document.getElementById('type-filter').value;
+            const status = document.getElementById('status-filter').value;
+
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</td></tr>`;
+
+            try {
+                const fetches = [];
+                if (!type || type === 'specialist') fetches.push(fetchSpecialists(status));
+                if (!type || type === 'volunteer') fetches.push(fetchVolunteers(status));
+
+                const results = await Promise.all(fetches);
+                requests = results.flat().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                renderRequests();
+
+                const params = new URLSearchParams(window.location.search);
+                const viewId = params.get('view');
+                if (viewId) {
+                    const match = requests.find(r => r.id === viewId);
+                    if (match) viewDetails(viewId);
+                }
+
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#c0392b;padding:2rem">Error: ${escapeHtml(error.message)}</td></tr>`;
+            }
+        }
+
+        function renderRequests() {
+            const tbody = document.getElementById('request-table');
+            const search = document.getElementById('search-box').value.toLowerCase();
+
+            const filtered = requests.filter(item =>
+                item.name.toLowerCase().includes(search) ||
+                item.email.toLowerCase().includes(search) ||
+                item.field.toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-light)">No applications found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => {
+                const joinedDate = item.created_at
+                    ? new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '-';
+
+                const statusBadge =
+                    item.status === 'approved' ? 'badge-green'
+                        : item.status === 'rejected' ? 'badge-rose'
+                            : 'badge-gold';
+
+                const buttons = `
+            <button class="btn btn-outline btn-sm" onclick="viewDetails('${item.id}')">View</button>
+            <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteRequest('${item.id}')">Delete</button>
+            `;
+
+                return `
+                <tr>
+            <td>${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.email)}</td>
+            <td><span class="badge ${TYPE_BADGE[item.type]}">${LABEL_BY_TYPE[item.type]}</span></td>
+            <td>${escapeHtml(item.field)}</td>
+            <td>${escapeHtml(item.experience)} years</td>
+            <td><span class="badge ${statusBadge}">${escapeHtml(item.status)}</span></td>
+            <td>${joinedDate}</td>
+            <td><div style="display:flex;gap:0.4rem;flex-wrap:nowrap">${buttons}</div></td>
+            </tr>
+        `;
+            }).join('');
+        }
+
+        function viewDetails(id) {
+            const item = requests.find(r => r.id === id);
+            if (!item) return;
+
+            document.getElementById('details-title').textContent = LABEL_BY_TYPE[item.type] + ' Application Details';
+
+            const typeSpecificRows = item.type === 'specialist'
+                ? `
+    <p><strong>Specialization:</strong> ${escapeHtml(item.field)}</p>
+    <p><strong>SMC / MCR Number:</strong> ${escapeHtml(item.license_number)}</p>
+    <p><strong>Years of Experience:</strong> ${escapeHtml(item.experience)}</p>
+    <p><strong>Hospital / Clinic:</strong> ${escapeHtml(item.hospital)}</p>
+    <p><strong>Medical Qualification:</strong> ${escapeHtml(item.qualification)}</p>
+    <p><strong>Practising Certificate Expiry:</strong> ${escapeHtml(item.pc_expiry)}</p>
+    `
+                : `
+    <p><strong>Area of Expertise:</strong> ${escapeHtml(item.field)}</p>
+    <p><strong>Certification / License:</strong> ${escapeHtml(item.license_number)}</p>
+    <p><strong>Years of Experience:</strong> ${escapeHtml(item.experience)}</p>
+    <p><strong>Organisation / Affiliation:</strong> ${escapeHtml(item.affiliation)}</p>
+    `;
+
+            document.getElementById('details-content').innerHTML = `
+    <p><strong>Type:</strong> ${LABEL_BY_TYPE[item.type]}</p>
+    <p><strong>Name:</strong> ${escapeHtml(item.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(item.email)}</p>
+    <p><strong>Phone:</strong> ${escapeHtml(item.phone)}</p>
+    <hr>
+    ${typeSpecificRows}
+    <hr>
+    <p><strong>Status:</strong> ${escapeHtml(item.status)}</p>
+    <p><strong>Verification Document:</strong> ${item.document_path ? '<a href="#" onclick="viewDocument(\'' + escapeJsString(item.document_path) + '\');return false;">View Document →</a>' : 'Not uploaded'}</p>
+    `;
+
+            const actionsEl = document.getElementById('details-actions');
+            actionsEl.innerHTML = item.status === 'pending'
+                ? `
+                <button class="btn btn-ghost" style="color:#c0392b" onclick="rejectRequest('${item.id}')">Reject</button>
+                <button class="btn btn-primary" onclick="approveRequest('${item.id}')">Approve</button>
+                <button class="btn btn-ghost" onclick="closeDetailsModal()">Close</button>
+                `
+                : `<button class="btn btn-ghost" onclick="closeDetailsModal()">Close</button>`;
+
+            document.getElementById('details-modal').style.display = 'flex';
+        }
+
+        async function viewDocument(path) {
+            const { data, error } = await supabaseClient.storage
+                .from('verification-documents')
+                .createSignedUrl(path, 60);
+
+            if (error || !data?.signedUrl) {
+                showToast('Could not open document.', 'error');
+                return;
+            }
+
+            window.open(data.signedUrl, '_blank');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').style.display = 'none';
+        }
+
+        async function approveRequest(id) {
+            const item = requests.find(r => r.id === id);
+            if (!item) return;
+            const table = TABLE_BY_TYPE[item.type];
+            const label = LABEL_BY_TYPE[item.type];
+            if (!confirm(`Approve this ${label.toLowerCase()} request?`)) return;
+
+            const { data: applicant, error: fetchError } = await supabaseClient
+                .from(table)
+                .select(`id, user_id, profiles:user_id ( email, full_name )`)
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                showToast(fetchError.message, 'error');
+                return;
+            }
+
+            await supabaseClient
+                .from(table)
+                .update({ approval_status: 'approved', is_verified: true, verified_at: new Date().toISOString() })
+                .eq('id', id);
+
+            await supabaseClient
+                .from('profiles')
+                .update({ is_active: true })
+                .eq('id', applicant.user_id);
+
+            // The account was created with email_confirm:false (see the
+            // create-pending-account Edge Function) so no confirmation email
+            // was sent at registration time — trigger it now, on approval.
+            // This runs on every approval (including re-approval after being
+            // set back to pending), so it resends each time too.
+            await supabaseClient.auth.resend({
+                type: 'signup',
+                email: applicant.profiles?.email,
+                options: { emailRedirectTo: 'https://wweilianggg.github.io/tinybloom-website/login.html' }
+            });
+
+            showToast(label + ' approved and email sent!', 'success');
+            closeDetailsModal();
+            await loadRequests();
+
+            await supabaseClient
+                .from('email_notifications')
+                .insert({
+                    recipient_email: applicant.profiles?.email,
+                    recipient_name: applicant.profiles?.full_name,
+                    subject: 'TinyBloom ' + label + ' Account Approved',
+                    message:
+                        'Hi ' + applicant.profiles?.full_name + ',\n\n' +
+                        'Your TinyBloom ' + label.toLowerCase() + ' account has been approved.\n\n' +
+                        'You may now log in and start using your ' + label.toLowerCase() + ' dashboard.\n\n' +
+                        'Login here: https://wweilianggg.github.io/tinybloom-website/login.html\n\n' +
+                        'Thank you,\nTinyBloom Team'
+                });
+        }
+
+        async function rejectRequest(id) {
+            const item = requests.find(r => r.id === id);
+            if (!item) return;
+            const table = TABLE_BY_TYPE[item.type];
+            const label = LABEL_BY_TYPE[item.type];
+            if (!confirm(`Reject this ${label.toLowerCase()} application?`)) return;
+
+            const { error } = await supabaseClient
+                .from(table)
+                .update({ approval_status: 'rejected', is_verified: false, verified_at: null })
+                .eq('id', id);
+
+            if (error) {
+                showToast(error.message, 'error');
+                return;
+            }
+
+            showToast(label + ' application rejected.', 'success');
+            closeDetailsModal();
+            await loadRequests();
+        }
+
+        async function deleteRequest(id) {
+            const item = requests.find(r => r.id === id);
+            if (!item) return;
+            const table = TABLE_BY_TYPE[item.type];
+            const label = LABEL_BY_TYPE[item.type];
+            if (!confirm(`Permanently delete this ${label.toLowerCase()} application? This cannot be undone.`)) return;
+
+            const { data: applicant, error: fetchError } = await supabaseClient
+                .from(table)
+                .select('id, user_id')
+                .eq('id', id)
+                .single();
+
+            if (fetchError) {
+                showToast(fetchError.message, 'error');
+                return;
+            }
+
+            const { error: deleteAppError } = await supabaseClient
+                .from(table)
+                .delete()
+                .eq('id', id);
+
+            if (deleteAppError) {
+                showToast(deleteAppError.message, 'error');
+                return;
+            }
+
+            const { error: deleteProfileError } = await supabaseClient
+                .from('profiles')
+                .delete()
+                .eq('id', applicant.user_id);
+
+            if (deleteProfileError) {
+                showToast(deleteProfileError.message, 'error');
+                return;
+            }
+
+            showToast(label + ' application deleted.', 'success');
+            closeDetailsModal();
+            await loadRequests();
+        }
+
+    </script>
+</body>
+
+</html>

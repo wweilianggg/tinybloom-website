@@ -119,10 +119,10 @@
     <p class="section-subtitle">Start free, upgrade when you're ready.</p>
     <div class="pricing-grid">
       <div class="pricing-card">
-        <div class="plan-name">Basic</div>
+        <div class="plan-name" id="home-basic-name">Basic</div>
         <div class="price">$0 <span>/ month</span></div>
-        <div class="price-desc">Basic information &amp; simple tracking.</div>
-        <ul class="pricing-features">
+        <div class="price-desc" id="home-basic-desc">Basic information &amp; simple tracking.</div>
+        <ul class="pricing-features" id="home-basic-features">
           <li>Pregnancy articles &amp; FAQ</li>
           <li>Simple symptom logging</li>
           <li>Basic week-by-week tracking</li>
@@ -130,10 +130,10 @@
         <a href="register.html" class="btn btn-teal">Get Started</a>
       </div>
       <div class="pricing-card featured">
-        <div class="plan-name">Premium</div>
+        <div class="plan-name" id="home-premium-name">Premium</div>
         <div class="price" id="price-monthly">$9.90 <span>/ month</span></div>
-        <div class="price-desc">Personalised insights, advanced tracking &amp; full support.</div>
-        <ul class="pricing-features">
+        <div class="price-desc" id="home-premium-desc">Personalised insights, advanced tracking &amp; full support.</div>
+        <ul class="pricing-features" id="home-premium-features">
           <li>Personalised pregnancy tracking</li>
           <li>Advanced symptom tracking &amp; alerts</li>
           <li>Detailed baby development insights</li>
@@ -142,10 +142,10 @@
         <a href="register.html?plan=premium_monthly" class="btn btn-teal">Get Started</a>
       </div>
       <div class="pricing-card">
-        <div class="plan-name">Premium Annual</div>
+        <div class="plan-name" id="home-annual-name">Premium Annual</div>
         <div class="price" id="price-yearly">$90 <span>/ year</span></div>
-        <div class="price-desc">Best value — save vs monthly.</div>
-        <ul class="pricing-features">
+        <div class="price-desc" id="home-annual-desc">Best value — save vs monthly.</div>
+        <ul class="pricing-features" id="home-annual-features">
           <li>Personalised pregnancy tracking</li>
           <li>Advanced symptom tracking &amp; alerts</li>
           <li>Detailed baby development insights</li>
@@ -204,6 +204,31 @@ async function loadSiteContent() {
     // Pricing
     if (s.premium_monthly_price) document.getElementById('price-monthly').innerHTML = `$${s.premium_monthly_price} <span>/ month</span>`;
     if (s.premium_yearly_price) document.getElementById('price-yearly').innerHTML = `$${s.premium_yearly_price} <span>/ year</span>`;
+
+    // Pricing card names & descriptions
+    const priceTextMap = {
+      home_basic_name: 'home-basic-name', home_basic_desc: 'home-basic-desc',
+      home_premium_name: 'home-premium-name', home_premium_desc: 'home-premium-desc',
+      home_annual_name: 'home-annual-name', home_annual_desc: 'home-annual-desc',
+    };
+    Object.entries(priceTextMap).forEach(([key, id]) => {
+      if (s[key]) { const el = document.getElementById(id); if (el) el.textContent = s[key]; }
+    });
+
+    // Pricing card feature bullet lists (JSON arrays of strings)
+    const renderPriceList = (id, key) => {
+      const el = document.getElementById(id);
+      if (!el || !s[key]) return;
+      try {
+        const items = JSON.parse(s[key]);
+        if (Array.isArray(items) && items.length) {
+          el.innerHTML = items.map(i => `<li>${escapeHtml(i)}</li>`).join('');
+        }
+      } catch { }
+    };
+    renderPriceList('home-basic-features', 'home_basic_features');
+    renderPriceList('home-premium-features', 'home_premium_features');
+    renderPriceList('home-annual-features', 'home_annual_features');
 
     // CTA
     if (s.cta_title) document.getElementById('cta-title').textContent = s.cta_title;

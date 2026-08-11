@@ -183,7 +183,7 @@ const FOOTER_HTML = `
   <div class="footer-grid">
     <div>
       <div class="footer-brand">TinyBloom</div>
-      <p class="footer-desc">Personalised pregnancy support for every mother. Better outcomes start with better support.</p>
+      <p class="footer-desc" id="footer-tagline">Personalised pregnancy support for every mother. Better outcomes start with better support.</p>
     </div>
     <div>
       <div class="footer-heading">Platform</div>
@@ -197,7 +197,7 @@ const FOOTER_HTML = `
       <div class="footer-heading">Support</div>
       <ul class="footer-links">
         <li><a href="faq.html">FAQ</a></li>
-        <li><a href="#">Contact Us</a></li>
+        <li><a href="mailto:support@tinybloom.com" id="footer-contact-link">Contact Us</a></li>
       </ul>
     </div>
     <div>
@@ -209,7 +209,7 @@ const FOOTER_HTML = `
     </div>
   </div>
   <div class="footer-bottom">
-    &copy; 2026 TinyBloom. All rights reserved. &nbsp;|&nbsp; support@tinybloom.com
+    &copy; <span id="footer-year">2026</span> TinyBloom. All rights reserved. &nbsp;|&nbsp; <span id="footer-contact-email">support@tinybloom.com</span>
   </div>
 </footer>`;
 
@@ -234,8 +234,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.classList.add('active');
   }
 
+  if (footerPlaceholder) loadFooterContent();
+
   updateNavbar();
 });
+
+async function loadFooterContent() {
+  const yearEl = document.getElementById('footer-year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  try {
+    const { data } = await supabaseClient.from('site_settings').select('setting_key,setting_value')
+      .in('setting_key', ['footer_tagline', 'contact_email']);
+    const s = {};
+    if (data) data.forEach(r => { s[r.setting_key] = r.setting_value; });
+
+    if (s.footer_tagline) {
+      const el = document.getElementById('footer-tagline');
+      if (el) el.textContent = s.footer_tagline;
+    }
+    if (s.contact_email) {
+      const emailEl = document.getElementById('footer-contact-email');
+      if (emailEl) emailEl.textContent = s.contact_email;
+      const linkEl = document.getElementById('footer-contact-link');
+      if (linkEl) linkEl.href = 'mailto:' + s.contact_email;
+    }
+  } catch (e) {}
+}
 
 function toggleMenu() {
   const links = document.getElementById('nav-links');
@@ -328,6 +353,35 @@ async function loadTestimonialsInto(containerId, limit = null) {
   }
 }
 
+// Load from DB (most recent first) showing pageSize at a time, with a button to reveal more.
+async function loadPaginatedTestimonialsInto(containerId, buttonId, pageSize = 9) {
+  const container = document.getElementById(containerId);
+  const button = document.getElementById(buttonId);
+  if (!container) return;
+
+  let allItems = SEED_TESTIMONIALS;
+  try {
+    const { data } = await supabaseClient
+      .from('testimonials')
+      .select('*')
+      .eq('is_published', true)
+      .order('review_date', { ascending: false });
+    if (data && data.length > 0) allItems = data;
+  } catch { }
+
+  let shown = 0;
+  function renderNextPage() {
+    const next = allItems.slice(shown, shown + pageSize);
+    container.insertAdjacentHTML('beforeend', next.map(renderTestimonialCard).join(''));
+    shown += next.length;
+    if (button) button.style.display = shown < allItems.length ? 'inline-block' : 'none';
+  }
+
+  container.innerHTML = '';
+  renderNextPage();
+  if (button) button.onclick = renderNextPage;
+}
+
 
 /* ===== admin-sidebar.js ===== */
 // js/admin-sidebar.js
@@ -336,17 +390,21 @@ function getAdminSidebar(activePage) {
   const pages = [
     { href: 'index.html', icon: '📊', label: 'Dashboard' },
     { href: 'users.html', icon: '👥', label: 'Users' },
-    { href: 'specialists.html', icon: '👩‍⚕️', label: 'Manage Specialists' },
-    { href: 'volunteers.html', icon: '🤝', label: 'Manage Volunteers' },
+    { href: 'applications.html', icon: '📋', label: 'Manage Applications' },
     { divider: true, label: 'PAGE CONTENT' },
     { href: 'page-home.html', icon: '🏠', label: 'Home' },
     { href: 'page-features.html', icon: '✨', label: 'Features' },
     { href: 'page-subscriptions.html', icon: '💰', label: 'Subscriptions' },
     { href: 'page-testimonials.html', icon: '⭐', label: 'Testimonials' },
     { href: 'page-faq.html', icon: '❓', label: 'FAQ' },
-    { divider: true, label: 'LISTS' },
+    { href: 'page-download.html', icon: '📲', label: 'Download' },
+    { divider: true, label: 'SPECIALIST LISTS' },
     { href: 'list-specializations.html', icon: '🩺', label: 'Specialization' },
+    { href: 'list-hospitals.html', icon: '🏥', label: 'Hospitals / Clinics' },
+    { href: 'list-qualifications.html', icon: '🎓', label: 'Medical Qualifications' },
+    { divider: true, label: 'VOLUNTEER LISTS' },
     { href: 'list-expertise.html', icon: '🤝', label: 'Area of Expertise' },
+    { href: 'list-organisations.html', icon: '🏢', label: 'Organisations' },
     // { divider: true, label: 'MANAGE' },
     // { href: 'content.html', icon: '📝', label: 'Articles' },
   ];

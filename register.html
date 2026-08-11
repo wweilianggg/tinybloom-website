@@ -214,11 +214,11 @@
               </div>
             </div>
 
-            <div class="plan-card" id="plan-monthly" onclick="selectPlan('premium_monthly',this)">
+            <div class="plan-card" id="plan-premium" onclick="selectPlan('premium',this)">
               <div style="display:flex;justify-content:space-between;align-items:start">
                 <div>
                   <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-                    <span style="font-weight:700;font-size:1rem">Premium Monthly</span>
+                    <span style="font-weight:700;font-size:1rem">Premium</span>
                     <span
                       style="font-size:0.72rem;background:var(--teal);color:white;padding:2px 8px;border-radius:50px;font-weight:700">POPULAR</span>
                   </div>
@@ -226,33 +226,17 @@
                     consultations</div>
                 </div>
                 <div style="text-align:right;flex-shrink:0;margin-left:1rem">
-                  <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--teal)"
-                    id="price-monthly">$9.90</div>
-                  <div style="font-size:0.72rem;color:var(--text-light)">/month</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="plan-card" id="plan-yearly" onclick="selectPlan('premium_yearly',this)">
-              <div style="display:flex;justify-content:space-between;align-items:start">
-                <div>
-                  <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-                    <span style="font-weight:700;font-size:1rem">Premium Annual</span>
-                    <span
-                      style="font-size:0.72rem;background:var(--gold);color:white;padding:2px 8px;border-radius:50px;font-weight:700">SAVE
-                      24%</span>
+                  <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--teal)">
+                    <span id="price-monthly">$9.90</span><span style="font-size:0.85rem;font-weight:500">/mo</span>
                   </div>
-                  <div style="font-size:0.82rem;color:var(--text-mid);margin-top:0.2rem">Best value — all premium
-                    features</div>
-                </div>
-                <div style="text-align:right;flex-shrink:0;margin-left:1rem">
-                  <div style="font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:700;color:var(--gold)"
-                    id="price-yearly">$90</div>
-                  <div style="font-size:0.72rem;color:var(--text-light)">/year</div>
+                  <div style="font-size:0.72rem;color:var(--text-light)">or <span id="price-yearly">$90</span>/yr —
+                    save 24%</div>
                 </div>
               </div>
+              <div style="font-size:0.75rem;color:var(--text-light);margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(92,79,74,0.08)">
+                Choose monthly or annual billing at the payment step.
+              </div>
             </div>
-
 
           </div>
 
@@ -262,6 +246,42 @@
               Your Details</h2>
             <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.5rem" id="details-sub">Fill in your
               information below.</p>
+
+            <!-- Next of Kin: verify mum's ID first, before anything else -->
+            <div id="kin-verify-section" style="display:none">
+              <div class="form-group">
+                <label>Mum's User ID * <span style="font-weight:400;color:var(--text-light)">— ask the mum to share
+                    her ID</span></label>
+                <div style="display:flex;gap:0.5rem">
+                  <input type="text" id="mum-user-code" placeholder="e.g. A1B2C3D4"
+                    style="text-transform:uppercase;letter-spacing:0.1em;flex:1" maxlength="8"
+                    oninput="this.value=this.value.toUpperCase()" />
+                  <button type="button" class="btn btn-outline btn-sm" onclick="verifyMumCode()"
+                    id="verify-btn">Verify</button>
+                </div>
+                <div id="mum-verify-result" style="font-size:0.82rem;margin-top:0.4rem;display:none"></div>
+              </div>
+            </div>
+
+            <!-- Next of Kin: family connection, shown right after mum verification -->
+            <div id="kin-fields" style="display:none">
+              <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Family Connection
+              </p>
+              <div class="form-group">
+                <label>Relationship to Expectant Mother</label>
+                <select id="kin-relationship">
+                  <option value="">Select relationship</option>
+                  <option>Husband / Partner</option>
+                  <option>Mother</option>
+                  <option>Father</option>
+                  <option>Sister</option>
+                  <option>Brother</option>
+                  <option>Friend</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="divider"></div>
+            </div>
 
             <div class="form-row">
               <div class="form-group">
@@ -322,12 +342,22 @@
 
               <div class="form-group">
                 <label>Hospital / Clinic / Place of Practice *</label>
-                <input type="text" id="spec-hospital" placeholder="e.g. KK Women's and Children's Hospital" />
+                <select id="spec-hospital" onchange="toggleOtherInput('spec-hospital')">
+                  <option value="">Select hospital / clinic</option>
+                  <option value="__other__">Other (please specify)</option>
+                </select>
+                <input type="text" id="spec-hospital-other" placeholder="Enter hospital / clinic name"
+                  style="margin-top:0.5rem;display:none" />
               </div>
 
               <div class="form-group">
                 <label>Medical Qualification *</label>
-                <input type="text" id="spec-qualification" placeholder="e.g. MBBS, MD, MRCOG" />
+                <select id="spec-qualification" onchange="toggleOtherInput('spec-qualification')">
+                  <option value="">Select medical qualification</option>
+                  <option value="__other__">Other (please specify)</option>
+                </select>
+                <input type="text" id="spec-qualification-other" placeholder="Enter medical qualification"
+                  style="margin-top:0.5rem;display:none" />
               </div>
 
               <div class="form-group">
@@ -346,9 +376,9 @@
               <div class="form-group">
                 <label for="spec-document">Verification Document * <span
                     style="font-weight:400;color:var(--text-light)">(license or certificate, PDF/image,
-                    max 5MB)</span></label>
+                    max 50MB)</span></label>
                 <input type="file" id="spec-document" accept="application/pdf,image/*" />
-                <div class="validation-error" id="spec-document-error">Please upload a verification document (PDF or image, under 5MB).</div>
+                <div class="validation-error" id="spec-document-error">Please upload a verification document (PDF or image, under 50MB).</div>
               </div>
             </div>
           </div>
@@ -369,46 +399,20 @@
               <div class="form-group"><label>Years of Experience</label><input type="number" id="vol-years"
                   placeholder="e.g. 5" min="0" /></div>
             </div>
-            <div class="form-group"><label>Organisation / Affiliation</label><input type="text" id="vol-affiliation"
-                placeholder="e.g. Singapore Red Cross" /></div>
+            <div class="form-group"><label>Organisation / Affiliation</label>
+              <select id="vol-affiliation" onchange="toggleOtherInput('vol-affiliation')">
+                <option value="">Select organisation / affiliation</option>
+                <option value="__other__">Other (please specify)</option>
+              </select>
+              <input type="text" id="vol-affiliation-other" placeholder="Enter organisation / affiliation"
+                style="margin-top:0.5rem;display:none" />
+            </div>
             <div class="form-group">
               <label for="vol-document">Verification Document * <span
                   style="font-weight:400;color:var(--text-light)">(certificate or ID, PDF/image, max
-                  5MB)</span></label>
+                  50MB)</span></label>
               <input type="file" id="vol-document" accept="application/pdf,image/*" />
-              <div class="validation-error" id="vol-document-error">Please upload a verification document (PDF or image, under 5MB).</div>
-            </div>
-          </div>
-
-          <!-- Next of Kin extras -->
-          <div id="kin-fields" style="display:none">
-            <div class="divider"></div>
-            <p style="font-size:0.82rem;font-weight:700;color:var(--text-mid);margin-bottom:1rem">Family Connection
-            </p>
-            <div class="form-group">
-              <label>Relationship to Expectant Mother</label>
-              <select id="kin-relationship">
-                <option value="">Select relationship</option>
-                <option>Husband / Partner</option>
-                <option>Mother</option>
-                <option>Father</option>
-                <option>Sister</option>
-                <option>Brother</option>
-                <option>Friend</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Mum's User ID * <span style="font-weight:400;color:var(--text-light)">— ask the mum to share
-                  her ID</span></label>
-              <div style="display:flex;gap:0.5rem">
-                <input type="text" id="mum-user-code" placeholder="e.g. A1B2C3D4"
-                  style="text-transform:uppercase;letter-spacing:0.1em;flex:1" maxlength="8"
-                  oninput="this.value=this.value.toUpperCase()" />
-                <button type="button" class="btn btn-outline btn-sm" onclick="verifyMumCode()"
-                  id="verify-btn">Verify</button>
-              </div>
-              <div id="mum-verify-result" style="font-size:0.82rem;margin-top:0.4rem;display:none"></div>
+              <div class="validation-error" id="vol-document-error">Please upload a verification document (PDF or image, under 50MB).</div>
             </div>
           </div>
 
@@ -450,7 +454,8 @@
 
     // ---- Init ----
     document.addEventListener('DOMContentLoaded', async function () {
-      ['spec-field', 'spec-license', 'spec-years', 'spec-hospital', 'spec-qualification', 'spec-pc-expiry']
+      ['spec-field', 'spec-license', 'spec-years', 'spec-hospital', 'spec-hospital-other',
+        'spec-qualification', 'spec-qualification-other', 'spec-pc-expiry']
         .forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.addEventListener('input', validateSpecialistFields);
@@ -493,6 +498,12 @@
         });
       } catch (e) { }
 
+      // Load hospitals / medical qualifications / volunteer organisations
+      // (options are inserted before the "Other (please specify)" option)
+      await loadOtherAwareOptions('hospitals', 'spec-hospital');
+      await loadOtherAwareOptions('medical_qualifications', 'spec-qualification');
+      await loadOtherAwareOptions('volunteer_organisations', 'vol-affiliation');
+
       // Load prices
       try {
         var res = await supabaseClient.from('site_settings').select('setting_key,setting_value')
@@ -524,6 +535,41 @@
       document.getElementById('reg-phone').addEventListener('input', validatePhone);
       document.getElementById('reg-email').addEventListener('input', validateEmail);
     });
+
+    // ---- Dropdown-with-"Other" helpers (hospital, qualification, affiliation) ----
+    async function loadOtherAwareOptions(table, selectId) {
+      var select = document.getElementById(selectId);
+      if (!select) return;
+      try {
+        var res = await supabaseClient.from(table).select('label')
+          .eq('is_active', true).order('display_order').order('label');
+        if (!res.data) return;
+        var otherOption = select.querySelector('option[value="__other__"]');
+        res.data.forEach(function (row) {
+          var opt = document.createElement('option');
+          opt.textContent = row.label;
+          opt.value = row.label;
+          select.insertBefore(opt, otherOption);
+        });
+      } catch (e) { }
+    }
+
+    function toggleOtherInput(selectId) {
+      var select = document.getElementById(selectId);
+      var other = document.getElementById(selectId + '-other');
+      if (!select || !other) return;
+      other.style.display = select.value === '__other__' ? 'block' : 'none';
+    }
+
+    function getSelectOrOther(selectId) {
+      var select = document.getElementById(selectId);
+      if (!select) return '';
+      if (select.value === '__other__') {
+        var other = document.getElementById(selectId + '-other');
+        return other ? other.value.trim() : '';
+      }
+      return select.value.trim();
+    }
 
     // ---- Validation Functions ----
     function validateName() {
@@ -601,8 +647,8 @@
       var specialization = document.getElementById('spec-field')?.value.trim();
       var license = document.getElementById('spec-license')?.value.trim();
       var years = document.getElementById('spec-years')?.value.trim();
-      var hospital = document.getElementById('spec-hospital')?.value.trim();
-      var qualification = document.getElementById('spec-qualification')?.value.trim();
+      var hospital = getSelectOrOther('spec-hospital');
+      var qualification = getSelectOrOther('spec-qualification');
       var pcExpiry = document.getElementById('spec-pc-expiry')?.value;
 
       var specialistError = document.getElementById('specialist-error');
@@ -644,7 +690,7 @@
       if (!file) { if (errorEl) errorEl.style.display = 'block'; return false; }
 
       var allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-      var maxBytes = 5 * 1024 * 1024;
+      var maxBytes = 50 * 1024 * 1024; // 50MB
       var valid = allowedTypes.includes(file.type) && file.size <= maxBytes;
 
       if (errorEl) errorEl.style.display = valid ? 'none' : 'block';
@@ -672,6 +718,15 @@
       document.getElementById('line1').className = 'step-line done';
       document.getElementById('dot2').className = 'step-dot active';
       // Remove dot3 reference - only 2 steps now
+
+      // Always reset role-specific sections first — otherwise a section left
+      // visible from a previously selected role (e.g. user went Back and
+      // switched roles) stays stuck on screen alongside the new role's UI.
+      document.getElementById('specialist-fields').style.display = 'none';
+      document.getElementById('volunteer-fields').style.display = 'none';
+      document.getElementById('kin-fields').style.display = 'none';
+      document.getElementById('kin-verify-section').style.display = 'none';
+
       if (selectedRole === 'mum') {
         document.getElementById('plan-section').style.display = 'block';
         document.getElementById('details-form').style.display = 'none';
@@ -681,6 +736,7 @@
         document.getElementById('specialist-fields').style.display = selectedRole === 'specialist' ? 'block' : 'none';
         document.getElementById('volunteer-fields').style.display = selectedRole === 'volunteer' ? 'block' : 'none';
         document.getElementById('kin-fields').style.display = selectedRole === 'next_of_kin' ? 'block' : 'none';
+        document.getElementById('kin-verify-section').style.display = selectedRole === 'next_of_kin' ? 'block' : 'none';
         document.getElementById('details-title').textContent = 'Your Details';
         document.getElementById('details-sub').textContent = 'Fill in your information to create your account.';
       }
@@ -696,6 +752,7 @@
       document.getElementById('specialist-fields').style.display = 'none';
       document.getElementById('volunteer-fields').style.display = 'none';
       document.getElementById('kin-fields').style.display = 'none';
+      document.getElementById('kin-verify-section').style.display = 'none';
 
       // Clear form
       ['reg-name', 'reg-phone', 'reg-email', 'reg-password', 'reg-confirm'].forEach(function (id) {
@@ -840,7 +897,7 @@
           throw new Error('This email address is already registered. Please log in instead.');
         }
 
-        if (selectedRole === 'mum' && (selectedPlan === 'premium_monthly' || selectedPlan === 'premium_yearly')) {
+        if (selectedRole === 'mum' && selectedPlan === 'premium') {
           sessionStorage.setItem('tb_pending_reg', JSON.stringify({
             name: name,
             email: email,
@@ -849,7 +906,7 @@
             plan: selectedPlan
           }));
 
-          window.location.href = 'payment.html?plan=' + selectedPlan;
+          window.location.href = 'payment.html';
           return;
         }
 
@@ -865,8 +922,8 @@
           userData.specialization = document.getElementById('spec-field').value.trim();
           userData.license_number = document.getElementById('spec-license').value.trim();
           userData.years_experience = document.getElementById('spec-years').value;
-          userData.hospital_affiliation = document.getElementById('spec-hospital').value.trim();
-          userData.qualification = document.getElementById('spec-qualification').value.trim();
+          userData.hospital_affiliation = getSelectOrOther('spec-hospital');
+          userData.qualification = getSelectOrOther('spec-qualification');
           userData.practising_certificate_expiry = document.getElementById('spec-pc-expiry').value;
         }
 
@@ -874,7 +931,7 @@
           userData.expertise = document.getElementById('vol-expertise').value.trim();
           userData.license_number = document.getElementById('vol-license').value.trim();
           userData.years_experience = document.getElementById('vol-years').value;
-          userData.affiliation = document.getElementById('vol-affiliation').value.trim();
+          userData.affiliation = getSelectOrOther('vol-affiliation');
         }
 
         if (selectedRole === 'next_of_kin') {

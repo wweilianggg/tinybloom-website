@@ -7,7 +7,7 @@
 // never be shipped to the browser.
 //
 // The confirmation email is deliberately NOT sent at this point. Admin
-// approval (admin/specialists.html, admin/volunteers.html) later calls
+// approval (admin/applications.html) later calls
 // supabase.auth.resend({ type: 'signup', email }) with the anon key to
 // trigger it once the application is approved (and again on any later
 // re-approval).

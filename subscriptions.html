@@ -21,7 +21,7 @@
     <div class="container">
       <div class="pricing-grid">
         <div class="pricing-card">
-          <div class="plan-name">Basic</div>
+          <div class="plan-name" id="sub-basic-name">Basic</div>
           <div class="price">$0 <span>/ month</span></div>
           <div class="price-desc" id="sub-basic-desc">Basic information &amp; simple tracking.</div>
           <ul class="pricing-features" id="sub-basic-features">
@@ -63,7 +63,7 @@
           <div class="price" id="sub-price-yearly">$90 <span>/ year</span></div>
           <div class="price-desc" style="color:var(--sage);font-weight:600" id="sub-save-text">Save $28.80 vs monthly
           </div>
-          <ul class="pricing-features">
+          <ul class="pricing-features" id="sub-annual-features">
             <li>Everything in Basic</li>
             <li>Advanced symptom tracking &amp; alerts</li>
             <li>Detailed baby development insights</li>
@@ -135,7 +135,9 @@
         // Page text
         const textMap = {
           sub_page_title: 'sub-page-title', sub_page_subtitle: 'sub-page-subtitle',
+          sub_basic_name: 'sub-basic-name', sub_basic_desc: 'sub-basic-desc',
           sub_premium_name: 'sub-premium-name', sub_annual_name: 'sub-annual-name',
+          sub_premium_monthly_desc: 'sub-premium-monthly-desc',
           sub_popular_badge: 'sub-popular-badge', sub_value_badge: 'sub-value-badge',
           sub_compare_title: 'sub-compare-title',
           sub_basic_btn: 'sub-basic-btn', sub_premium_btn: 'sub-premium-btn', sub_annual_btn: 'sub-annual-btn',
@@ -143,6 +145,22 @@
         Object.entries(textMap).forEach(([key, id]) => {
           if (s[key]) { const el = document.getElementById(id); if (el) el.textContent = s[key]; }
         });
+
+        // Plan feature bullet lists (JSON arrays of strings). Premium & Annual share the same feature set.
+        const renderList = (id, key) => {
+          const el = document.getElementById(id);
+          if (!el || !s[key]) return;
+          try {
+            const items = JSON.parse(s[key]);
+            if (Array.isArray(items) && items.length) {
+              el.innerHTML = items.map(i => `<li>${escapeHtml(i)}</li>`).join('');
+            }
+          } catch { }
+        };
+        renderList('sub-basic-features', 'sub_basic_features');
+        renderList('sub-premium-features', 'sub_premium_features');
+        renderList('sub-annual-features', 'sub_premium_features');
+
         // Load comparison rows
         const rowData = data.find(s => s.setting_key === 'sub_compare_rows');
         const sections = (s.sub_compare_sections || 'Tracking,Support,AI & Education').split(',').map(x => x.trim());

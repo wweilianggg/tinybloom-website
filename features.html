@@ -125,6 +125,20 @@
       },
     ];
 
+    // Cosmetic palette cycled by card position (colors aren't editorial content, so they aren't stored in the DB)
+    const BADGE_PALETTE = [
+      { badgeColor: 'var(--rose)', badgeBg: 'var(--blush)', badgeText: 'var(--rose-deep)' },
+      { badgeColor: 'var(--teal)', badgeBg: 'var(--teal-light)', badgeText: 'var(--teal)' },
+      { badgeColor: 'var(--gold)', badgeBg: '#fef3e2', badgeText: '#9a6b1c' },
+      { badgeColor: 'var(--rose-deep)', badgeBg: 'var(--blush)', badgeText: 'var(--rose-deep)' },
+      { badgeColor: '#a78bfa', badgeBg: '#f3f0ff', badgeText: '#7c3aed' },
+      { badgeColor: 'var(--sage)', badgeBg: '#eef6f2', badgeText: 'var(--sage)' },
+    ];
+
+    function escHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     async function loadFeaturesPage() {
       try {
         const { data } = await supabaseClient.from('site_settings').select('setting_key, setting_value');
@@ -138,23 +152,26 @@
         if (s.feat_cta_btn1) document.getElementById('feat-cta-btn1').textContent = s.feat_cta_btn1;
         if (s.feat_cta_btn2) document.getElementById('feat-cta-btn2').textContent = s.feat_cta_btn2;
 
-        // Show all 10 cards by default
+        // Show all cards by default
         const count = parseInt(s['feat_card_count'] || DEFAULT_FEATURES.length);
         const grid = document.getElementById('features-grid');
         const cards = [];
 
         for (let i = 1; i <= count; i++) {
           const def = DEFAULT_FEATURES[i - 1] || DEFAULT_FEATURES[DEFAULT_FEATURES.length - 1];
-          const title = def.title;
-          const desc = def.desc;
-          const badge = def.badge;
+          const palette = BADGE_PALETTE[(i - 1) % BADGE_PALETTE.length];
+
+          const title = s['feat_card' + i + '_title'] || def.title;
+          const desc = s['feat_card' + i + '_desc'] || def.desc;
+          const badge = s['feat_card' + i + '_badge'] || def.badge;
+          const icon = s['feat_card' + i + '_icon'] || def.icon;
 
           cards.push(`
-          <div class="card" style="border-top:3px solid ${def.badgeColor}">
-            <div style="font-size:2rem;margin-bottom:1rem">${def.icon}</div>
-            <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.5rem">${title}</h3>
-            <p style="font-size:0.9rem;color:var(--text-mid)">${desc}</p>
-            <div style="margin-top:1rem;padding:0.65rem 0.85rem;background:${def.badgeBg};border-radius:var(--radius-sm);font-size:0.8rem;color:${def.badgeText};font-weight:600">${badge}</div>
+          <div class="card" style="border-top:3px solid ${palette.badgeColor}">
+            <div style="font-size:2rem;margin-bottom:1rem">${escHtml(icon)}</div>
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.5rem">${escHtml(title)}</h3>
+            <p style="font-size:0.9rem;color:var(--text-mid)">${escHtml(desc)}</p>
+            <div style="margin-top:1rem;padding:0.65rem 0.85rem;background:${palette.badgeBg};border-radius:var(--radius-sm);font-size:0.8rem;color:${palette.badgeText};font-weight:600">${escHtml(badge)}</div>
           </div>
         `);
         }

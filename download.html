@@ -21,7 +21,7 @@
     </p>
 
     <!-- Single download link -->
-    <a href="https://tinybloom.app/download" target="_blank" class="btn btn-primary btn-lg" style="display:inline-flex;margin-bottom:2.5rem">
+    <a href="https://tinybloom.app/download" id="download-app-link" target="_blank" class="btn btn-primary btn-lg" style="display:inline-flex;margin-bottom:2.5rem">
       📲 Download the TinyBloom App
     </a>
 
@@ -69,6 +69,16 @@ const roleLabels = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Load the download URL from site_settings (editable via Admin > Download page)
+  try {
+    const { data } = await supabaseClient.from('site_settings').select('setting_value')
+      .eq('setting_key', 'download_app_url').single();
+    if (data?.setting_value) {
+      const link = document.getElementById('download-app-link');
+      if (link) link.href = data.setting_value;
+    }
+  } catch (e) {}
+
   try {
     const { data:{ user } } = await supabaseClient.auth.getUser();
     if (!user) { window.location.replace('login.html'); return; }

@@ -91,7 +91,7 @@
               <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">
                 Pending Specialist Approvals
               </h2>
-              <a href="specialists.html" style="font-size:0.82rem">
+              <a href="applications.html?type=specialist" style="font-size:0.82rem">
                 Manage →
               </a>
             </div>
@@ -107,7 +107,7 @@
               <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">
                 Pending Volunteer Approvals
               </h2>
-              <a href="volunteers.html" style="font-size:0.82rem">
+              <a href="applications.html?type=volunteer" style="font-size:0.82rem">
                 Manage →
               </a>
             </div>
@@ -211,7 +211,7 @@
           ${escapeHtml(s.specialization || 'No specialization')}
         </p>
       </div>
-      <a href="specialists.html?view=${s.id}" class="btn btn-teal btn-sm">Review</a>
+      <a href="applications.html?type=specialist&view=${s.id}" class="btn btn-teal btn-sm">Review</a>
     </div>
   </div>
 `).join('');
@@ -248,7 +248,7 @@
           ${escapeHtml(v.expertise || 'No expertise listed')}
         </p>
       </div>
-      <a href="volunteers.html?view=${v.id}" class="btn btn-teal btn-sm">Review</a>
+      <a href="applications.html?type=volunteer&view=${v.id}" class="btn btn-teal btn-sm">Review</a>
     </div>
   </div>
 `).join('');
