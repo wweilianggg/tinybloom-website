@@ -400,6 +400,8 @@ function getAdminSidebar(activePage) {
     { href: 'page-testimonials.html', icon: '⭐', label: 'Testimonials' },
     { href: 'page-faq.html', icon: '❓', label: 'FAQ' },
     { href: 'page-download.html', icon: '📲', label: 'Download' },
+    { divider: true, label: 'APP CONTENT' },
+    { href: 'app-logs.html', icon: '📔', label: 'Logs' },
     { divider: true, label: 'SPECIALIST LISTS' },
     { href: 'list-specializations.html', icon: '🩺', label: 'Specialization' },
     { href: 'list-hospitals.html', icon: '🏥', label: 'Hospitals / Clinics' },
