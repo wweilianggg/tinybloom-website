@@ -16,7 +16,6 @@
       </div>
       <div style="display:flex;gap:0.75rem">
         <a href="../download.html" target="_blank" class="btn btn-outline btn-sm">↗ View Page</a>
-        <button class="btn btn-primary" onclick="saveAll()" id="save-btn">Save Changes</button>
       </div>
     </div>
     <div class="form-success" id="save-ok" style="display:none;margin-bottom:1rem;text-align:center">✓ All changes saved!</div>
@@ -28,7 +27,7 @@
     </div>
 
     <div style="text-align:right;margin-bottom:2rem">
-      <button class="btn btn-primary btn-lg" onclick="saveAll()">Save All Changes</button>
+      <button class="btn btn-primary btn-lg" onclick="saveAll()" id="save-btn">Save All Changes</button>
     </div>
   </div>
 </div>
@@ -63,7 +62,7 @@ async function saveAll() {
     setTimeout(() => document.getElementById('save-ok').style.display = 'none', 3000);
     showToast('All changes saved!', 'success');
   } catch (e) { showToast('Error: ' + e.message, 'error'); }
-  finally { btn.textContent = 'Save Changes'; btn.disabled = false; }
+  finally { btn.textContent = 'Save All Changes'; btn.disabled = false; }
 }
 </script>
 </body>
