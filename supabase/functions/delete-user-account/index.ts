@@ -33,12 +33,12 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return jsonResponse({ error: 'Missing authorization header' }, 401);
+      return jsonResponse({ error: 'Missing authorization header' });
     }
 
     const { userId } = await req.json();
     if (!userId) {
-      return jsonResponse({ error: 'Missing userId' }, 400);
+      return jsonResponse({ error: 'Missing userId' });
     }
 
     const supabaseAdmin = createClient(
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: { user: caller }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !caller) {
-      return jsonResponse({ error: 'Invalid session' }, 401);
+      return jsonResponse({ error: 'Invalid session' });
     }
 
     const { data: callerProfile } = await supabaseAdmin
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (callerProfile?.role !== 'admin') {
-      return jsonResponse({ error: 'Only admins can delete accounts' }, 403);
+      return jsonResponse({ error: 'Only admins can delete accounts' });
     }
 
     // Same as the existing client-side delete: removes the profile row,
@@ -69,24 +69,35 @@ Deno.serve(async (req) => {
     // gone (e.g. retrying after a partial failure).
     const { error: profileError } = await supabaseAdmin.from('profiles').delete().eq('id', userId);
     if (profileError) {
-      return jsonResponse({ error: profileError.message }, 400);
+      return jsonResponse({ error: profileError.message });
     }
 
     // The step the anon key could never do — actually frees the email.
     const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    if (authDeleteError) {
-      return jsonResponse({ error: authDeleteError.message }, 400);
+    // If a duplicate/retried request already deleted this account (e.g. a
+    // double-click before the button finished disabling), the Admin API
+    // reports "User not found" — that's not a real failure, the end state
+    // we wanted (account gone) is already true, so treat it as success.
+    if (authDeleteError && !/not.?found/i.test(authDeleteError.message || '')) {
+      return jsonResponse({ error: authDeleteError.message });
     }
 
     return jsonResponse({ success: true });
   } catch (err) {
-    return jsonResponse({ error: err instanceof Error ? err.message : 'Unexpected error' }, 500);
+    return jsonResponse({ error: err instanceof Error ? err.message : 'Unexpected error' });
   }
 });
 
-function jsonResponse(body: unknown, status = 200) {
+// Always returns HTTP 200 — including for logical errors — with the real
+// error (if any) inside the JSON body's `error` field. This matches the
+// working create-pending-account function's pattern: supabase-js's
+// functions.invoke() replaces the actual error message with a generic
+// "Edge Function returned a non-2xx status code" whenever the function
+// returns a non-2xx status, so returning error details in a 200 body is the
+// only way callers can see what actually went wrong.
+function jsonResponse(body: unknown) {
   return new Response(JSON.stringify(body), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    status,
+    status: 200,
   });
 }

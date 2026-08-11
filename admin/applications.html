@@ -461,7 +461,13 @@
             }
         }
 
+        let isDeletingApplication = false;
         async function deleteRequest(id, btn) {
+            // Belt-and-suspenders against double-clicks: disabling the row's
+            // buttons is not always fast enough to block a second click
+            // that's already queued, so also gate on a plain JS flag.
+            if (isDeletingApplication) return;
+
             const item = requests.find(r => r.id === id);
             if (!item) return;
             const table = TABLE_BY_TYPE[item.type];
@@ -474,6 +480,7 @@
             );
             if (!confirmed) return;
 
+            isDeletingApplication = true;
             const rowButtons = btn ? Array.from(btn.closest('td').querySelectorAll('button')) : [btn];
             setButtonsLoading(rowButtons, btn, 'Deleting...');
 
@@ -506,10 +513,17 @@
 
                 showToast(label + ' application deleted.', 'success');
                 closeDetailsModal();
-                await loadRequests();
             } catch (e) {
                 showToast(e.message || 'Delete failed.', 'error');
                 resetButtonsLoading(rowButtons);
+            } finally {
+                // Always refresh, success or not — if the account was
+                // actually deleted despite an error being shown (e.g. a
+                // retried request that only failed on its second, redundant
+                // attempt), this is what makes the row disappear without
+                // needing a manual page reload.
+                isDeletingApplication = false;
+                await loadRequests();
             }
         }
 

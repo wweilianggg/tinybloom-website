@@ -228,10 +228,19 @@
     }
     function closeDeleteModal() { document.getElementById('delete-modal').style.display = 'none'; }
 
+    let isDeletingUser = false;
     async function confirmDelete() {
+      // Belt-and-suspenders against double-clicks: disabling the button is
+      // not always fast enough to block a second click that's already
+      // queued, so also gate on a plain JS flag.
+      if (isDeletingUser) return;
+      isDeletingUser = true;
+
       const id = document.getElementById('delete-user-id').value;
       const btn = document.querySelector('#delete-modal .btn-primary');
+      const cancelBtn = document.querySelector('#delete-modal .btn-ghost');
       btn.textContent = 'Deleting...'; btn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
 
       try {
         // Routed through an Edge Function so it can also delete the Supabase
@@ -246,10 +255,17 @@
 
         closeDeleteModal();
         showToast('User deleted.', '');
-        loadUsers();
       } catch (e) {
         showToast('Error: ' + e.message, 'error');
+      } finally {
+        // Always refresh, success or not — if the account was actually
+        // deleted despite an error being shown (e.g. a retried request that
+        // only failed on its second, redundant attempt), this is what makes
+        // the row disappear without needing a manual page reload.
         btn.textContent = 'Yes, Delete User'; btn.disabled = false;
+        if (cancelBtn) cancelBtn.disabled = false;
+        isDeletingUser = false;
+        await loadUsers();
       }
     }
   </script>
