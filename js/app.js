@@ -158,20 +158,22 @@ async function requireAdmin() {
 const NAV_HTML = `
 <nav class="navbar">
   <a href="index.html" class="nav-brand">TinyBloom</a>
-  <ul class="nav-links" id="nav-links">
-    <li><a href="index.html" id="nav-home">Home</a></li>
-    <li><a href="features.html" id="nav-features">Features</a></li>
-    <li><a href="subscriptions.html" id="nav-subscriptions">Subscriptions</a></li>
-    <li><a href="testimonials.html" id="nav-testimonials">Testimonials</a></li>
-    <li><a href="faq.html" id="nav-faq">FAQ</a></li>
-  </ul>
-  <div class="nav-auth" id="auth-links">
-    <a href="register.html" class="btn btn-primary btn-sm">Register</a>
-  </div>
-  <div class="nav-user" id="user-menu" style="display:none">
-    <span class="nav-user-name" id="nav-user-name"></span>
-    <a href="admin/index.html" class="btn btn-outline btn-sm" id="admin-nav-btn">Admin Panel</a>
-    <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
+  <div class="nav-menu" id="nav-menu">
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" id="nav-home">Home</a></li>
+      <li><a href="features.html" id="nav-features">Features</a></li>
+      <li><a href="subscriptions.html" id="nav-subscriptions">Subscriptions</a></li>
+      <li><a href="testimonials.html" id="nav-testimonials">Testimonials</a></li>
+      <li><a href="faq.html" id="nav-faq">FAQ</a></li>
+    </ul>
+    <div class="nav-auth" id="auth-links">
+      <a href="register.html" class="btn btn-primary btn-sm">Register</a>
+    </div>
+    <div class="nav-user" id="user-menu" style="display:none">
+      <span class="nav-user-name" id="nav-user-name"></span>
+      <a href="admin/index.html" class="btn btn-outline btn-sm" id="admin-nav-btn">Admin Panel</a>
+      <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
+    </div>
   </div>
   <div class="hamburger" id="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
@@ -263,8 +265,8 @@ async function loadFooterContent() {
 }
 
 function toggleMenu() {
-  const links = document.getElementById('nav-links');
-  if (links) links.classList.toggle('open');
+  const menu = document.getElementById('nav-menu');
+  if (menu) menu.classList.toggle('open');
 }
 
 // Toast utility
