@@ -36,6 +36,23 @@ function setText(id, value) {
   if (el) el.textContent = value;
 }
 
+// Show/hide password toggle used on login/register/reset-password fields.
+// Expects the eye-icon <svg> to have id `${inputId}-eye` and (optionally)
+// the toggle <button> to have id `${inputId}-toggle`, matching the markup
+// pattern used wherever this is wired up.
+function togglePasswordVisibility(inputId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(inputId + '-eye');
+  if (!input || !icon) return;
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  icon.innerHTML = showing
+    ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>'
+    : '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.29 20.29 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  const btn = document.getElementById(inputId + '-toggle');
+  if (btn) btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+}
+
 async function getCurrentUser() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
