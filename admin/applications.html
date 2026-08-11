@@ -102,6 +102,18 @@
         </div>
     </div>
 
+    <div id="confirm-modal"
+        style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.4);z-index:10000;align-items:center;justify-content:center">
+        <div class="card" style="width:420px;max-width:90%">
+            <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:0.75rem" id="confirm-title">Confirm</h3>
+            <p style="font-size:0.9rem;color:var(--text-mid);margin-bottom:1.5rem" id="confirm-message"></p>
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem">
+                <button class="btn btn-ghost" onclick="closeConfirmModal(false)">Cancel</button>
+                <button class="btn btn-primary" style="background:#c0392b" id="confirm-ok-btn" onclick="closeConfirmModal(true)">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/app.js"></script>
 
@@ -246,7 +258,7 @@
 
                 const buttons = `
             <button class="btn btn-outline btn-sm" onclick="viewDetails('${item.id}')">View</button>
-            <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteRequest('${item.id}')">Delete</button>
+            <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteRequest('${item.id}', this)">Delete</button>
             `;
 
                 return `
@@ -301,8 +313,8 @@
             const actionsEl = document.getElementById('details-actions');
             actionsEl.innerHTML = item.status === 'pending'
                 ? `
-                <button class="btn btn-ghost" style="color:#c0392b" onclick="rejectRequest('${item.id}')">Reject</button>
-                <button class="btn btn-primary" onclick="approveRequest('${item.id}')">Approve</button>
+                <button class="btn btn-ghost" style="color:#c0392b" onclick="rejectRequest('${item.id}', this)">Reject</button>
+                <button class="btn btn-primary" onclick="approveRequest('${item.id}', this)">Approve</button>
                 <button class="btn btn-ghost" onclick="closeDetailsModal()">Close</button>
                 `
                 : `<button class="btn btn-ghost" onclick="closeDetailsModal()">Close</button>`;
@@ -327,127 +339,174 @@
             document.getElementById('details-modal').style.display = 'none';
         }
 
-        async function approveRequest(id) {
-            const item = requests.find(r => r.id === id);
-            if (!item) return;
-            const table = TABLE_BY_TYPE[item.type];
-            const label = LABEL_BY_TYPE[item.type];
-            if (!confirm(`Approve this ${label.toLowerCase()} request?`)) return;
-
-            const { data: applicant, error: fetchError } = await supabaseClient
-                .from(table)
-                .select(`id, user_id, profiles:user_id ( email, full_name )`)
-                .eq('id', id)
-                .single();
-
-            if (fetchError) {
-                showToast(fetchError.message, 'error');
-                return;
-            }
-
-            await supabaseClient
-                .from(table)
-                .update({ approval_status: 'approved', is_verified: true, verified_at: new Date().toISOString() })
-                .eq('id', id);
-
-            await supabaseClient
-                .from('profiles')
-                .update({ is_active: true })
-                .eq('id', applicant.user_id);
-
-            // The account was created with email_confirm:false (see the
-            // create-pending-account Edge Function) so no confirmation email
-            // was sent at registration time — trigger it now, on approval.
-            // This runs on every approval (including re-approval after being
-            // set back to pending), so it resends each time too.
-            await supabaseClient.auth.resend({
-                type: 'signup',
-                email: applicant.profiles?.email,
-                options: { emailRedirectTo: 'https://wweilianggg.github.io/tinybloom-website/login.html' }
+        // In-page confirmation modal (used instead of the native browser confirm()).
+        // Returns a Promise<boolean> so callers can `await` the user's choice.
+        let confirmResolve = null;
+        function showConfirm(title, message, confirmLabel) {
+            return new Promise(resolve => {
+                document.getElementById('confirm-title').textContent = title;
+                document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-ok-btn').textContent = confirmLabel || 'Confirm';
+                confirmResolve = resolve;
+                document.getElementById('confirm-modal').style.display = 'flex';
             });
+        }
+        function closeConfirmModal(result) {
+            document.getElementById('confirm-modal').style.display = 'none';
+            if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+        }
 
-            showToast(label + ' approved and email sent!', 'success');
-            closeDetailsModal();
-            await loadRequests();
+        // Disables/re-enables a set of buttons and swaps the clicked one's label,
+        // so double-clicking Approve/Reject/Delete can't fire the action twice.
+        function setButtonsLoading(buttons, activeBtn, loadingText) {
+            buttons.forEach(b => { if (b) b.disabled = true; });
+            if (activeBtn) {
+                activeBtn.dataset.originalText = activeBtn.textContent;
+                activeBtn.textContent = loadingText;
+            }
+        }
+        function resetButtonsLoading(buttons) {
+            buttons.forEach(b => {
+                if (!b) return;
+                b.disabled = false;
+                if (b.dataset.originalText) { b.textContent = b.dataset.originalText; delete b.dataset.originalText; }
+            });
+        }
 
-            await supabaseClient
-                .from('email_notifications')
-                .insert({
-                    recipient_email: applicant.profiles?.email,
-                    recipient_name: applicant.profiles?.full_name,
-                    subject: 'TinyBloom ' + label + ' Account Approved',
-                    message:
-                        'Hi ' + applicant.profiles?.full_name + ',\n\n' +
-                        'Your TinyBloom ' + label.toLowerCase() + ' account has been approved.\n\n' +
-                        'You may now log in and start using your ' + label.toLowerCase() + ' dashboard.\n\n' +
-                        'Login here: https://wweilianggg.github.io/tinybloom-website/login.html\n\n' +
-                        'Thank you,\nTinyBloom Team'
+        async function approveRequest(id, btn) {
+            const item = requests.find(r => r.id === id);
+            if (!item) return;
+            const table = TABLE_BY_TYPE[item.type];
+            const label = LABEL_BY_TYPE[item.type];
+
+            const actionButtons = Array.from(document.querySelectorAll('#details-actions button'));
+            setButtonsLoading(actionButtons, btn, 'Approving...');
+
+            try {
+                const { data: applicant, error: fetchError } = await supabaseClient
+                    .from(table)
+                    .select(`id, user_id, profiles:user_id ( email, full_name )`)
+                    .eq('id', id)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                await supabaseClient
+                    .from(table)
+                    .update({ approval_status: 'approved', is_verified: true, verified_at: new Date().toISOString() })
+                    .eq('id', id);
+
+                await supabaseClient
+                    .from('profiles')
+                    .update({ is_active: true })
+                    .eq('id', applicant.user_id);
+
+                // The account was created with email_confirm:false (see the
+                // create-pending-account Edge Function) so no confirmation email
+                // was sent at registration time — trigger it now, on approval.
+                // This runs on every approval (including re-approval after being
+                // set back to pending), so it resends each time too.
+                await supabaseClient.auth.resend({
+                    type: 'signup',
+                    email: applicant.profiles?.email,
+                    options: { emailRedirectTo: 'https://wweilianggg.github.io/tinybloom-website/login.html' }
                 });
+
+                await supabaseClient
+                    .from('email_notifications')
+                    .insert({
+                        recipient_email: applicant.profiles?.email,
+                        recipient_name: applicant.profiles?.full_name,
+                        subject: 'TinyBloom ' + label + ' Account Approved',
+                        message:
+                            'Hi ' + applicant.profiles?.full_name + ',\n\n' +
+                            'Your TinyBloom ' + label.toLowerCase() + ' account has been approved.\n\n' +
+                            'You may now log in and start using your ' + label.toLowerCase() + ' dashboard.\n\n' +
+                            'Login here: https://wweilianggg.github.io/tinybloom-website/login.html\n\n' +
+                            'Thank you,\nTinyBloom Team'
+                    });
+
+                showToast(label + ' approved and email sent!', 'success');
+                closeDetailsModal();
+                await loadRequests();
+            } catch (e) {
+                showToast(e.message || 'Approval failed.', 'error');
+                resetButtonsLoading(actionButtons);
+            }
         }
 
-        async function rejectRequest(id) {
+        async function rejectRequest(id, btn) {
             const item = requests.find(r => r.id === id);
             if (!item) return;
             const table = TABLE_BY_TYPE[item.type];
             const label = LABEL_BY_TYPE[item.type];
-            if (!confirm(`Reject this ${label.toLowerCase()} application?`)) return;
 
-            const { error } = await supabaseClient
-                .from(table)
-                .update({ approval_status: 'rejected', is_verified: false, verified_at: null })
-                .eq('id', id);
+            const actionButtons = Array.from(document.querySelectorAll('#details-actions button'));
+            setButtonsLoading(actionButtons, btn, 'Rejecting...');
 
-            if (error) {
-                showToast(error.message, 'error');
-                return;
+            try {
+                const { error } = await supabaseClient
+                    .from(table)
+                    .update({ approval_status: 'rejected', is_verified: false, verified_at: null })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showToast(label + ' application rejected.', 'success');
+                closeDetailsModal();
+                await loadRequests();
+            } catch (e) {
+                showToast(e.message || 'Reject failed.', 'error');
+                resetButtonsLoading(actionButtons);
             }
-
-            showToast(label + ' application rejected.', 'success');
-            closeDetailsModal();
-            await loadRequests();
         }
 
-        async function deleteRequest(id) {
+        async function deleteRequest(id, btn) {
             const item = requests.find(r => r.id === id);
             if (!item) return;
             const table = TABLE_BY_TYPE[item.type];
             const label = LABEL_BY_TYPE[item.type];
-            if (!confirm(`Permanently delete this ${label.toLowerCase()} application? This cannot be undone.`)) return;
 
-            const { data: applicant, error: fetchError } = await supabaseClient
-                .from(table)
-                .select('id, user_id')
-                .eq('id', id)
-                .single();
+            const confirmed = await showConfirm(
+                'Delete ' + label + ' Application',
+                `Permanently delete this ${label.toLowerCase()} application? This cannot be undone.`,
+                'Delete'
+            );
+            if (!confirmed) return;
 
-            if (fetchError) {
-                showToast(fetchError.message, 'error');
-                return;
+            const rowButtons = btn ? Array.from(btn.closest('td').querySelectorAll('button')) : [btn];
+            setButtonsLoading(rowButtons, btn, 'Deleting...');
+
+            try {
+                const { data: applicant, error: fetchError } = await supabaseClient
+                    .from(table)
+                    .select('id, user_id')
+                    .eq('id', id)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const { error: deleteAppError } = await supabaseClient
+                    .from(table)
+                    .delete()
+                    .eq('id', id);
+
+                if (deleteAppError) throw deleteAppError;
+
+                const { error: deleteProfileError } = await supabaseClient
+                    .from('profiles')
+                    .delete()
+                    .eq('id', applicant.user_id);
+
+                if (deleteProfileError) throw deleteProfileError;
+
+                showToast(label + ' application deleted.', 'success');
+                closeDetailsModal();
+                await loadRequests();
+            } catch (e) {
+                showToast(e.message || 'Delete failed.', 'error');
+                resetButtonsLoading(rowButtons);
             }
-
-            const { error: deleteAppError } = await supabaseClient
-                .from(table)
-                .delete()
-                .eq('id', id);
-
-            if (deleteAppError) {
-                showToast(deleteAppError.message, 'error');
-                return;
-            }
-
-            const { error: deleteProfileError } = await supabaseClient
-                .from('profiles')
-                .delete()
-                .eq('id', applicant.user_id);
-
-            if (deleteProfileError) {
-                showToast(deleteProfileError.message, 'error');
-                return;
-            }
-
-            showToast(label + ' application deleted.', 'success');
-            closeDetailsModal();
-            await loadRequests();
         }
 
     </script>
