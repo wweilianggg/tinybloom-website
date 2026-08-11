@@ -152,7 +152,7 @@ async function loadItems() {
 }
 
 async function deleteItem(id) {
-  if (!confirm('Delete? This also removes it from any review-group mappings.')) return;
+  if (!await showConfirm('Delete this specialization? This also removes it from any review-group mappings.', { confirmLabel: 'Delete' })) return;
   const { error } = await supabaseClient.from(TABLE_NAME).delete().eq('id', id);
   if (error) {
     if (error.code === '23503') {
@@ -245,7 +245,7 @@ async function deleteGroup(id) {
   const msg = parts.length
     ? `Delete this group? This will also affect: ${parts.join(' and ')}.`
     : 'Delete this group?';
-  if (!confirm(msg)) return;
+  if (!await showConfirm(msg, { title: 'Delete Group', confirmLabel: 'Delete' })) return;
   const { error } = await supabaseClient.from(GROUP_TABLE_NAME).delete().eq('id', id);
   if (error) { showToast(error.message, 'error'); return; }
   showToast('Deleted.');

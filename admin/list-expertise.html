@@ -92,7 +92,7 @@ async function loadItems() {
 }
 
 async function deleteItem(id) {
-  if (!confirm('Delete?')) return;
+  if (!await showConfirm('Delete this area of expertise?', { confirmLabel: 'Delete' })) return;
   await supabaseClient.from(TABLE_NAME).delete().eq('id', id);
   showToast('Deleted.');
   loadItems();

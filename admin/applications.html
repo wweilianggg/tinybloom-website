@@ -102,18 +102,6 @@
         </div>
     </div>
 
-    <div id="confirm-modal"
-        style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.4);z-index:10000;align-items:center;justify-content:center">
-        <div class="card" style="width:420px;max-width:90%">
-            <h3 style="font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:0.75rem" id="confirm-title">Confirm</h3>
-            <p style="font-size:0.9rem;color:var(--text-mid);margin-bottom:1.5rem" id="confirm-message"></p>
-            <div style="display:flex;justify-content:flex-end;gap:0.75rem">
-                <button class="btn btn-ghost" onclick="closeConfirmModal(false)">Cancel</button>
-                <button class="btn btn-primary" style="background:#c0392b" id="confirm-ok-btn" onclick="closeConfirmModal(true)">Delete</button>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/app.js"></script>
 
@@ -339,22 +327,8 @@
             document.getElementById('details-modal').style.display = 'none';
         }
 
-        // In-page confirmation modal (used instead of the native browser confirm()).
-        // Returns a Promise<boolean> so callers can `await` the user's choice.
-        let confirmResolve = null;
-        function showConfirm(title, message, confirmLabel) {
-            return new Promise(resolve => {
-                document.getElementById('confirm-title').textContent = title;
-                document.getElementById('confirm-message').textContent = message;
-                document.getElementById('confirm-ok-btn').textContent = confirmLabel || 'Confirm';
-                confirmResolve = resolve;
-                document.getElementById('confirm-modal').style.display = 'flex';
-            });
-        }
-        function closeConfirmModal(result) {
-            document.getElementById('confirm-modal').style.display = 'none';
-            if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
-        }
+        // showConfirm() / closeConfirmModal() are now shared utilities from
+        // js/app.js (admin-common.js) — no local definitions needed here.
 
         // Disables/re-enables a set of buttons and swaps the clicked one's label,
         // so double-clicking Approve/Reject/Delete can't fire the action twice.
@@ -474,9 +448,8 @@
             const label = LABEL_BY_TYPE[item.type];
 
             const confirmed = await showConfirm(
-                'Delete ' + label + ' Application',
                 `Permanently delete this ${label.toLowerCase()} application? This cannot be undone.`,
-                'Delete'
+                { title: 'Delete ' + label + ' Application', confirmLabel: 'Delete' }
             );
             if (!confirmed) return;
 

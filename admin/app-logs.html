@@ -163,7 +163,7 @@ async function loadItems() {
 }
 
 async function deleteItem(id) {
-  if (!confirm('Delete?')) return;
+  if (!await showConfirm('Delete this log entry?', { confirmLabel: 'Delete' })) return;
   const table = TABLE_BY_CATEGORY[activeCategory];
   await supabaseClient.from(table).delete().eq('id', id);
   showToast('Deleted.');

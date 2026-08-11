@@ -196,7 +196,7 @@ async function loadArticles() {
 }
 
 async function deleteArticle(id, btn) {
-  if (!confirm('Delete this article?')) return;
+  if (!await showConfirm('Delete this article?', { confirmLabel: 'Delete' })) return;
   await supabaseClient.from('articles').delete().eq('id', id);
   btn.closest('tr').remove();
   showToast('Article deleted.');

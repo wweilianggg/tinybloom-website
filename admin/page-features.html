@@ -171,7 +171,7 @@ function addCard() {
 
 async function removeCard(n) {
   if (cardCount <= 1) { showToast('Must have at least 1 card.', 'error'); return; }
-  if (!confirm(`Remove Card ${n}? This will shift all cards below it up by one.`)) return;
+  if (!await showConfirm(`Remove Card ${n}? This will shift all cards below it up by one.`, { title: 'Remove Card', confirmLabel: 'Remove' })) return;
 
   // Shift all cards after n down by 1
   for (let i = n; i < cardCount; i++) {

@@ -110,7 +110,7 @@
             </div>`).join('');
     }
     async function togglePublish(id, publish) { await supabaseClient.from('testimonials').update({ is_published: publish }).eq('id', id); showToast(publish ? 'Published!' : 'Unpublished.', publish ? 'success' : ''); loadTestimonials(); }
-    async function deleteTestimonial(id) { if (!confirm('Delete?')) return; await supabaseClient.from('testimonials').delete().eq('id', id); document.getElementById('test-' + id)?.remove(); showToast('Deleted.'); }
+    async function deleteTestimonial(id) { if (!await showConfirm('Delete this testimonial?', { confirmLabel: 'Delete' })) return; await supabaseClient.from('testimonials').delete().eq('id', id); document.getElementById('test-' + id)?.remove(); showToast('Deleted.'); }
   </script>
 </body>
 

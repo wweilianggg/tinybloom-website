@@ -194,9 +194,9 @@ function addCategory() {
   input.value = '';
 }
 
-function removeCategory(i) {
+async function removeCategory(i) {
   const cat = categories[i];
-  if (confirm('Remove category "' + cat + '"? Rows using it will keep their value but may not display under a section header.')) {
+  if (await showConfirm('Remove category "' + cat + '"? Rows using it will keep their value but may not display under a section header.', { title: 'Remove Category', confirmLabel: 'Remove' })) {
     categories.splice(i, 1);
     renderCategories();
     renderRows();
