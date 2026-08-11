@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Onboarding — Admin</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="admin-layout">
+  <div id="admin-sidebar-placeholder"></div>
+  <div class="admin-content">
+    <div class="admin-header" style="margin-bottom:1.5rem">
+      <div>
+        <h1 style="margin:0">🤰 Mom's Onboarding</h1>
+        <div style="font-size:0.85rem;color:var(--text-light);margin-top:0.25rem">Manage the Medical Conditions and Allergies options moms can select during onboarding.</div>
+      </div>
+    </div>
+
+    <div id="category-tabs" style="display:flex;gap:0.6rem;margin-bottom:1.5rem;flex-wrap:wrap">
+      <button class="btn btn-sm" id="tab-medical_condition" onclick="setCategory('medical_condition')">🩺 Medical Conditions</button>
+      <button class="btn btn-sm" id="tab-allergy" onclick="setCategory('allergy')">🌿 Allergies</button>
+    </div>
+
+    <div class="admin-header" style="margin-bottom:1.25rem">
+      <h2 id="category-title" style="font-family:'Playfair Display',serif;font-size:1.15rem;margin:0"></h2>
+      <button class="btn btn-primary" id="new-item-btn" onclick="openItemForm()">+ New Entry</button>
+    </div>
+
+    <div id="item-form-panel" style="display:none" class="card" style="margin-bottom:1.5rem">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.25rem" id="item-form-title">New Entry</h2>
+      <input type="hidden" id="item-id" />
+      <div class="form-group"><label>Label *</label><input type="text" id="item-label" placeholder="e.g. Gestational Diabetes" /></div>
+      <div class="form-group" id="item-description-group" style="display:none">
+        <label>Description *</label>
+        <textarea id="item-description" rows="2" placeholder="e.g. Includes peanuts, almonds, cashews, walnuts, and other tree nuts."></textarea>
+      </div>
+      <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="item-error"></div>
+      <div style="display:flex;gap:0.75rem"><button class="btn btn-primary" onclick="saveItem()">Save</button><button class="btn btn-ghost" onclick="closeItemForm()">Cancel</button></div>
+    </div>
+    <div id="items-container"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/app.js"></script>
+<script>
+// Medical Conditions and Allergies both live in `onboarding_options`,
+// distinguished by the `category` column, matching the pattern used by
+// pregnancy_log_options for the app's Logs tracker.
+const TABLE_NAME = 'onboarding_options';
+const LABEL_BY_CATEGORY = {
+  medical_condition: 'Medical Conditions',
+  allergy: 'Allergies'
+};
+const SINGULAR_BY_CATEGORY = {
+  medical_condition: 'Medical Condition',
+  allergy: 'Allergy'
+};
+
+let activeCategory = 'medical_condition';
+let editingItemId = null;
+let currentItems = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await requireAdmin();
+  setCategory('medical_condition');
+});
+
+function setCategory(category) {
+  activeCategory = category;
+  closeItemForm();
+  ['medical_condition', 'allergy'].forEach(c => {
+    const tab = document.getElementById(`tab-${c}`);
+    if (tab) tab.className = `btn btn-sm ${c === category ? 'btn-primary' : 'btn-ghost'}`;
+  });
+  document.getElementById('category-title').textContent = LABEL_BY_CATEGORY[category];
+  document.getElementById('new-item-btn').textContent = `+ New ${SINGULAR_BY_CATEGORY[category]}`;
+  document.getElementById('item-description-group').style.display = category === 'allergy' ? 'block' : 'none';
+  loadItems();
+}
+
+function openItemForm(item = null) {
+  const panel = document.getElementById('item-form-panel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth' });
+  editingItemId = null;
+  const singular = SINGULAR_BY_CATEGORY[activeCategory];
+  if (item) {
+    editingItemId = item.id;
+    document.getElementById('item-form-title').textContent = `Edit ${singular}`;
+    document.getElementById('item-id').value = item.id;
+    document.getElementById('item-label').value = item.label || '';
+    document.getElementById('item-description').value = item.description || '';
+  } else {
+    document.getElementById('item-form-title').textContent = `New ${singular}`;
+    document.getElementById('item-id').value = '';
+    document.getElementById('item-label').value = '';
+    document.getElementById('item-description').value = '';
+  }
+}
+
+function closeItemForm() {
+  document.getElementById('item-form-panel').style.display = 'none';
+  editingItemId = null;
+}
+
+async function saveItem() {
+  const errEl = document.getElementById('item-error');
+  errEl.style.display = 'none';
+  const label = document.getElementById('item-label').value.trim();
+  if (!label) { errEl.textContent = 'Label is required.'; errEl.style.display = 'block'; return; }
+  const description = document.getElementById('item-description').value.trim();
+  if (activeCategory === 'allergy' && !description) { errEl.textContent = 'Description is required for allergies.'; errEl.style.display = 'block'; return; }
+  const payload = {
+    label,
+    category: activeCategory,
+    description: activeCategory === 'allergy' ? description : null
+  };
+  if (!editingItemId) {
+    const maxOrder = currentItems.reduce((max, i) => Math.max(max, i.sort_order || 0), 0);
+    payload.sort_order = maxOrder + 1;
+  }
+  const { error } = editingItemId
+    ? await supabaseClient.from(TABLE_NAME).update(payload).eq('id', editingItemId)
+    : await supabaseClient.from(TABLE_NAME).insert(payload);
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  showToast('Saved!', 'success');
+  closeItemForm();
+  loadItems();
+}
+
+async function loadItems() {
+  const container = document.getElementById('items-container');
+  container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>';
+  const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').eq('category', activeCategory).order('sort_order').order('label');
+  if (error) { container.innerHTML = `<div style="color:#c0392b;padding:2rem">Error: ${escapeHtml(error.message)}</div>`; return; }
+  currentItems = data || [];
+  if (!data?.length) { container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-light)">No ${escapeHtml(LABEL_BY_CATEGORY[activeCategory].toLowerCase())} yet.</div>`; return; }
+  const showDescription = activeCategory === 'allergy';
+  const descHeader = showDescription ? '<th>Description</th>' : '';
+  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th>${descHeader}<th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td>${showDescription ? `<td style="font-size:0.85rem;color:var(--text-mid)">${escapeHtml(i.description || '')}</td>` : ''}<td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete?')) return;
+  await supabaseClient.from(TABLE_NAME).delete().eq('id', id);
+  showToast('Deleted.');
+  loadItems();
+}
+</script>
+</body>
+</html>

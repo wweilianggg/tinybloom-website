@@ -401,6 +401,7 @@ function getAdminSidebar(activePage) {
     { href: 'page-faq.html', icon: '❓', label: 'FAQ' },
     { href: 'page-download.html', icon: '📲', label: 'Download' },
     { divider: true, label: 'APP CONTENT' },
+    { href: 'app-onboarding.html', icon: '🤰', label: 'Onboarding' },
     { href: 'app-logs.html', icon: '📔', label: 'Logs' },
     { divider: true, label: 'SPECIALIST LISTS' },
     { href: 'list-specializations.html', icon: '🩺', label: 'Specialization' },

@@ -34,10 +34,7 @@
     <div id="item-form-panel" style="display:none" class="card" style="margin-bottom:1.5rem">
       <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.25rem" id="item-form-title">New Tag</h2>
       <input type="hidden" id="item-id" />
-      <div class="form-row">
-        <div class="form-group"><label>Label *</label><input type="text" id="item-label" placeholder="e.g. Happy" /></div>
-        <div class="form-group"><label>Sort Order</label><input type="number" id="item-order" value="0" min="0" /></div>
-      </div>
+      <div class="form-group"><label>Label *</label><input type="text" id="item-label" placeholder="e.g. Happy" /></div>
       <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="item-error"></div>
       <div style="display:flex;gap:0.75rem"><button class="btn btn-primary" onclick="saveItem()">Save</button><button class="btn btn-ghost" onclick="closeItemForm()">Cancel</button></div>
     </div>
@@ -77,6 +74,7 @@ const SINGULAR_BY_CATEGORY = {
 
 let activeCategory = 'mood';
 let editingItemId = null;
+let currentItems = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   await requireAdmin();
@@ -116,12 +114,10 @@ function openItemForm(item = null) {
     document.getElementById('item-form-title').textContent = `Edit ${singular}`;
     document.getElementById('item-id').value = item.id;
     document.getElementById('item-label').value = item.label || '';
-    document.getElementById('item-order').value = item.sort_order || 0;
   } else {
     document.getElementById('item-form-title').textContent = `New ${singular}`;
     document.getElementById('item-id').value = '';
     document.getElementById('item-label').value = '';
-    document.getElementById('item-order').value = 0;
   }
 }
 
@@ -135,10 +131,11 @@ async function saveItem() {
   errEl.style.display = 'none';
   const label = document.getElementById('item-label').value.trim();
   if (!label) { errEl.textContent = 'Label is required.'; errEl.style.display = 'block'; return; }
-  const payload = {
-    label,
-    sort_order: parseInt(document.getElementById('item-order').value) || 0
-  };
+  const payload = { label };
+  if (!editingItemId) {
+    const maxOrder = currentItems.reduce((max, i) => Math.max(max, i.sort_order || 0), 0);
+    payload.sort_order = maxOrder + 1;
+  }
   const dbCategory = DB_CATEGORY_VALUE[activeCategory];
   if (dbCategory) payload.category = dbCategory;
   const table = TABLE_BY_CATEGORY[activeCategory];
@@ -160,6 +157,7 @@ async function loadItems() {
   if (dbCategory) query = query.eq('category', dbCategory);
   const { data, error } = await query.order('sort_order').order('label');
   if (error) { container.innerHTML = `<div style="color:#c0392b;padding:2rem">Error: ${escapeHtml(error.message)}</div>`; return; }
+  currentItems = data || [];
   if (!data?.length) { container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-light)">No ${escapeHtml(LABEL_BY_CATEGORY[activeCategory].toLowerCase())} yet.</div>`; return; }
   container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
