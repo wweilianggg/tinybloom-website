@@ -34,6 +34,12 @@
         <label>Description *</label>
         <textarea id="item-description" rows="2" placeholder="e.g. Includes peanuts, almonds, cashews, walnuts, and other tree nuts."></textarea>
       </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+          <input type="checkbox" id="item-is-text-input" style="width:auto" />
+          Let moms type a custom answer (shows a text box instead of a plain checkbox, like "Other")
+        </label>
+      </div>
       <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="item-error"></div>
       <div style="display:flex;gap:0.75rem"><button class="btn btn-primary" onclick="saveItem()">Save</button><button class="btn btn-ghost" onclick="closeItemForm()">Cancel</button></div>
     </div>
@@ -90,11 +96,13 @@ function openItemForm(item = null) {
     document.getElementById('item-id').value = item.id;
     document.getElementById('item-label').value = item.label || '';
     document.getElementById('item-description').value = item.description || '';
+    document.getElementById('item-is-text-input').checked = !!item.is_text_input;
   } else {
     document.getElementById('item-form-title').textContent = `New ${singular}`;
     document.getElementById('item-id').value = '';
     document.getElementById('item-label').value = '';
     document.getElementById('item-description').value = '';
+    document.getElementById('item-is-text-input').checked = false;
   }
 }
 
@@ -113,7 +121,8 @@ async function saveItem() {
   const payload = {
     label,
     category: activeCategory,
-    description: activeCategory === 'allergy' ? description : null
+    description: activeCategory === 'allergy' ? description : null,
+    is_text_input: document.getElementById('item-is-text-input').checked
   };
   if (!editingItemId) {
     const maxOrder = currentItems.reduce((max, i) => Math.max(max, i.sort_order || 0), 0);
@@ -137,7 +146,7 @@ async function loadItems() {
   if (!data?.length) { container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-light)">No ${escapeHtml(LABEL_BY_CATEGORY[activeCategory].toLowerCase())} yet.</div>`; return; }
   const showDescription = activeCategory === 'allergy';
   const descHeader = showDescription ? '<th>Description</th>' : '';
-  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th>${descHeader}<th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td>${showDescription ? `<td style="font-size:0.85rem;color:var(--text-mid)">${escapeHtml(i.description || '')}</td>` : ''}<td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th>${descHeader}<th>Type</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td>${showDescription ? `<td style="font-size:0.85rem;color:var(--text-mid)">${escapeHtml(i.description || '')}</td>` : ''}<td style="font-size:0.82rem;color:var(--text-light)">${i.is_text_input ? '📝 Text box' : '☑️ Checkbox'}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 async function deleteItem(id) {
