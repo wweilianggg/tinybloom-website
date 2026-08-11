@@ -493,12 +493,16 @@
 
                 if (deleteAppError) throw deleteAppError;
 
-                const { error: deleteProfileError } = await supabaseClient
-                    .from('profiles')
-                    .delete()
-                    .eq('id', applicant.user_id);
-
-                if (deleteProfileError) throw deleteProfileError;
+                // Routed through an Edge Function so it can also delete the
+                // Supabase Auth account (auth.users) — the anon key can only
+                // delete the `profiles` row, which leaves the email
+                // permanently "taken" in Auth and blocks the applicant from
+                // ever cleanly re-registering.
+                const { data: delData, error: delError } = await supabaseClient.functions.invoke('delete-user-account', {
+                    body: { userId: applicant.user_id }
+                });
+                if (delError) throw new Error(delError.message || 'Delete failed. Please try again.');
+                if (delData?.error) throw new Error(delData.error);
 
                 showToast(label + ' application deleted.', 'success');
                 closeDetailsModal();

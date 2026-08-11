@@ -234,9 +234,16 @@
       btn.textContent = 'Deleting...'; btn.disabled = true;
 
       try {
-        // Delete profile (cascades to related tables via FK)
-        const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
-        if (error) throw error;
+        // Routed through an Edge Function so it can also delete the Supabase
+        // Auth account (auth.users) — the anon key can only delete the
+        // `profiles` row, which leaves the email permanently "taken" in Auth
+        // and blocks the person from ever cleanly re-registering.
+        const { data, error } = await supabaseClient.functions.invoke('delete-user-account', {
+          body: { userId: id }
+        });
+        if (error) throw new Error(error.message || 'Delete failed. Please try again.');
+        if (data?.error) throw new Error(data.error);
+
         closeDeleteModal();
         showToast('User deleted.', '');
         loadUsers();
