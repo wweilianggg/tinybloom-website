@@ -5,10 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Log In — TinyBloom</title>
-  <!-- Capture the raw URL hash/search the instant the page parses, before the
-       Supabase SDK (loaded below) gets a chance to auto-parse/strip the
-       #access_token=... fragment. This is the only thing we read from later —
-       never window.location directly — so SDK URL cleanup can't race us. -->
+  <!-- Save the URL's hash and query string before the Supabase SDK below can strip them. -->
   <script>
     window.__tbAuthHash = window.location.hash;
     window.__tbAuthSearch = window.location.search;
@@ -73,14 +70,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js"></script>
   <script>
-    // ---- Email-verification handling (replaces login-verification.html) ----
-    //
-    // If this page was loaded as the redirect target of a Supabase signup
-    // confirmation link, it'll carry either #access_token=... (implicit flow)
-    // or ?code=... (PKCE flow), plus &type=signup. We never trust those raw
-    // values ourselves — we hand them to the SDK, which validates them against
-    // Supabase and only succeeds if the one-time token was genuine and unused.
+    // ---- Email verification ----
+    // When a user clicks the confirmation link in their signup email, they
+    // land here with a token in the URL (#access_token=... or ?code=...).
+    // The Supabase SDK checks that token is valid before we do anything.
 
+    // Removes the verification token from the URL so it can't be reused or bookmarked.
     function cleanAuthParamsFromUrl() {
       const url = new URL(window.location.href);
       url.searchParams.delete('code');
@@ -89,9 +84,7 @@
       history.replaceState(null, '', url.pathname + url.search);
     }
 
-    // Returns true if this load was (successfully or not) a verification
-    // redirect, so the caller knows to skip the normal "already logged in"
-    // auto-redirect below.
+    // Returns true if this page load came from a verification link.
     async function handleEmailVerificationIfPresent() {
       const searchParams = new URLSearchParams(window.__tbAuthSearch || '');
       const hashParams = new URLSearchParams((window.__tbAuthHash || '').replace(/^#/, ''));
@@ -125,8 +118,7 @@
           return false;
         }
 
-        // Don't silently leave them signed in from an email click — they
-        // should still log in explicitly with their password.
+        // Sign them out so they still have to log in with their password.
         await supabaseClient.auth.signOut();
 
         const subtitle = document.getElementById('login-subtitle');
@@ -176,6 +168,7 @@
       if (e.key === 'Enter') handleLogin();
     });
 
+    // Logs the user in, then routes them based on role (admin panel, pending-approval message, or download page).
     async function handleLogin() {
       const email = document.getElementById('login-email').value.trim();
       const password = document.getElementById('login-password').value;
@@ -221,9 +214,7 @@
           return;
         }
 
-        // Next of kin: finish linking to the mum's account now that we have
-        // a real session (metadata was set at signup but couldn't be written
-        // to next_of_kin_profiles until RLS could see an authenticated user).
+        // Link the next-of-kin account to the mum's account, if not linked yet.
         if (loginProfile?.role === 'next_of_kin') {
           try {
             const { data: { user: fullUser } } = await supabaseClient.auth.getUser();
@@ -247,8 +238,7 @@
           }
         }
 
-        // Volunteer cannot login until admin approves (volunteer rejections are
-        // soft-rejects, so is_active alone can't distinguish pending vs rejected)
+        // Volunteer cannot log in until an admin approves the application.
         if (loginProfile?.role === 'volunteer' && loginProfile?.is_active === false) {
           const { data: volunteerProfile } = await supabaseClient
             .from('volunteer_profiles')

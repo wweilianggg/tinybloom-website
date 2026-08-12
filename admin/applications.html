@@ -125,6 +125,7 @@
             await loadRequests();
         });
 
+        // Fetches specialist applications and reshapes them into a common row format.
         async function fetchSpecialists(status) {
             let query = supabaseClient
                 .from('specialist_profiles')
@@ -158,6 +159,7 @@
             }));
         }
 
+        // Fetches volunteer applications and reshapes them into a common row format.
         async function fetchVolunteers(status) {
             let query = supabaseClient
                 .from('volunteer_profiles')
@@ -190,6 +192,7 @@
             }));
         }
 
+        // Loads applications for the selected type/status filters, then opens the details modal if a specific one was linked to.
         async function loadRequests() {
             const tbody = document.getElementById('request-table');
             const type = document.getElementById('type-filter').value;
@@ -219,6 +222,7 @@
             }
         }
 
+        // Renders the applications table, filtered by the search box text.
         function renderRequests() {
             const tbody = document.getElementById('request-table');
             const search = document.getElementById('search-box').value.toLowerCase();
@@ -264,6 +268,7 @@
             }).join('');
         }
 
+        // Opens the details modal for one application, with approve/reject buttons if it's still pending.
         function viewDetails(id) {
             const item = requests.find(r => r.id === id);
             if (!item) return;
@@ -310,6 +315,7 @@
             document.getElementById('details-modal').style.display = 'flex';
         }
 
+        // Opens the applicant's uploaded verification document in a new tab.
         async function viewDocument(path) {
             const { data, error } = await supabaseClient.storage
                 .from('verification-documents')
@@ -327,11 +333,9 @@
             document.getElementById('details-modal').style.display = 'none';
         }
 
-        // showConfirm() / closeConfirmModal() are now shared utilities from
-        // js/app.js (admin-common.js) — no local definitions needed here.
+        // showConfirm() / closeConfirmModal() come from js/app.js (admin-common.js).
 
-        // Disables/re-enables a set of buttons and swaps the clicked one's label,
-        // so double-clicking Approve/Reject/Delete can't fire the action twice.
+        // Disables a set of buttons and shows a loading label on the one clicked.
         function setButtonsLoading(buttons, activeBtn, loadingText) {
             buttons.forEach(b => { if (b) b.disabled = true; });
             if (activeBtn) {
@@ -347,6 +351,7 @@
             });
         }
 
+        // Approves an application, activates the user's profile, and emails them the confirmation.
         async function approveRequest(id, btn) {
             const item = requests.find(r => r.id === id);
             if (!item) return;
@@ -375,11 +380,7 @@
                     .update({ is_active: true })
                     .eq('id', applicant.user_id);
 
-                // The account was created with email_confirm:false (see the
-                // create-pending-account Edge Function) so no confirmation email
-                // was sent at registration time — trigger it now, on approval.
-                // This runs on every approval (including re-approval after being
-                // set back to pending), so it resends each time too.
+                // Sends the confirmation email now that the account is approved.
                 await supabaseClient.auth.resend({
                     type: 'signup',
                     email: applicant.profiles?.email,
@@ -409,6 +410,7 @@
             }
         }
 
+        // Marks an application as rejected.
         async function rejectRequest(id, btn) {
             const item = requests.find(r => r.id === id);
             if (!item) return;
@@ -436,10 +438,9 @@
         }
 
         let isDeletingApplication = false;
+        // Deletes an application row and its Auth account after confirmation.
         async function deleteRequest(id, btn) {
-            // Belt-and-suspenders against double-clicks: disabling the row's
-            // buttons is not always fast enough to block a second click
-            // that's already queued, so also gate on a plain JS flag.
+            // Blocks a second click while a delete is already in progress.
             if (isDeletingApplication) return;
 
             const item = requests.find(r => r.id === id);
@@ -473,11 +474,7 @@
 
                 if (deleteAppError) throw deleteAppError;
 
-                // Routed through an Edge Function so it can also delete the
-                // Supabase Auth account (auth.users) — the anon key can only
-                // delete the `profiles` row, which leaves the email
-                // permanently "taken" in Auth and blocks the applicant from
-                // ever cleanly re-registering.
+                // Deletes the Auth account via the Edge Function (see delete-user-account).
                 const { data: delData, error: delError } = await supabaseClient.functions.invoke('delete-user-account', {
                     body: { userId: applicant.user_id }
                 });
@@ -490,11 +487,7 @@
                 showToast(e.message || 'Delete failed.', 'error');
                 resetButtonsLoading(rowButtons);
             } finally {
-                // Always refresh, success or not — if the account was
-                // actually deleted despite an error being shown (e.g. a
-                // retried request that only failed on its second, redundant
-                // attempt), this is what makes the row disappear without
-                // needing a manual page reload.
+                // Refreshes the list either way, so the table always matches the database.
                 isDeletingApplication = false;
                 await loadRequests();
             }

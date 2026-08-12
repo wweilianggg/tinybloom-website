@@ -1,5 +1,6 @@
 // js/admin-sidebar.js
 
+// Builds the admin sidebar HTML and highlights the current page's link.
 function getAdminSidebar(activePage) {
   const pages = [
     { href: 'index.html', icon: '📊', label: 'Dashboard' },
@@ -42,6 +43,7 @@ function getAdminSidebar(activePage) {
   </div>`;
 }
 
+// Injects the admin sidebar into every admin page on load.
 document.addEventListener('DOMContentLoaded', () => {
   const placeholder = document.getElementById('admin-sidebar-placeholder');
   if (placeholder) {
@@ -50,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Shows a small popup message at the bottom of the screen for a few seconds.
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {
@@ -64,6 +67,7 @@ function showToast(message, type = '') {
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+// Logs the admin out and sends them to the login page.
 async function adminSignOut() {
   await supabaseClient.auth.signOut();
   window.location.href = '../login.html';

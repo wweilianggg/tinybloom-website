@@ -1,81 +1,33 @@
-# TinyBloom — Setup & Deployment Guide
+# TinyBloom Website
 
-## 📁 Project Structure
-```
-tinybloom/
-├── index.html              ← Home (marketing landing page)
-├── features.html           ← Features page
-├── subscriptions.html      ← Pricing page
-├── testimonials.html       ← Testimonials page
-├── faq.html                ← FAQ page
-├── register.html           ← Public registration (all user types)
-├── login.html              ← Admin-only login
-├── reset-password.html     ← Password reset
-├── admin-setup.html        ← ONE-TIME admin account creation
-├── dashboard.html          ← User dashboard (post-login)
-├── css/style.css
-├── js/
-│   ├── supabase.js         ← Supabase config (ADD YOUR KEYS HERE)
-│   ├── nav.js              ← Shared navbar/footer for public pages
-│   ├── admin-common.js     ← Shared utilities for admin pages
-│   └── testimonials-data.js← Shared testimonials loader (home + testimonials page)
-├── admin/                  ← Admin panel (requires admin login)
-│   ├── index.html
-│   ├── users.html
-│   ├── content.html
-│   ├── testimonials.html
-│   ├── faqs.html
-│   ├── consultations.html
-│   └── settings.html
-└── supabase_schema.sql     ← Full database schema
-```
+The public website and admin panel for TinyBloom, a pregnancy support app. Plain HTML/JS, backed by Supabase (database, auth, storage, and two Edge Functions).
 
----
+## Structure
 
-## 🚀 Quick Start (4 Steps)
+- **Public pages** (repo root) — `index.html`, `features.html`, `subscriptions.html`, `testimonials.html`, `faq.html`, `register.html`, `login.html`, `reset-password.html`, `payment.html`, `download.html`, and a few post-signup pages.
+- **`admin/`** — the admin panel: dashboard, user/application management, page content editors, and lookup list editors (specializations, hospitals, etc.).
+- **`js/`** — shared scripts. `js/app.js` is a bundled copy of the others and is what every page actually loads, so any change to a script also needs to be made there.
+- **`css/style.css`** — all styling.
+- **`supabase/functions/`** — two Edge Functions: one creates specialist/volunteer accounts pending approval, the other deletes a user's account (including their login) when an admin removes them.
+- **SQL files** in the repo root — run these in the Supabase SQL Editor to set up tables and seed starting data.
 
-### Step 1 — Add your Supabase keys
-Open `js/supabase.js` and replace:
-```javascript
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
-```
-Find these at: Supabase → Project Settings → API
+## Setup
 
-### Step 2 — Run the database schema
-Go to Supabase → SQL Editor, paste the entire contents of `supabase_schema.sql`, and click Run.
+1. **Connect Supabase** — open `js/supabase.js` (and the matching block near the top of `js/app.js`) and set your project's URL and anon key. Find these under Supabase → Project Settings → API.
+2. **Set up the database** — run each `.sql` file in the repo root in the Supabase SQL Editor.
+3. **Deploy the Edge Functions** — `supabase functions deploy create-pending-account` and `supabase functions deploy delete-user-account`, or paste each `index.ts` into Supabase Dashboard → Edge Functions.
+4. **Host the site** — push to a GitHub repo and enable GitHub Pages (Settings → Pages → Source: main branch / root).
+5. **Set Auth redirect URLs** — Supabase → Authentication → URL Configuration → set Site URL and Redirect URLs to your deployed site's address.
+6. **Create the first admin** — Supabase → Authentication → Users → add a user manually, then make sure their row in the `profiles` table has `role` set to `admin`.
 
-### Step 3 — Upload to GitHub & enable Pages
-- Create a GitHub repo, upload all files to the root
-- Settings → Pages → Source: main branch / root → Save
-- Your site: `https://YOUR_USERNAME.github.io/YOUR_REPO/`
+## User roles
 
-### Step 4 — Create your admin account
-Visit: `https://YOUR_SITE/admin-setup.html`
-- Enter your name, email, and choose a password
-- Enter setup key: **`tinybloom-setup-2024`**
-- Click Create — the page locks itself after first use
-
-Then log in at: `https://YOUR_SITE/login.html`
-
----
-
-## ⚙️ Supabase URL Config (important for password reset)
-Go to Supabase → Authentication → URL Configuration:
-- **Site URL:** `https://YOUR_USERNAME.github.io/YOUR_REPO`
-- **Redirect URLs:** `https://YOUR_USERNAME.github.io/YOUR_REPO/**`
-
----
-
-## 👥 User Roles
 | Role | Access |
-|------|--------|
-| `admin` | Full admin panel, manage all content and users |
-| `free_user` | Basic features via mobile app |
-| `premium_user` | All premium features via mobile app |
-| `next_of_kin` | View linked user's updates |
-| `specialist` | Accept consultations |
-| `volunteer` | Offer free advice |
+|---|---|
+| `admin` | Full admin panel |
+| `free_user` / `premium_user` | Regular app users (mums) |
+| `next_of_kin` | Linked to a mum's account |
+| `specialist` | Doctor/specialist — needs admin approval before logging in |
+| `volunteer` | Volunteer — needs admin approval before logging in |
 
-Public visitors (not logged in) can browse the marketing site and register.
-Only admins see the login page and admin panel.
+Anyone can browse the public site and register. Only admins log in through `login.html` and reach `admin/`.

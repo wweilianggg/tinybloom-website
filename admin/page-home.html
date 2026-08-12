@@ -204,6 +204,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/app.js"></script>
 <script>
+// The site_settings keys this page edits, grouped by field type (plain text, image URL, or line-list).
 const TEXT_KEYS = [
   'hero_title','hero_subtitle','hero_btn_primary','hero_btn_secondary',
   'features_heading','features_subheading',
@@ -219,37 +220,83 @@ const TEXT_KEYS = [
 const IMG_KEYS = ['hero_image','feature1_image','feature2_image','feature3_image','register_image'];
 const LIST_KEYS = ['home_basic_features','home_premium_features','home_annual_features'];
 
+// Default text shown when a setting hasn't been saved yet, matching index.html.
+const DEFAULT_TEXT = {
+  hero_title: 'Better pregnancy outcomes start with better support.',
+  hero_subtitle: 'Our platform delivers personalised insights, and continuous guidance across every pregnancy milestone to create a safer and healthier journey for all mothers.',
+  hero_btn_primary: 'Get Started Free',
+  hero_btn_secondary: 'Learn More',
+  features_heading: 'More Support. Less Stress. Happier Pregnancy.',
+  features_subheading: 'Everything you need in one beautiful platform.',
+  feat1_title: 'Baby Monitor',
+  feat1_desc: "Track your baby's kicks, movements, and heartbeat patterns in real-time. Get alerts for unusual activity and share reports with your doctor.",
+  feat2_title: 'Health Tracker',
+  feat2_desc: 'Monitor your weight, blood pressure, symptoms, and appointment reminders all in one place. Keep a complete pregnancy health journal.',
+  feat3_title: 'Expert Consultation',
+  feat3_desc: 'Chat with volunteer doctors and specialists for free advice. Upgrade to premium for one-on-one video consultations and personalized care.',
+  feat4_title: 'AI Recommendations',
+  feat4_desc: 'Get personalised weekly tips, nutrition advice, and health guidelines based on your trimester, health profile, and specific needs.',
+  feat5_title: 'Education Support',
+  feat5_desc: 'Expert-guided tips on breastfeeding, pumping schedules, and latching techniques. Access video tutorials anytime.',
+  feat6_title: 'Appointment Reminders',
+  feat6_desc: 'Never miss a prenatal check-up. Set reminders for scans, blood tests, and doctor visits.',
+  home_basic_name: 'Basic',
+  home_basic_desc: 'Basic information & simple tracking.',
+  home_premium_name: 'Premium',
+  home_premium_desc: 'Personalised insights, advanced tracking & full support.',
+  home_annual_name: 'Premium Annual',
+  home_annual_desc: 'Best value — save vs monthly.',
+  cta_title: 'Start your TinyBloom journey today.',
+  cta_subtitle: 'Join thousands of mothers who trust TinyBloom for a happier pregnancy.',
+  cta_btn: 'Register for Free',
+  site_name: 'TinyBloom',
+  contact_email: 'support@tinybloom.com',
+  footer_tagline: 'Personalised pregnancy support for every mother. Better outcomes start with better support.',
+};
+const DEFAULT_LISTS = {
+  home_basic_features: ['Pregnancy articles & FAQ', 'Simple symptom logging', 'Basic week-by-week tracking'],
+  home_premium_features: ['Personalised pregnancy tracking', 'Advanced symptom tracking & alerts', 'Detailed baby development insights', 'Full access to all resources'],
+  home_annual_features: ['Personalised pregnancy tracking', 'Advanced symptom tracking & alerts', 'Detailed baby development insights', 'Full access to all resources'],
+};
+
+// Loads saved settings into the form, falling back to the defaults shown on the live page.
 document.addEventListener('DOMContentLoaded', async () => {
   await requireAdmin();
   const { data } = await supabaseClient.from('site_settings').select('*');
-  if (!data) return;
-  data.forEach(s => {
-    if (LIST_KEYS.includes(s.setting_key)) return;
-    const el = document.getElementById('s-' + s.setting_key);
-    if (el) el.value = s.setting_value || '';
-    if (IMG_KEYS.includes(s.setting_key) && s.setting_value) {
-      const pr = document.getElementById(s.setting_key + '-preview');
-      const ph = document.getElementById(s.setting_key + '-ph');
-      if (pr) { pr.src = s.setting_value; pr.style.display = 'block'; }
-      if (ph) ph.style.display = 'none';
-    }
+  const dbMap = {};
+  (data || []).forEach(s => { dbMap[s.setting_key] = s.setting_value; });
+
+  TEXT_KEYS.forEach(key => {
+    const el = document.getElementById('s-' + key);
+    if (!el) return;
+    el.value = dbMap[key] || DEFAULT_TEXT[key] || '';
   });
-  // Load feature lists (JSON array -> one item per line)
+
+  IMG_KEYS.forEach(key => {
+    if (!dbMap[key]) return;
+    const pr = document.getElementById(key + '-preview');
+    const ph = document.getElementById(key + '-ph');
+    if (pr) { pr.src = dbMap[key]; pr.style.display = 'block'; }
+    if (ph) ph.style.display = 'none';
+  });
+
+  // Feature lists (JSON array -> one item per line), same fallback logic
   LIST_KEYS.forEach(key => {
     const el = document.getElementById('s-' + key);
-    const row = data.find(s => s.setting_key === key);
     if (!el) return;
-    if (row && row.setting_value) {
-      try {
-        const items = JSON.parse(row.setting_value);
-        if (Array.isArray(items)) el.value = items.join('\n');
-      } catch { }
+    let items = null;
+    if (dbMap[key]) {
+      try { items = JSON.parse(dbMap[key]); } catch { }
     }
+    if (!Array.isArray(items) || !items.length) items = DEFAULT_LISTS[key] || [];
+    el.value = items.join('\n');
   });
 });
 
+// Opens the hidden file picker when an image box is clicked.
 function triggerUpload(id) { document.getElementById(id)?.click(); }
 
+// Uploads a chosen image to Supabase Storage and saves its URL as a site setting.
 async function uploadImage(input, key, previewId, progressId, phId) {
   const file = input.files[0]; if (!file) return;
   const prog = document.getElementById(progressId);
@@ -275,6 +322,7 @@ async function uploadImage(input, key, previewId, progressId, phId) {
   }
 }
 
+// Saves every text field and feature list on this page to site_settings.
 async function saveAll() {
   const btn = document.getElementById('save-btn');
   btn.textContent = 'Saving...'; btn.disabled = true;

@@ -1,20 +1,10 @@
 // Supabase Edge Function: delete-user-account
 //
-// Permanently deletes a user's Supabase Auth account (auth.users). The anon
-// key used by admin/users.html and admin/applications.html can delete the
-// `profiles` row (and, via FK cascade, related app tables) but can NEVER
-// delete the underlying auth.users row — that requires the Admin API, which
-// needs the service-role key and therefore must run server-side, here.
+// Deletes a user's Supabase Auth account. This needs the service-role key,
+// so it has to run server-side here rather than in the browser.
 //
-// This was the root cause of "deleted" accounts not being reusable: after a
-// client-side delete, the profiles row was gone but auth.users still held
-// the email, so Supabase Auth still considered that address registered and
-// blocked re-registration (or worse, let someone sign up with no way to
-// recreate a matching profile). Deleting the Auth account here is what
-// actually frees the email for a clean re-registration.
-//
-// The caller's own access token is required (not just the anon key) so this
-// endpoint can verify they're an admin before doing anything destructive.
+// Only admins can call this. The caller's access token is checked against
+// the profiles table before anything is deleted.
 //
 // Deploy with: supabase functions deploy delete-user-account
 
@@ -46,7 +36,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Verify the caller's token is valid, then check they're actually an admin.
+    // Check the caller's token belongs to a logged-in admin.
     const token = authHeader.replace('Bearer ', '');
     const { data: { user: caller }, error: callerError } = await supabaseAdmin.auth.getUser(token);
     if (callerError || !caller) {
@@ -63,21 +53,17 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Only admins can delete accounts' });
     }
 
-    // Same as the existing client-side delete: removes the profile row,
-    // which cascades to specialist_profiles/volunteer_profiles/subscriptions/
-    // next_of_kin_profiles etc. via foreign keys. Not fatal if it's already
-    // gone (e.g. retrying after a partial failure).
+    // Deletes the profile row. Related tables (specialist_profiles,
+    // volunteer_profiles, subscriptions, next_of_kin_profiles, etc.) cascade
+    // automatically via foreign keys.
     const { error: profileError } = await supabaseAdmin.from('profiles').delete().eq('id', userId);
     if (profileError) {
       return jsonResponse({ error: profileError.message });
     }
 
-    // The step the anon key could never do — actually frees the email.
+    // Deletes the actual login account.
     const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    // If a duplicate/retried request already deleted this account (e.g. a
-    // double-click before the button finished disabling), the Admin API
-    // reports "User not found" — that's not a real failure, the end state
-    // we wanted (account gone) is already true, so treat it as success.
+    // "User not found" just means it's already gone — treat as success.
     if (authDeleteError && !/not.?found/i.test(authDeleteError.message || '')) {
       return jsonResponse({ error: authDeleteError.message });
     }
@@ -88,13 +74,9 @@ Deno.serve(async (req) => {
   }
 });
 
-// Always returns HTTP 200 — including for logical errors — with the real
-// error (if any) inside the JSON body's `error` field. This matches the
-// working create-pending-account function's pattern: supabase-js's
-// functions.invoke() replaces the actual error message with a generic
-// "Edge Function returned a non-2xx status code" whenever the function
-// returns a non-2xx status, so returning error details in a 200 body is the
-// only way callers can see what actually went wrong.
+// Always responds with HTTP 200, putting any error message in the JSON
+// body's `error` field instead of the status code, since supabase-js hides
+// the real error text whenever a Function returns a non-2xx status.
 function jsonResponse(body: unknown) {
   return new Response(JSON.stringify(body), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },

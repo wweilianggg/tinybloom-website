@@ -1,16 +1,11 @@
 // Supabase Edge Function: create-pending-account
 //
-// Creates a specialist/volunteer auth account WITHOUT Supabase's automatic
-// "confirm your email" send. This requires the service-role key, which is
-// only available server-side here (Edge Functions get SUPABASE_URL and
-// SUPABASE_SERVICE_ROLE_KEY injected automatically at runtime) — it must
-// never be shipped to the browser.
+// Creates a specialist/volunteer auth account without sending Supabase's
+// automatic confirmation email. Uses the service-role key, so it has to run
+// server-side here rather than in the browser.
 //
-// The confirmation email is deliberately NOT sent at this point. Admin
-// approval (admin/applications.html) later calls
-// supabase.auth.resend({ type: 'signup', email }) with the anon key to
-// trigger it once the application is approved (and again on any later
-// re-approval).
+// The confirmation email is sent later instead, when an admin approves the
+// application (admin/applications.html calls supabase.auth.resend()).
 //
 // Deploy with: supabase functions deploy create-pending-account
 
@@ -59,6 +54,9 @@ Deno.serve(async (req) => {
   }
 });
 
+// Always responds with HTTP 200, putting any error message in the JSON
+// body's `error` field instead of the status code, since supabase-js hides
+// the real error text whenever a Function returns a non-2xx status.
 function jsonResponse(body: unknown) {
   return new Response(JSON.stringify(body), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },

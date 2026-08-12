@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadItems();
 });
 
+// Fetches all review groups and fills the "Group" dropdown in the specialization form.
 async function loadGroups() {
   const { data, error } = await supabaseClient.from(GROUP_TABLE_NAME).select('id,name').order('name');
   groupsCache = data || [];
@@ -78,6 +79,7 @@ async function loadGroups() {
 
 /* ---------- Specialization CRUD ---------- */
 
+// Opens the form blank for a new specialization, or pre-filled for editing an existing one.
 function openItemForm(item = null) {
   const panel = document.getElementById('item-form-panel');
   panel.style.display = 'block';
@@ -99,11 +101,13 @@ function openItemForm(item = null) {
   }
 }
 
+// Hides the add/edit specialization form.
 function closeItemForm() {
   document.getElementById('item-form-panel').style.display = 'none';
   editingItemId = null;
 }
 
+// Validates and saves the specialization, including its group assignment.
 async function saveItem() {
   const errEl = document.getElementById('item-error');
   errEl.style.display = 'none';
@@ -133,6 +137,7 @@ async function saveItem() {
   loadItems();
 }
 
+// Fetches specializations with their group names and renders the table.
 async function loadItems() {
   const container = document.getElementById('items-container');
   container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>';
@@ -151,6 +156,7 @@ async function loadItems() {
   container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Name</th><th>Group</th><th>Status</th><th>Actions</th></tr></thead><tbody>${data.map(i => `<tr><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.name)}</td><td>${escapeHtml(groupNameById[groupMapById[i.id]] || '—')}</td><td><span class="badge ${i.is_active ? 'badge-green' : 'badge-gray'}">${i.is_active ? 'Active' : 'Hidden'}</span></td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
+// Deletes a specialization after confirmation, warning if it's still assigned to a specialist.
 async function deleteItem(id) {
   if (!await showConfirm('Delete this specialization? This also removes it from any review-group mappings.', { confirmLabel: 'Delete' })) return;
   const { error } = await supabaseClient.from(TABLE_NAME).delete().eq('id', id);
@@ -168,6 +174,7 @@ async function deleteItem(id) {
 
 /* ---------- Group CRUD ---------- */
 
+// Opens the "Manage Groups" panel, resetting the form and listing existing groups.
 function openGroupPanel() {
   document.getElementById('group-panel').style.display = 'block';
   document.getElementById('group-panel').scrollIntoView({ behavior: 'smooth' });
@@ -175,10 +182,12 @@ function openGroupPanel() {
   renderGroupsList();
 }
 
+// Hides the "Manage Groups" panel.
 function closeGroupPanel() {
   document.getElementById('group-panel').style.display = 'none';
 }
 
+// Draws the checklist of other groups that can be linked as this group's secondary groups.
 function renderSecondaryGroupChecklist(excludeId, checkedIds) {
   const container = document.getElementById('secondary-groups-checklist');
   const options = groupsCache.filter(g => g.id !== excludeId);
@@ -186,6 +195,7 @@ function renderSecondaryGroupChecklist(excludeId, checkedIds) {
   container.innerHTML = options.map(g => `<label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;font-weight:400"><input type="checkbox" class="secondary-group-checkbox" value="${g.id}" style="width:auto" ${checkedIds.includes(g.id) ? 'checked' : ''} /> ${escapeHtml(g.name)}</label>`).join('');
 }
 
+// Clears the group form back to "new group" state.
 function resetGroupForm() {
   document.getElementById('group-id').value = '';
   document.getElementById('group-name').value = '';
@@ -193,6 +203,7 @@ function resetGroupForm() {
   renderSecondaryGroupChecklist(null, []);
 }
 
+// Loads one group's data (and its secondary-group links) into the form for editing.
 async function editGroup(id, name) {
   document.getElementById('group-id').value = id;
   document.getElementById('group-name').value = name;
@@ -201,6 +212,7 @@ async function editGroup(id, name) {
   renderSecondaryGroupChecklist(id, (data || []).map(r => r.secondary_group_id));
 }
 
+// Validates and saves a review group, including its secondary-group links.
 async function saveGroup() {
   const errEl = document.getElementById('group-error');
   errEl.style.display = 'none';
@@ -233,6 +245,7 @@ async function saveGroup() {
   loadItems();
 }
 
+// Deletes a review group after confirming, warning about anything that references it.
 async function deleteGroup(id) {
   const [specRes, secPrimaryRes, secSecondaryRes] = await Promise.all([
     supabaseClient.from(MAP_TABLE_NAME).select('specialty_id', { count: 'exact', head: true }).eq('group_id', id),
@@ -254,6 +267,7 @@ async function deleteGroup(id) {
   loadItems();
 }
 
+// Draws the table of existing groups inside the "Manage Groups" panel.
 function renderGroupsList() {
   const container = document.getElementById('groups-list-container');
   if (!groupsCache.length) { container.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text-light)">No groups yet.</div>'; return; }

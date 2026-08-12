@@ -9,6 +9,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Escapes text so it's safe to insert as HTML.
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;',
@@ -19,6 +20,7 @@ function escapeHtml(value) {
   }[char]));
 }
 
+// Escapes text so it's safe to insert inside a JS string literal (e.g. an onclick attribute).
 function escapeJsString(value) {
   return String(value ?? '').replace(/[\\'"\n\r\u2028\u2029]/g, char => ({
     '\\': '\\\\',
@@ -31,6 +33,7 @@ function escapeJsString(value) {
   }[char]));
 }
 
+// Sets an element's text by id, doing nothing if the element isn't on the page.
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
@@ -53,6 +56,7 @@ function togglePasswordVisibility(inputId) {
   if (btn) btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
 }
 
+// Returns the logged-in Supabase user, or null if nobody's logged in.
 async function getCurrentUser() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -60,6 +64,7 @@ async function getCurrentUser() {
   } catch { return null; }
 }
 
+// Returns the logged-in user's row from the profiles table, or null.
 async function getCurrentProfile() {
   try {
     const user = await getCurrentUser();
@@ -70,12 +75,14 @@ async function getCurrentProfile() {
   } catch { return null; }
 }
 
+// Logs the user out and sends them back to the login page (or home page for public pages).
 async function signOut() {
   await supabaseClient.auth.signOut();
   const isAdminPage = window.location.pathname.includes('/admin/');
   window.location.href = isAdminPage ? '../login.html' : 'index.html';
 }
 
+// Shows the "Sign Out" menu for logged-in admins, or the "Register" button for everyone else.
 async function updateNavbar() {
   try {
     const profile = await getCurrentProfile();
@@ -99,6 +106,8 @@ async function updateNavbar() {
   }
 }
 
+// Called at the top of every admin page: sends non-admins back to login, and
+// returns the admin's profile if the check passes.
 async function requireAdmin() {
   try {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
@@ -258,6 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateNavbar();
 });
 
+// Fills in the footer's year, tagline and contact email from the database.
 async function loadFooterContent() {
   const yearEl = document.getElementById('footer-year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -281,12 +291,13 @@ async function loadFooterContent() {
   } catch (e) {}
 }
 
+// Opens/closes the mobile nav dropdown.
 function toggleMenu() {
   const menu = document.getElementById('nav-menu');
   if (menu) menu.classList.toggle('open');
 }
 
-// Toast utility
+// Shows a small popup message at the bottom of the screen for a few seconds.
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {
@@ -304,9 +315,7 @@ function showToast(message, type = '') {
 
 /* ===== testimonials-data.js ===== */
 // js/testimonials-data.js
-// Single source of truth for seeded testimonials shown on both Home and Testimonials pages.
-// These match exactly what is inserted into the database via supabase_schema.sql.
-
+// Fallback testimonials shown if the database has none yet or can't be reached.
 const SEED_TESTIMONIALS = [
   {
     reviewer_name: 'Sarah K.',
@@ -328,6 +337,7 @@ const SEED_TESTIMONIALS = [
   }
 ];
 
+// Builds the HTML for one testimonial card.
 function renderTestimonialCard(t) {
   const dateStr = new Date(t.review_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const avatarUrl = t.reviewer_image_url
@@ -357,7 +367,8 @@ async function loadTestimonialsInto(containerId, limit = null) {
       .from('testimonials')
       .select('*')
       .eq('is_published', true)
-      .order('review_date', { ascending: false });
+      .order('review_date', { ascending: false })
+      .order('id', { ascending: false });
     if (limit) query = query.limit(limit);
     const { data } = await query;
     if (data && data.length > 0) {
@@ -384,7 +395,8 @@ async function loadPaginatedTestimonialsInto(containerId, buttonId, pageSize = 9
       .from('testimonials')
       .select('*')
       .eq('is_published', true)
-      .order('review_date', { ascending: false });
+      .order('review_date', { ascending: false })
+      .order('id', { ascending: false });
     if (data && data.length > 0) allItems = data;
   } catch { }
 
@@ -405,6 +417,7 @@ async function loadPaginatedTestimonialsInto(containerId, buttonId, pageSize = 9
 /* ===== admin-sidebar.js ===== */
 // js/admin-sidebar.js
 
+// Builds the admin sidebar HTML and highlights the current page's link.
 function getAdminSidebar(activePage) {
   const pages = [
     { href: 'index.html', icon: '📊', label: 'Dashboard' },
@@ -448,6 +461,7 @@ function getAdminSidebar(activePage) {
   </div>`;
 }
 
+// Injects the admin sidebar into every admin page on load.
 document.addEventListener('DOMContentLoaded', () => {
   const placeholder = document.getElementById('admin-sidebar-placeholder');
   if (placeholder) {
@@ -456,6 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Shows a small popup message at the bottom of the screen for a few seconds.
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {
@@ -470,6 +485,7 @@ function showToast(message, type = '') {
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+// Logs the admin out and sends them to the login page.
 async function adminSignOut() {
   await supabaseClient.auth.signOut();
   window.location.href = '../login.html';
@@ -479,6 +495,7 @@ async function adminSignOut() {
 /* ===== admin-common.js ===== */
 // js/admin-common.js — shared utilities for admin pages
 
+// Shows a small popup message at the bottom of the screen for a few seconds.
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {
@@ -493,16 +510,15 @@ function showToast(message, type = '') {
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+// Logs the admin out and sends them to the login page.
 async function adminSignOut() {
   await supabaseClient.auth.signOut();
   window.location.href = '../login.html';
 }
 
-// Reusable in-page confirmation modal — replaces the native browser confirm()
-// popup used across the admin pages. Injects its own markup into <body> on
-// first use, so any admin page can call it with no extra HTML required.
+// A confirmation popup built into the page, used instead of the browser's
+// native confirm(). Builds its own HTML the first time it's called.
 // Usage: if (!await showConfirm('Delete this item?')) return;
-//        if (!await showConfirm('Delete this item?', { title: 'Delete Qualification', confirmLabel: 'Delete' })) return;
 let __confirmModalResolve = null;
 function showConfirm(message, options = {}) {
   const title = options.title || 'Confirm';
@@ -539,6 +555,7 @@ function showConfirm(message, options = {}) {
   modal.style.display = 'flex';
   return new Promise(resolve => { __confirmModalResolve = resolve; });
 }
+// Hides the confirmation popup and reports the user's choice back to whoever called showConfirm().
 function closeConfirmModal(result) {
   const modal = document.getElementById('__confirm-modal');
   if (modal) modal.style.display = 'none';

@@ -85,11 +85,35 @@ const BADGE_SUGGESTIONS = [
   '✓ Free for All', '✓ All Account Types', '⭐ Full Library (Premium)'
 ];
 
+// Default text shown when a setting hasn't been saved yet, matching features.html.
+const DEFAULT_HEADER = {
+  feat_page_title: 'Everything You Need',
+  feat_page_subtitle: 'Discover all the tools and features TinyBloom offers to support you through every step of your pregnancy.',
+  feat_cta_title: 'Ready to get started?',
+  feat_cta_subtitle: "Join TinyBloom free today. Upgrade when you're ready.",
+  feat_cta_btn1: 'Create Free Account',
+  feat_cta_btn2: 'View Pricing',
+};
+
+// Default title/description/badge/icon for each of the 9 built-in cards.
+const DEFAULT_FEATURES = [
+  { icon: '👶', title: 'Baby Monitor', desc: 'Track your baby’s kicks, movements, and heartbeat patterns in real-time. Get alerts for unusual activity and share reports with your doctor instantly.', badge: '✓ Free & Premium' },
+  { icon: '📊', title: 'Health Tracker', desc: 'Monitor your weight, blood pressure, symptoms, and appointment reminders all in one place. Keep a complete pregnancy health journal with visual trends.', badge: '✓ Free for All' },
+  { icon: '👩‍⚕️', title: 'Expert Consultation', desc: 'Chat with volunteer doctors and specialists for free advice. Upgrade to premium for one-on-one video consultations and personalised care from verified specialists.', badge: '⭐ Premium Feature (Specialist)' },
+  { icon: '🤖', title: 'AI Pregnancy Chatbot', desc: 'Ask pregnancy-related questions anytime and receive instant guidance on symptoms, baby development, nutrition and general pregnancy concerns through an AI-powered assistant.', badge: '✓ Free for All' },
+  { icon: '🎯', title: 'AI Recommendations', desc: 'Get personalised weekly tips, nutrition advice and health guidelines based on your trimester, health profile and specific needs. Powered by advanced AI.', badge: '⭐ Premium Feature' },
+  { icon: '📚', title: 'Educational Library', desc: 'Access pregnancy articles, FAQs and expert-guided educational resources. Premium users enjoy the full education library, videos and advanced learning content.', badge: '✓ Free for All' },
+  { icon: '📅', title: 'Appointment Reminders', desc: 'Never miss a prenatal check-up. Set reminders for scans, blood tests and doctor visits. Sync with your calendar and share with your next of kin.', badge: '✓ Free for All' },
+  { icon: '💑', title: 'Family Portal', desc: 'Invite your partner or next of kin to stay updated on pregnancy milestones, appointments and health summaries, keeping your support network connected.', badge: '✓ Free for All' },
+  { icon: '📰', title: 'Pregnancy Articles & FAQ', desc: 'Browse our curated library of articles and frequently asked questions written by medical experts. From first trimester to postpartum care.', badge: '✓ Free for All' },
+];
+
 document.addEventListener('DOMContentLoaded', async () => {
   await requireAdmin();
   await loadAll();
 });
 
+// Loads saved settings and renders the header fields plus one box per feature card.
 async function loadAll() {
   const { data } = await supabaseClient.from('site_settings').select('*');
   if (!data) return;
@@ -99,7 +123,7 @@ async function loadAll() {
   // Fill header fields
   HEADER_KEYS.forEach(key => {
     const el = document.getElementById(key);
-    if (el) el.value = settings[key] || '';
+    if (el) el.value = settings[key] || DEFAULT_HEADER[key] || '';
   });
 
   // Determine card count
@@ -107,6 +131,7 @@ async function loadAll() {
   renderCards();
 }
 
+// Rebuilds the whole card list from scratch (used after load, add, or remove).
 function renderCards() {
   const container = document.getElementById('cards-container');
   container.innerHTML = '';
@@ -115,15 +140,19 @@ function renderCards() {
   }
 }
 
-function buildCardEl(n) {
+// Builds the editable form box for one feature card.
+function buildCardEl(n, useDefaults = true) {
   const div = document.createElement('div');
   div.className = 'feat-card-item';
   div.id = 'feat-card-' + n;
 
-  const title = settings['feat_card' + n + '_title'] || '';
-  const desc = settings['feat_card' + n + '_desc'] || '';
-  const badge = settings['feat_card' + n + '_badge'] || '';
-  const icon = settings['feat_card' + n + '_icon'] || '';
+  // useDefaults=false keeps cards added via "+ Add Card" blank, even if
+  // their index matches one of the 9 built-in defaults.
+  const def = useDefaults ? (DEFAULT_FEATURES[n - 1] || {}) : {};
+  const title = settings['feat_card' + n + '_title'] || def.title || '';
+  const desc = settings['feat_card' + n + '_desc'] || def.desc || '';
+  const badge = settings['feat_card' + n + '_badge'] || def.badge || '';
+  const icon = settings['feat_card' + n + '_icon'] || def.icon || '';
 
   div.innerHTML = `
     <div class="feat-card-header">
@@ -152,10 +181,12 @@ function buildCardEl(n) {
   return div;
 }
 
+// Escapes text so it's safe to insert as HTML.
 function escHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Adds a new blank card at the end of the list.
 function addCard() {
   cardCount++;
   settings['feat_card' + cardCount + '_title'] = '';
@@ -163,11 +194,12 @@ function addCard() {
   settings['feat_card' + cardCount + '_badge'] = '';
   settings['feat_card' + cardCount + '_icon'] = '';
   const container = document.getElementById('cards-container');
-  container.appendChild(buildCardEl(cardCount));
+  container.appendChild(buildCardEl(cardCount, false));
   document.getElementById('feat-card-' + cardCount).scrollIntoView({ behavior: 'smooth' });
   showToast('Card ' + cardCount + ' added!', 'success');
 }
 
+// Removes one card and shifts all the cards after it up by one position.
 async function removeCard(n) {
   if (cardCount <= 1) { showToast('Must have at least 1 card.', 'error'); return; }
   if (!await showConfirm(`Remove Card ${n}? This will shift all cards below it up by one.`, { title: 'Remove Card', confirmLabel: 'Remove' })) return;
@@ -191,6 +223,7 @@ async function removeCard(n) {
   showToast('Card removed.', '');
 }
 
+// Saves the header fields, card count, and every card's fields to site_settings.
 async function saveAll() {
   const btn = document.getElementById('save-btn');
   btn.textContent = 'Saving...'; btn.disabled = true;

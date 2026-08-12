@@ -20,7 +20,7 @@
         <a href="features.html" class="btn btn-outline btn-lg" id="hero-btn-secondary">Learn More</a>
       </div>
     </div>
-    <div class="hero-illustration" id="hero-illustration-wrap">
+    <div class="hero-illustration" id="hero-illustration-wrap" style="visibility:hidden">
       <svg id="hero-svg" viewBox="0 0 360 420" xmlns="http://www.w3.org/2000/svg" fill="none">
         <ellipse cx="180" cy="320" rx="110" ry="30" fill="#f0d8d5" opacity="0.4"/>
         <path d="M155 200 C148 220 140 250 138 280 C136 310 145 340 180 355 C215 340 224 310 222 280 C220 250 212 220 205 200 Z" stroke="#c97b75" stroke-width="2" fill="#fdf0ee"/>
@@ -50,7 +50,7 @@
     <p class="section-subtitle" id="features-subheading">Everything you need in one beautiful platform.</p>
 
     <div class="features-grid" style="margin-bottom:4rem">
-      <div style="text-align:center" id="feature1-wrap">
+      <div style="text-align:center;visibility:hidden" id="feature1-wrap">
         <svg id="feature1-svg" viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg" fill="none" style="max-width:200px">
           <path d="M110 240 C60 220 40 185 42 155 C44 128 62 112 80 108 C90 106 102 110 110 118 C118 110 130 106 140 108 C158 112 176 128 178 155 C180 185 160 220 110 240Z" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5"/>
           <circle cx="110" cy="145" r="30" stroke="#c97b75" stroke-width="1.5" fill="none"/>
@@ -80,7 +80,7 @@
           <p id="feat4-desc">Get personalised weekly tips, nutrition advice, and health guidelines based on your trimester, health profile, and specific needs.</p>
         </div>
       </div>
-      <div style="text-align:center" id="feature3-wrap">
+      <div style="text-align:center;visibility:hidden" id="feature3-wrap">
         <svg id="feature3-svg" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg" fill="none" style="max-width:220px;width:100%;display:block;margin:0 auto">
           <circle cx="80" cy="70" r="30" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5"/>
           <path d="M50 140 C50 112 62 102 80 102 C98 102 110 112 110 140" stroke="#c97b75" stroke-width="1.5" fill="none"/>
@@ -91,7 +91,7 @@
     </div>
 
     <div class="features-grid">
-      <div style="text-align:center" id="feature2-wrap">
+      <div style="text-align:center;visibility:hidden" id="feature2-wrap">
         <svg id="feature2-svg" viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg" fill="none" style="max-width:180px">
           <ellipse cx="110" cy="155" rx="52" ry="62" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5"/>
           <circle cx="110" cy="90" r="28" fill="none" stroke="#c97b75" stroke-width="1.5"/>
@@ -271,6 +271,13 @@ async function loadSiteContent() {
 
   } catch (e) {
     console.log('Could not load site settings, using defaults.');
+  } finally {
+    // These start hidden (see style="visibility:hidden" above); reveal them
+    // now that we know whether to use uploaded images or the default SVGs.
+    ['hero-illustration-wrap', 'feature1-wrap', 'feature2-wrap', 'feature3-wrap'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.visibility = 'visible';
+    });
   }
 }
 

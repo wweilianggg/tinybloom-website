@@ -110,6 +110,7 @@
       loadUsers();
     });
 
+    // Fetches users (filtered by role/search box) and renders the table rows.
     async function loadUsers() {
       const role = document.getElementById('role-filter').value;
       const search = document.getElementById('search-users').value.toLowerCase();
@@ -209,6 +210,7 @@
     }
     function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
+    // Saves the role/status changes made in the edit modal.
     async function saveUserEdit() {
       const id = document.getElementById('edit-user-id').value;
       const role = document.getElementById('edit-role').value;
@@ -230,9 +232,7 @@
 
     let isDeletingUser = false;
     async function confirmDelete() {
-      // Belt-and-suspenders against double-clicks: disabling the button is
-      // not always fast enough to block a second click that's already
-      // queued, so also gate on a plain JS flag.
+      // Blocks a second click while a delete is already in progress.
       if (isDeletingUser) return;
       isDeletingUser = true;
 
@@ -243,10 +243,7 @@
       if (cancelBtn) cancelBtn.disabled = true;
 
       try {
-        // Routed through an Edge Function so it can also delete the Supabase
-        // Auth account (auth.users) — the anon key can only delete the
-        // `profiles` row, which leaves the email permanently "taken" in Auth
-        // and blocks the person from ever cleanly re-registering.
+        // Deletes the Auth account via the Edge Function (see delete-user-account).
         const { data, error } = await supabaseClient.functions.invoke('delete-user-account', {
           body: { userId: id }
         });
@@ -258,10 +255,7 @@
       } catch (e) {
         showToast('Error: ' + e.message, 'error');
       } finally {
-        // Always refresh, success or not — if the account was actually
-        // deleted despite an error being shown (e.g. a retried request that
-        // only failed on its second, redundant attempt), this is what makes
-        // the row disappear without needing a manual page reload.
+        // Refreshes the list either way, so the table always matches the database.
         btn.textContent = 'Yes, Delete User'; btn.disabled = false;
         if (cancelBtn) cancelBtn.disabled = false;
         isDeletingUser = false;

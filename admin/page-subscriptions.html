@@ -113,6 +113,26 @@ const TEXT_KEYS = ['sub_page_title','sub_page_subtitle','premium_monthly_price',
 
 const LIST_KEYS = ['sub_basic_features','sub_premium_features'];
 
+// Default text shown when a setting hasn't been saved yet, matching subscriptions.html.
+const DEFAULT_TEXT = {
+  sub_page_title: 'Simple Pricing',
+  sub_page_subtitle: "Start free and upgrade to unlock advanced features for a happier, better-supported pregnancy.",
+  premium_monthly_price: '9.90',
+  premium_yearly_price: '90.00',
+  sub_basic_name: 'Basic',
+  sub_premium_name: 'Premium',
+  sub_annual_name: 'Premium Annual',
+  sub_popular_badge: 'Most Popular',
+  sub_value_badge: 'Best Value',
+  sub_basic_desc: 'Basic information & simple tracking.',
+  sub_premium_monthly_desc: 'Personalised insights, advanced tracking & full support features.',
+  sub_compare_title: 'Full Feature Comparison',
+};
+const DEFAULT_LISTS = {
+  sub_basic_features: ['Pregnancy articles & FAQ', 'AI Pregnancy Chatbot', 'Health Log (Weight, BP & Symptoms)', 'Basic week-by-week tracking', 'Appointment reminders', 'Emergency Notifications', 'Volunteer Doctor Consultations'],
+  sub_premium_features: ['Everything in Basic', 'Advanced symptom tracking & alerts', 'Detailed baby development insights', 'AI Personalised Weekly Tips', 'AI Personalised Recommendations', 'Video consultations with specialists'],
+};
+
 // Default rows if none saved
 const DEFAULT_ROWS = [
   { feature:'Basic week-by-week tracking', category:'Tracking', basic:true, premium:true },
@@ -131,27 +151,33 @@ const DEFAULT_ROWS = [
 
 let rows = [];
 
+// Loads saved settings, feature lists and the comparison table, falling back to defaults.
 document.addEventListener('DOMContentLoaded', async () => {
   await requireAdmin();
   const { data } = await supabaseClient.from('site_settings').select('*');
+  const dbMap = {};
+  (data || []).forEach(s => { dbMap[s.setting_key] = s.setting_value; });
+
+  // Text fields: DB value if saved, else the default
+  TEXT_KEYS.forEach(key => {
+    const el = document.getElementById('s-' + key);
+    if (!el) return;
+    el.value = dbMap[key] || DEFAULT_TEXT[key] || '';
+  });
+
+  // Feature lists (JSON array -> one item per line), same fallback logic
+  LIST_KEYS.forEach(key => {
+    const el = document.getElementById('s-' + key);
+    if (!el) return;
+    let items = null;
+    if (dbMap[key]) {
+      try { items = JSON.parse(dbMap[key]); } catch { }
+    }
+    if (!Array.isArray(items) || !items.length) items = DEFAULT_LISTS[key] || [];
+    el.value = items.join('\n');
+  });
+
   if (data) {
-    data.forEach(s => {
-      if (LIST_KEYS.includes(s.setting_key)) return;
-      const el = document.getElementById('s-' + s.setting_key);
-      if (el) el.value = s.setting_value || '';
-    });
-    // Load feature lists (JSON array -> one item per line)
-    LIST_KEYS.forEach(key => {
-      const el = document.getElementById('s-' + key);
-      const row = data.find(s => s.setting_key === key);
-      if (!el) return;
-      if (row && row.setting_value) {
-        try {
-          const items = JSON.parse(row.setting_value);
-          if (Array.isArray(items)) el.value = items.join('\n');
-        } catch { }
-      }
-    });
     // Load comparison rows
     const rowData = data.find(s => s.setting_key === 'sub_compare_rows');
     if (rowData && rowData.setting_value) {
@@ -170,6 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 let categories = ['Tracking', 'Support', 'AI & Education'];
 
+// Draws the category chips and keeps the hidden comma-separated field in sync.
 function renderCategories() {
   const list = document.getElementById('categories-list');
   const hidden = document.getElementById('s-sub_compare_sections');
@@ -181,6 +208,7 @@ function renderCategories() {
   if (hidden) hidden.value = categories.join(',');
 }
 
+// Adds a new comparison-table category from the text box.
 function addCategory() {
   const input = document.getElementById('new-category-input');
   const val = input.value.trim();
@@ -193,6 +221,7 @@ function addCategory() {
   input.value = '';
 }
 
+// Removes a category after confirmation.
 async function removeCategory(i) {
   const cat = categories[i];
   if (await showConfirm('Remove category "' + cat + '"? Rows using it will keep their value but may not display under a section header.', { title: 'Remove Category', confirmLabel: 'Remove' })) {
@@ -202,6 +231,7 @@ async function removeCategory(i) {
   }
 }
 
+// Draws the comparison table's editable rows.
 function renderRows() {
   const container = document.getElementById('compare-rows');
   container.innerHTML = rows.map((r, i) => `
@@ -234,16 +264,19 @@ function renderRows() {
     </div>`).join('');
 }
 
+// Builds the <option> list for a row's category dropdown.
 function getCategoryOptions(selected) {
   const allCats = [...categories];
   if (selected && !allCats.includes(selected)) allCats.push(selected);
   return allCats.map(c => `<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
 
+// Escapes text so it's safe to insert as HTML.
 function escHtml(str) {
   return (str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Adds a blank comparison row and focuses its feature-name input.
 function addRow() {
   rows.push({ feature:'', category:'Tracking', basic:true, premium:true });
   renderRows();
@@ -254,11 +287,13 @@ function addRow() {
   }, 50);
 }
 
+// Removes one comparison row.
 function removeRow(i) {
   rows.splice(i, 1);
   renderRows();
 }
 
+// Saves all text fields, feature lists, and the comparison table to site_settings.
 async function saveAll() {
   const btn = document.getElementById('save-btn'); btn.textContent = 'Saving...'; btn.disabled = true;
   try {

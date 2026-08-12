@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateNavbar();
 });
 
+// Fills in the footer's year, tagline and contact email from the database.
 async function loadFooterContent() {
   const yearEl = document.getElementById('footer-year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -109,12 +110,13 @@ async function loadFooterContent() {
   } catch (e) {}
 }
 
+// Opens/closes the mobile nav dropdown.
 function toggleMenu() {
   const menu = document.getElementById('nav-menu');
   if (menu) menu.classList.toggle('open');
 }
 
-// Toast utility
+// Shows a small popup message at the bottom of the screen for a few seconds.
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {

@@ -22,6 +22,7 @@ function togglePasswordVisibility(inputId) {
   if (btn) btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
 }
 
+// Returns the logged-in Supabase user, or null if nobody's logged in.
 async function getCurrentUser() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -29,6 +30,7 @@ async function getCurrentUser() {
   } catch { return null; }
 }
 
+// Returns the logged-in user's row from the profiles table, or null.
 async function getCurrentProfile() {
   try {
     const user = await getCurrentUser();
@@ -39,12 +41,14 @@ async function getCurrentProfile() {
   } catch { return null; }
 }
 
+// Logs the user out and sends them back to the login page (or home page for public pages).
 async function signOut() {
   await supabaseClient.auth.signOut();
   const isAdminPage = window.location.pathname.includes('/admin/');
   window.location.href = isAdminPage ? '../login.html' : 'index.html';
 }
 
+// Shows the "Sign Out" menu for logged-in admins, or the "Register" button for everyone else.
 async function updateNavbar() {
   try {
     const profile = await getCurrentProfile();
@@ -68,6 +72,8 @@ async function updateNavbar() {
   }
 }
 
+// Called at the top of every admin page: sends non-admins back to login, and
+// returns the admin's profile if the check passes.
 async function requireAdmin() {
   try {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();

@@ -136,7 +136,7 @@
         <div class="form-brand">TinyBloom</div>
         <p style="color:var(--text-mid);margin-bottom:2rem;line-height:1.7;">Join thousands of mothers, families, and
           healthcare professionals on TinyBloom.</p>
-        <div id="register-illustration">
+        <div id="register-illustration" style="visibility:hidden">
           <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" fill="none"
             style="max-width:320px;width:100%;display:block;margin:1.5rem auto">
             <ellipse cx="100" cy="175" rx="55" ry="65" fill="#fce8e6" stroke="#c97b75" stroke-width="1.5" />
@@ -492,6 +492,21 @@
         tomorrow.setDate(tomorrow.getDate() + 1);
         expiryInput.min = tomorrow.toISOString().split('T')[0];
       }
+      // The wrapper starts hidden (see style="visibility:hidden" above) and
+      // is revealed below once we know whether to use the uploaded image or
+      // the default illustration.
+      var illustrationWrap = document.getElementById('register-illustration');
+      try {
+        var imgRes = await supabaseClient.from('site_settings').select('setting_value')
+          .eq('setting_key', 'register_image').single();
+        if (imgRes.data && imgRes.data.setting_value) {
+          if (illustrationWrap) illustrationWrap.innerHTML = '<img src="' + imgRes.data.setting_value + '" alt="TinyBloom" style="max-width:100%;width:280px;display:block;margin:1.5rem auto;border-radius:var(--radius)" />';
+        }
+      } catch (e) {
+      } finally {
+        if (illustrationWrap) illustrationWrap.style.visibility = 'visible';
+      }
+
       // Load specialization options
       try {
         var specRes = await supabaseClient.from('specialties').select('name')
@@ -538,16 +553,6 @@
         });
       } catch (e) { }
 
-      // Load register illustration
-      try {
-        var imgRes = await supabaseClient.from('site_settings').select('setting_value')
-          .eq('setting_key', 'register_image').single();
-        if (imgRes.data && imgRes.data.setting_value) {
-          var wrap = document.getElementById('register-illustration');
-          if (wrap) wrap.innerHTML = '<img src="' + imgRes.data.setting_value + '" alt="TinyBloom" style="max-width:100%;width:280px;display:block;margin:1.5rem auto;border-radius:var(--radius)" />';
-        }
-      } catch (e) { }
-
       // Add real-time validation for name, phone, and email
       document.getElementById('reg-name').addEventListener('input', validateName);
       document.getElementById('reg-phone').addEventListener('input', validatePhone);
@@ -555,6 +560,7 @@
     });
 
     // ---- Dropdown-with-"Other" helpers (hospital, qualification, affiliation) ----
+    // Fills a dropdown from a Supabase table, keeping the "Other" option last.
     async function loadOtherAwareOptions(table, selectId) {
       var select = document.getElementById(selectId);
       if (!select) return;
@@ -572,6 +578,7 @@
       } catch (e) { }
     }
 
+    // Shows the free-text box when "Other" is chosen in a dropdown.
     function toggleOtherInput(selectId) {
       var select = document.getElementById(selectId);
       var other = document.getElementById(selectId + '-other');
@@ -579,6 +586,7 @@
       other.style.display = select.value === '__other__' ? 'block' : 'none';
     }
 
+    // Returns the dropdown's value, or the typed text if "Other" was picked.
     function getSelectOrOther(selectId) {
       var select = document.getElementById(selectId);
       if (!select) return '';
@@ -590,6 +598,7 @@
     }
 
     // ---- Validation Functions ----
+    // Checks the name field has at least 2 characters.
     function validateName() {
       var nameInput = document.getElementById('reg-name');
       var nameError = document.getElementById('name-error');
@@ -608,6 +617,7 @@
       }
     }
 
+    // Checks the phone number is 8 digits and starts with 8 or 9 (Singapore mobile format).
     function validatePhone() {
       var phoneInput = document.getElementById('reg-phone');
       var phoneError = document.getElementById('phone-error');
@@ -630,6 +640,7 @@
       }
     }
 
+    // Checks the email is from one of the allowed providers (Gmail, Outlook, Hotmail, Yahoo).
     function validateEmail() {
       var emailInput = document.getElementById('reg-email');
       var emailError = document.getElementById('email-error');
@@ -659,6 +670,7 @@
       return false;
     }
 
+    // Checks all required specialist fields are filled in and the certificate hasn't expired.
     function validateSpecialistFields() {
       if (selectedRole !== 'specialist') return true;
 
@@ -701,6 +713,7 @@
       return valid;
     }
 
+    // Checks an uploaded file is a PDF/JPEG/PNG under 50MB.
     function validateDocumentFile(inputId, errorId) {
       var input = document.getElementById(inputId);
       var errorEl = document.getElementById(errorId);
@@ -716,6 +729,7 @@
     }
 
     // ---- Step 1 ----
+    // Marks a role button as selected and enables the "Next" button.
     function selectRole(role, btn) {
       selectedRole = role;
       document.querySelectorAll('.role-btn').forEach(function (b) { b.classList.remove('selected'); });
@@ -723,6 +737,7 @@
       document.getElementById('step1-next').disabled = false;
     }
 
+    // Moves from role selection to step 2, showing the plan chooser (for mums) or the details form for the selected role.
     function goToStep2() {
       if (!selectedRole) {
         alert('Please select your role first.');
@@ -735,11 +750,8 @@
       document.getElementById('dot1').textContent = '✓';
       document.getElementById('line1').className = 'step-line done';
       document.getElementById('dot2').className = 'step-dot active';
-      // Remove dot3 reference - only 2 steps now
 
-      // Always reset role-specific sections first — otherwise a section left
-      // visible from a previously selected role (e.g. user went Back and
-      // switched roles) stays stuck on screen alongside the new role's UI.
+      // Reset all role-specific sections, then show only the one for the selected role.
       document.getElementById('specialist-fields').style.display = 'none';
       document.getElementById('volunteer-fields').style.display = 'none';
       document.getElementById('kin-fields').style.display = 'none';
@@ -761,6 +773,7 @@
     }
 
     // ---- Step 2: Plan ----
+    // Marks a plan as selected, clears the form, and moves to the details step.
     function selectPlan(plan, card) {
       selectedPlan = plan;
       document.querySelectorAll('.plan-card').forEach(function (c) { c.classList.remove('selected'); });
@@ -797,6 +810,7 @@
 
 
 
+    // Sends the user back one step (to plan selection, or to role selection).
     function goBack() {
       var detailsVisible = document.getElementById('details-form').style.display === 'block';
 
@@ -819,6 +833,7 @@
     }
 
     // ---- Step 3: Register ----
+    // Validates the details form, creates the account in Supabase, and routes the user based on their role (paying mums go to payment, others to a pending/verify page).
     async function handleRegister() {
       var name = document.getElementById('reg-name').value.trim();
       var email = document.getElementById('reg-email').value.trim();
@@ -972,10 +987,8 @@
         var res;
 
         if (selectedRole === 'specialist' || selectedRole === 'volunteer') {
-          // Routed through an Edge Function so the account is created with
-          // email_confirm:false (no auto-sent confirmation email). Admin
-          // approval triggers the real confirmation email later via
-          // supabase.auth.resend().
+          // Creates the account with email_confirm:false via an Edge
+          // Function; the confirmation email is sent later on admin approval.
           var fnRes = await supabaseClient.functions.invoke('create-pending-account', {
             body: { email: email, password: password, userData: userData }
           });
@@ -1057,6 +1070,7 @@
     }
 
     // ---- Mum code verify ----
+    // Looks up the mum's user code so a next-of-kin registration can be linked to her account.
     async function verifyMumCode() {
       var code = document.getElementById('mum-user-code').value.trim().toUpperCase();
       var resultEl = document.getElementById('mum-verify-result');

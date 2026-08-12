@@ -35,10 +35,17 @@
         <textarea id="item-description" rows="2" placeholder="e.g. Includes peanuts, almonds, cashews, walnuts, and other tree nuts."></textarea>
       </div>
       <div class="form-group">
-        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
-          <input type="checkbox" id="item-is-text-input" style="width:auto" />
-          Text Box
-        </label>
+        <label>Type</label>
+        <div style="display:flex;gap:1.25rem;margin-top:0.35rem">
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:400">
+            <input type="radio" name="item-type" id="item-type-checkbox" style="width:auto" checked />
+            ☑️ Checkbox
+          </label>
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:400">
+            <input type="radio" name="item-type" id="item-type-textbox" style="width:auto" />
+            📝 Text Box
+          </label>
+        </div>
       </div>
       <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="item-error"></div>
       <div style="display:flex;gap:0.75rem"><button class="btn btn-primary" onclick="saveItem()">Save</button><button class="btn btn-ghost" onclick="closeItemForm()">Cancel</button></div>
@@ -71,6 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setCategory('medical_condition');
 });
 
+// Switches the active tab (medical conditions/allergies) and reloads its items.
 function setCategory(category) {
   activeCategory = category;
   closeItemForm();
@@ -84,6 +92,7 @@ function setCategory(category) {
   loadItems();
 }
 
+// Opens the form blank for a new item, or pre-filled for editing an existing one.
 function openItemForm(item = null) {
   const panel = document.getElementById('item-form-panel');
   panel.style.display = 'block';
@@ -96,21 +105,25 @@ function openItemForm(item = null) {
     document.getElementById('item-id').value = item.id;
     document.getElementById('item-label').value = item.label || '';
     document.getElementById('item-description').value = item.description || '';
-    document.getElementById('item-is-text-input').checked = !!item.is_text_input;
+    document.getElementById('item-type-textbox').checked = !!item.is_text_input;
+    document.getElementById('item-type-checkbox').checked = !item.is_text_input;
   } else {
     document.getElementById('item-form-title').textContent = `New ${singular}`;
     document.getElementById('item-id').value = '';
     document.getElementById('item-label').value = '';
     document.getElementById('item-description').value = '';
-    document.getElementById('item-is-text-input').checked = false;
+    document.getElementById('item-type-checkbox').checked = true;
+    document.getElementById('item-type-textbox').checked = false;
   }
 }
 
+// Hides the add/edit item form.
 function closeItemForm() {
   document.getElementById('item-form-panel').style.display = 'none';
   editingItemId = null;
 }
 
+// Validates and saves the item form, inserting a new row or updating the one being edited.
 async function saveItem() {
   const errEl = document.getElementById('item-error');
   errEl.style.display = 'none';
@@ -122,7 +135,7 @@ async function saveItem() {
     label,
     category: activeCategory,
     description: activeCategory === 'allergy' ? description : null,
-    is_text_input: document.getElementById('item-is-text-input').checked
+    is_text_input: document.getElementById('item-type-textbox').checked
   };
   if (!editingItemId) {
     const maxOrder = currentItems.reduce((max, i) => Math.max(max, i.sort_order || 0), 0);
@@ -137,6 +150,7 @@ async function saveItem() {
   loadItems();
 }
 
+// Fetches the items for the active category and renders them as a table.
 async function loadItems() {
   const container = document.getElementById('items-container');
   container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>';
@@ -149,6 +163,7 @@ async function loadItems() {
   container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th>${descHeader}<th>Type</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td>${showDescription ? `<td style="font-size:0.85rem;color:var(--text-mid)">${escapeHtml(i.description || '')}</td>` : ''}<td style="font-size:0.82rem;color:var(--text-light)">${i.is_text_input ? '📝 Text box' : '☑️ Checkbox'}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
+// Deletes an item after confirmation.
 async function deleteItem(id) {
   if (!await showConfirm('Delete this onboarding item?', { confirmLabel: 'Delete' })) return;
   await supabaseClient.from(TABLE_NAME).delete().eq('id', id);

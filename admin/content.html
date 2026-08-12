@@ -107,11 +107,13 @@ let editingId = null;
 document.addEventListener('DOMContentLoaded', async () => {
   await requireAdmin();
   loadArticles();
+  // Auto-fills the URL slug from the title as the admin types (only for new articles).
   document.getElementById('art-title').addEventListener('input', function() {
     if (!editingId) document.getElementById('art-slug').value = this.value.toLowerCase().replace(/[^a-z0-9 -]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-');
   });
 });
 
+// Opens the form blank for a new article, or pre-filled for editing an existing one.
 function openArticleForm(article = null) {
   const panel = document.getElementById('article-form-panel');
   panel.style.display = 'block';
@@ -136,8 +138,10 @@ function openArticleForm(article = null) {
     document.getElementById('art-premium').checked = false;
   }
 }
+// Hides the add/edit article form.
 function closeArticleForm() { document.getElementById('article-form-panel').style.display = 'none'; editingId = null; }
 
+// Validates and saves the article form, inserting a new row or updating the one being edited.
 async function saveArticle() {
   const errEl = document.getElementById('art-error');
   errEl.style.display = 'none';
@@ -166,6 +170,7 @@ async function saveArticle() {
   loadArticles();
 }
 
+// Fetches articles (filtered by status/category) and renders the table rows.
 async function loadArticles() {
   const tbody = document.getElementById('articles-table');
   tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</td></tr>';
@@ -195,6 +200,7 @@ async function loadArticles() {
     </tr>`).join('');
 }
 
+// Deletes an article after confirmation.
 async function deleteArticle(id, btn) {
   if (!await showConfirm('Delete this article?', { confirmLabel: 'Delete' })) return;
   await supabaseClient.from('articles').delete().eq('id', id);

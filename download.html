@@ -62,6 +62,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/app.js"></script>
 <script>
+// Friendly display names for each role, shown as the badge on this page.
 const roleLabels = {
   free_user:'Free Member', premium_user:'⭐ Premium Member',
   next_of_kin:'Next of Kin', specialist:'Specialist',
@@ -98,11 +99,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (e) { console.error(e); }
 });
 
+// Logs the user out and sends them to the home page.
 async function handleSignOut() {
   await supabaseClient.auth.signOut();
   window.location.replace('index.html');
 }
 
+// Copies the mum's unique user ID to the clipboard so she can share it.
 function copyUserCode() {
   const code = document.getElementById('user-code-display').textContent;
   navigator.clipboard.writeText(code).then(() => {

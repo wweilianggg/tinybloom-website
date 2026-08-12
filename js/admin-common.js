@@ -1,5 +1,6 @@
 // js/admin-common.js — shared utilities for admin pages
 
+// Shows a small popup message at the bottom of the screen for a few seconds.
 function showToast(message, type = '') {
   let toast = document.getElementById('toast');
   if (!toast) {
@@ -14,16 +15,15 @@ function showToast(message, type = '') {
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+// Logs the admin out and sends them to the login page.
 async function adminSignOut() {
   await supabaseClient.auth.signOut();
   window.location.href = '../login.html';
 }
 
-// Reusable in-page confirmation modal — replaces the native browser confirm()
-// popup used across the admin pages. Injects its own markup into <body> on
-// first use, so any admin page can call it with no extra HTML required.
+// A confirmation popup built into the page, used instead of the browser's
+// native confirm(). Builds its own HTML the first time it's called.
 // Usage: if (!await showConfirm('Delete this item?')) return;
-//        if (!await showConfirm('Delete this item?', { title: 'Delete Qualification', confirmLabel: 'Delete' })) return;
 let __confirmModalResolve = null;
 function showConfirm(message, options = {}) {
   const title = options.title || 'Confirm';
@@ -60,6 +60,7 @@ function showConfirm(message, options = {}) {
   modal.style.display = 'flex';
   return new Promise(resolve => { __confirmModalResolve = resolve; });
 }
+// Hides the confirmation popup and reports the user's choice back to whoever called showConfirm().
 function closeConfirmModal(result) {
   const modal = document.getElementById('__confirm-modal');
   if (modal) modal.style.display = 'none';

@@ -125,7 +125,7 @@
       },
     ];
 
-    // Cosmetic palette cycled by card position (colors aren't editorial content, so they aren't stored in the DB)
+    // Colors cycle by card position; not stored in the database.
     const BADGE_PALETTE = [
       { badgeColor: 'var(--rose)', badgeBg: 'var(--blush)', badgeText: 'var(--rose-deep)' },
       { badgeColor: 'var(--teal)', badgeBg: 'var(--teal-light)', badgeText: 'var(--teal)' },
@@ -135,10 +135,13 @@
       { badgeColor: 'var(--sage)', badgeBg: '#eef6f2', badgeText: 'var(--sage)' },
     ];
 
+    // Escapes text so it's safe to insert as HTML.
     function escHtml(str) {
       return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
+    // Builds the feature cards, using each card's saved text from the
+    // database if present, otherwise the default in DEFAULT_FEATURES above.
     async function loadFeaturesPage() {
       try {
         const { data } = await supabaseClient.from('site_settings').select('setting_key, setting_value');

@@ -112,6 +112,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js"></script>
   <script>
+    // Fills in prices, plan text, feature lists, and the comparison table from the database.
     async function loadSubSettings() {
       try {
         const { data } = await supabaseClient.from('site_settings').select('setting_key, setting_value');

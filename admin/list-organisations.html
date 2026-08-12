@@ -19,10 +19,7 @@
     <div id="item-form-panel" style="display:none" class="card" style="margin-bottom:1.5rem">
       <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:1.25rem" id="item-form-title">New Organisation</h2>
       <input type="hidden" id="item-id" />
-      <div class="form-row">
-        <div class="form-group"><label>Name *</label><input type="text" id="item-label" placeholder="e.g. Singapore Red Cross" /></div>
-        <div class="form-group"><label>Display Order</label><input type="number" id="item-order" value="0" min="0" /></div>
-      </div>
+      <div class="form-group"><label>Name *</label><input type="text" id="item-label" placeholder="e.g. Singapore Red Cross" /></div>
       <div class="form-group" style="display:flex;align-items:center;gap:0.5rem"><input type="checkbox" id="item-active" checked style="width:auto" /><label for="item-active" style="display:inline;margin:0;font-size:0.88rem">Active (shown in dropdown)</label></div>
       <div style="color:#e05c5c;font-size:0.82rem;margin-bottom:0.75rem;display:none" id="item-error"></div>
       <div style="display:flex;gap:0.75rem"><button class="btn btn-primary" onclick="saveItem()">Save</button><button class="btn btn-ghost" onclick="closeItemForm()">Cancel</button></div>
@@ -35,8 +32,10 @@
 <script>
 const TABLE_NAME = 'volunteer_organisations';
 let editingItemId = null;
+let currentItems = [];
 document.addEventListener('DOMContentLoaded', async () => { await requireAdmin(); loadItems(); });
 
+// Opens the form blank for a new organisation, or pre-filled for editing an existing one.
 function openItemForm(item = null) {
   const panel = document.getElementById('item-form-panel');
   panel.style.display = 'block';
@@ -47,22 +46,22 @@ function openItemForm(item = null) {
     document.getElementById('item-form-title').textContent = 'Edit Organisation';
     document.getElementById('item-id').value = item.id;
     document.getElementById('item-label').value = item.label || '';
-    document.getElementById('item-order').value = item.display_order || 0;
     document.getElementById('item-active').checked = item.is_active ?? true;
   } else {
     document.getElementById('item-form-title').textContent = 'New Organisation';
     document.getElementById('item-id').value = '';
     document.getElementById('item-label').value = '';
-    document.getElementById('item-order').value = 0;
     document.getElementById('item-active').checked = true;
   }
 }
 
+// Hides the add/edit form.
 function closeItemForm() {
   document.getElementById('item-form-panel').style.display = 'none';
   editingItemId = null;
 }
 
+// Validates and saves the item, inserting a new row or updating the one being edited.
 async function saveItem() {
   const errEl = document.getElementById('item-error');
   errEl.style.display = 'none';
@@ -70,9 +69,13 @@ async function saveItem() {
   if (!label) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
   const payload = {
     label,
-    display_order: parseInt(document.getElementById('item-order').value) || 0,
     is_active: document.getElementById('item-active').checked
   };
+  if (!editingItemId) {
+    // New items go to the end of the list.
+    const maxOrder = currentItems.reduce((max, i) => Math.max(max, i.display_order || 0), 0);
+    payload.display_order = maxOrder + 1;
+  }
   const { error } = editingItemId
     ? await supabaseClient.from(TABLE_NAME).update(payload).eq('id', editingItemId)
     : await supabaseClient.from(TABLE_NAME).insert(payload);
@@ -82,15 +85,18 @@ async function saveItem() {
   loadItems();
 }
 
+// Fetches all organisations and renders them as a table.
 async function loadItems() {
   const container = document.getElementById('items-container');
   container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>';
   const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('display_order').order('label');
   if (error) { container.innerHTML = `<div style="color:#c0392b;padding:2rem">Error: ${escapeHtml(error.message)}</div>`; return; }
+  currentItems = data || [];
   if (!data?.length) { container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">No organisations yet.</div>'; return; }
   container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Name</th><th>Status</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td><td><span class="badge ${i.is_active ? 'badge-green' : 'badge-gray'}">${i.is_active ? 'Active' : 'Hidden'}</span></td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
+// Deletes an item after confirmation.
 async function deleteItem(id) {
   if (!await showConfirm('Delete this organisation?', { confirmLabel: 'Delete' })) return;
   await supabaseClient.from(TABLE_NAME).delete().eq('id', id);

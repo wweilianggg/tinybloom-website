@@ -1,7 +1,5 @@
 // js/testimonials-data.js
-// Single source of truth for seeded testimonials shown on both Home and Testimonials pages.
-// These match exactly what is inserted into the database via supabase_schema.sql.
-
+// Fallback testimonials shown if the database has none yet or can't be reached.
 const SEED_TESTIMONIALS = [
   {
     reviewer_name: 'Sarah K.',
@@ -23,6 +21,7 @@ const SEED_TESTIMONIALS = [
   }
 ];
 
+// Builds the HTML for one testimonial card.
 function renderTestimonialCard(t) {
   const dateStr = new Date(t.review_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const avatarUrl = t.reviewer_image_url
@@ -47,7 +46,8 @@ async function loadTestimonialsInto(containerId, limit = null) {
       .from('testimonials')
       .select('*')
       .eq('is_published', true)
-      .order('review_date', { ascending: false });
+      .order('review_date', { ascending: false })
+      .order('id', { ascending: false });
     if (limit) query = query.limit(limit);
     const { data } = await query;
     if (data && data.length > 0) {
@@ -74,7 +74,8 @@ async function loadPaginatedTestimonialsInto(containerId, buttonId, pageSize = 9
       .from('testimonials')
       .select('*')
       .eq('is_published', true)
-      .order('review_date', { ascending: false });
+      .order('review_date', { ascending: false })
+      .order('id', { ascending: false });
     if (data && data.length > 0) allItems = data;
   } catch { }
 

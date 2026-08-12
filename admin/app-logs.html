@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setCategory('mood');
 });
 
+// Switches between "Logs" (mood/symptoms/milestones tabs) and "Learn" (tags) mode.
 function onModeChange() {
   const mode = document.getElementById('mode-select').value;
   if (mode === 'learn') {
@@ -97,6 +98,7 @@ function onModeChange() {
   }
 }
 
+// Switches the active tab (mood/symptoms/milestones/learn) and reloads its items.
 function setCategory(category) {
   activeCategory = category;
   closeItemForm();
@@ -108,6 +110,7 @@ function setCategory(category) {
   loadItems();
 }
 
+// Opens the form blank for a new item, or pre-filled for editing an existing one.
 function openItemForm(item = null) {
   const panel = document.getElementById('item-form-panel');
   panel.style.display = 'block';
@@ -129,11 +132,13 @@ function openItemForm(item = null) {
   }
 }
 
+// Hides the add/edit item form.
 function closeItemForm() {
   document.getElementById('item-form-panel').style.display = 'none';
   editingItemId = null;
 }
 
+// Validates and saves the item form, inserting a new row or updating the one being edited.
 async function saveItem() {
   const errEl = document.getElementById('item-error');
   errEl.style.display = 'none';
@@ -160,6 +165,7 @@ async function saveItem() {
   loadItems();
 }
 
+// Fetches the items for the active category and renders them as a table.
 async function loadItems() {
   const container = document.getElementById('items-container');
   container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-light)">Loading...</div>';
@@ -175,6 +181,7 @@ async function loadItems() {
   container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th>${showIcon ? '<th style="width:3rem">Emoji</th>' : ''}<th>Label</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td>${showIcon ? `<td style="font-size:1.3rem">${escapeHtml(i.icon || '📋')}</td>` : ''}<td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
+// Deletes an item after confirmation.
 async function deleteItem(id) {
   if (!await showConfirm('Delete this log entry?', { confirmLabel: 'Delete' })) return;
   const table = TABLE_BY_CATEGORY[activeCategory];

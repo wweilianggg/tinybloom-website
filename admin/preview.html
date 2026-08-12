@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await requireAdmin();
 });
 
+// Maps each preview tab to the live page it should load in the iframe.
 const PAGE_MAP = {
   home: '../index.html',
   features: '../features.html',
@@ -95,6 +96,7 @@ const PAGE_MAP = {
   payment: '../payment.html',
 };
 
+// Swaps the iframe to the selected page and highlights its tab.
 function loadPreview(page) {
   const url = PAGE_MAP[page];
   document.getElementById('preview-iframe').src = url;
@@ -105,6 +107,7 @@ function loadPreview(page) {
 
 const DEVICE_SIZES = { desktop: '100%', tablet: '768px', mobile: '390px' };
 
+// Resizes the preview iframe to simulate a desktop, tablet, or mobile screen.
 function setDevice(device) {
   const iframe = document.getElementById('preview-iframe');
   iframe.style.width = DEVICE_SIZES[device];

@@ -111,8 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch {}
 
-  // Set initial billing cycle — defaults to monthly, but respects an old-style
-  // premium_yearly link for backward compatibility. User can switch via the toggle.
+  // Defaults to monthly unless the URL specifies premium_yearly; the toggle can change it either way.
   const params = new URLSearchParams(window.location.search);
   const plan = params.get('plan');
   setBillingCycle(plan === 'premium_yearly' ? 'yearly' : 'monthly');
@@ -131,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch {}
 });
 
+// Highlights the chosen monthly/yearly button and refreshes the price summary.
 function setBillingCycle(cycle) {
   billingCycle = cycle;
   const activeStyle = { border: '1.5px solid var(--teal)', background: 'var(--teal)', color: 'white' };
@@ -141,6 +141,7 @@ function setBillingCycle(cycle) {
   updateSummary();
 }
 
+// Recalculates and displays the subtotal, tax, and total for the chosen plan.
 function updateSummary() {
   const price = billingCycle === 'monthly' ? prices.monthly : prices.yearly;
   const tax   = parseFloat((price * 0.09).toFixed(2));
@@ -158,11 +159,13 @@ function goBack() {
   window.location.href = 'register.html';
 }
 
+// Groups the card number into 4-digit blocks as the user types (demo only, not sent anywhere).
 function formatCard(input) {
   let v = input.value.replace(/\D/g,'').substring(0,16);
   input.value = v.replace(/(.{4})/g,'$1 ').trim();
 }
 
+// Inserts the "/" in the MM/YY expiry field as the user types.
 function formatExpiry(input) {
   let v = input.value.replace(/\D/g,'').substring(0,4);
   if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
@@ -172,6 +175,7 @@ function formatExpiry(input) {
   document.getElementById('expiry-error').style.display = 'none';
 }
 
+// Checks the MM/YY expiry date is a real, not-yet-passed date.
 function validateExpiry(expiry) {
   if (!expiry || !expiry.includes('/') || expiry.length < 5) {
     return { valid: false, message: 'Please enter a valid expiry date (MM/YY).' };
@@ -208,6 +212,7 @@ function validateExpiry(expiry) {
   return { valid: true };
 }
 
+// Simulates a payment: creates the account (if this came from registration) or upgrades the logged-in user, then records the subscription.
 async function processPayment() {
   const email  = document.getElementById('pay-email').value.trim();
   const name   = document.getElementById('pay-name').value.trim();
