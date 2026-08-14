@@ -4,6 +4,15 @@
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Onboarding — Admin</title>
   <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    #item-form-panel .form-group:has(#item-type-checkbox) { display: none; }
+    body[data-onboarding-category="medical_condition"] #items-container table th:nth-child(3),
+    body[data-onboarding-category="medical_condition"] #items-container table td:nth-child(3),
+    body[data-onboarding-category="allergy"] #items-container table th:nth-child(4),
+    body[data-onboarding-category="allergy"] #items-container table td:nth-child(4) { display: none; }
+    #items-container table th:last-child { text-align: left; }
+    #items-container table td:last-child > div { justify-content: flex-start !important; }
+  </style>
 </head>
 <body>
 <div class="admin-layout">
@@ -33,6 +42,10 @@
       <div class="form-group" id="item-description-group" style="display:none">
         <label>Description *</label>
         <textarea id="item-description" rows="2" placeholder="e.g. Includes peanuts, almonds, cashews, walnuts, and other tree nuts."></textarea>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:0.5rem">
+        <input type="checkbox" id="item-type-textbox-toggle" style="width:auto" />
+        <label for="item-type-textbox-toggle" style="display:inline;margin:0;font-size:0.88rem">Textbox</label>
       </div>
       <div class="form-group">
         <label>Type</label>
@@ -87,6 +100,7 @@ function setCategory(category) {
     if (tab) tab.className = `btn btn-sm ${c === category ? 'btn-primary' : 'btn-ghost'}`;
   });
   document.getElementById('category-title').textContent = LABEL_BY_CATEGORY[category];
+  document.body.dataset.onboardingCategory = category;
   document.getElementById('new-item-btn').textContent = `+ New ${SINGULAR_BY_CATEGORY[category]}`;
   document.getElementById('item-description-group').style.display = category === 'allergy' ? 'block' : 'none';
   loadItems();
@@ -105,6 +119,7 @@ function openItemForm(item = null) {
     document.getElementById('item-id').value = item.id;
     document.getElementById('item-label').value = item.label || '';
     document.getElementById('item-description').value = item.description || '';
+    document.getElementById('item-type-textbox-toggle').checked = !!item.is_text_input;
     document.getElementById('item-type-textbox').checked = !!item.is_text_input;
     document.getElementById('item-type-checkbox').checked = !item.is_text_input;
   } else {
@@ -112,6 +127,7 @@ function openItemForm(item = null) {
     document.getElementById('item-id').value = '';
     document.getElementById('item-label').value = '';
     document.getElementById('item-description').value = '';
+    document.getElementById('item-type-textbox-toggle').checked = false;
     document.getElementById('item-type-checkbox').checked = true;
     document.getElementById('item-type-textbox').checked = false;
   }
@@ -135,7 +151,7 @@ async function saveItem() {
     label,
     category: activeCategory,
     description: activeCategory === 'allergy' ? description : null,
-    is_text_input: document.getElementById('item-type-textbox').checked
+    is_text_input: document.getElementById('item-type-textbox-toggle').checked
   };
   if (!editingItemId) {
     const maxOrder = currentItems.reduce((max, i) => Math.max(max, i.sort_order || 0), 0);
@@ -160,7 +176,7 @@ async function loadItems() {
   if (!data?.length) { container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-light)">No ${escapeHtml(LABEL_BY_CATEGORY[activeCategory].toLowerCase())} yet.</div>`; return; }
   const showDescription = activeCategory === 'allergy';
   const descHeader = showDescription ? '<th>Description</th>' : '';
-  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th>${descHeader}<th>Type</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td>${showDescription ? `<td style="font-size:0.85rem;color:var(--text-mid)">${escapeHtml(i.description || '')}</td>` : ''}<td style="font-size:0.82rem;color:var(--text-light)">${i.is_text_input ? '📝 Text box' : '☑️ Checkbox'}</td><td><div style="display:flex;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  container.innerHTML = `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th style="width:3rem">#</th><th>Label</th>${descHeader}<th>Type</th><th>Actions</th></tr></thead><tbody>${data.map((i, idx) => `<tr><td style="font-size:0.88rem;color:var(--text-light)">${idx + 1}</td><td style="font-weight:600;font-size:0.88rem">${escapeHtml(i.label)}</td>${showDescription ? `<td style="font-size:0.85rem;color:var(--text-mid)">${escapeHtml(i.description || '')}</td>` : ''}<td style="font-size:0.82rem;color:var(--text-light)">${i.is_text_input ? '📝 Text box' : '☑️ Checkbox'}</td><td><div style="display:flex;justify-content:center;gap:0.4rem"><button class="btn btn-ghost btn-sm" onclick='openItemForm(${JSON.stringify(i).replace(/'/g, "&#39;")})'>Edit</button><button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteItem('${escapeJsString(i.id)}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 // Deletes an item after confirmation.
